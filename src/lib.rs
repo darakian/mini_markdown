@@ -32,6 +32,9 @@ pub fn render_to_html(source: &str) -> String {
 fn render_heading(line: &str) -> String{
     let mut output = String::new();
     let hashes: String = line.chars().take_while(|x| x == &'#').collect();
+    if hashes.len() > 6{
+        return line
+    }
     let lead_heading = "<h".to_owned()+&hashes.len().to_string()+&">".to_owned();
     let end_heading = "</h".to_owned()+&hashes.len().to_string()+&">".to_owned();
     let prefix = hashes + " ";
