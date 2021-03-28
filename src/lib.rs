@@ -33,7 +33,7 @@ fn render_heading(line: &str) -> String{
     let mut output = String::new();
     let hashes: String = line.chars().take_while(|x| x == &'#').collect();
     if hashes.len() > 6{
-        return line
+        return line.to_string()
     }
     let lead_heading = "<h".to_owned()+&hashes.len().to_string()+&">".to_owned();
     let end_heading = "</h".to_owned()+&hashes.len().to_string()+&">".to_owned();
