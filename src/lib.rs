@@ -2,22 +2,6 @@
 mod tests {
     use crate::{render_to_html, lex};
     
-    //#[test]
-    fn test_headings() {
-        let heading_tests = vec![
-            ("<h1>Heading level 1</h1>", "# Heading level 1"),
-            ("<h2>Heading level 2</h2>", "## Heading level 2"),
-            ("<h3>Heading level 3</h3>", "### Heading level 3"),
-            ("<h4>Heading level 4</h4>", "#### Heading level 4"),
-            ("<h5>Heading level 5</h5>", "##### Heading level 5"),
-            ("<h6>Heading level 6</h6>", "###### Heading level 6"),
-        ];
-        for test in heading_tests.iter(){
-            println!("Testing: {} -> {}", test.1, test.0);
-            assert_eq!(test.0, render_to_html(test.1));
-        }
-    }
-
     #[test]
     fn test_lex() {
         let heading_tests = vec![
@@ -37,10 +21,18 @@ mod tests {
 }
 
 #[derive(Debug)]
+struct MarkdownParseError{
+    reason: String,
+}
+
+
+#[derive(Debug)]
 struct MarkdownHeader {
     level: u8,
     content: String,
 }
+
+
 
 /*
 Tokens
@@ -86,8 +78,6 @@ fn render_heading(line: &str) -> String{
     output
 }
 
-use std::cmp;
-
 fn lex(source: &str) -> (){
     let mut char_iter = source.trim().chars().peekable();
     let mut tokens = Vec::new();
@@ -97,7 +87,7 @@ fn lex(source: &str) -> (){
                 let heading = lex_heading(&mut char_iter);
                 match heading {
                     Ok(h) => tokens.push(h),
-                    Err(e) => println!("{}", e),
+                    Err(e) => println!("{:?}", e),
                 }
             }
             _ => {println!("??");}
@@ -106,7 +96,9 @@ fn lex(source: &str) -> (){
     }
 }
 
-fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownHeader, String>{
+
+use std::cmp;
+fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownHeader, MarkdownParseError>{
     let mut hashes = 0;
     while char_iter.peek() == Some(&'#'){
         hashes+=1;
@@ -120,6 +112,6 @@ fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<M
             }
             return Ok(MarkdownHeader{level: cmp::min(6, hashes), content: s});
         },
-        _ => {Err("Fuck".to_string())}
+        _ => {Err(MarkdownParseError{reason: "No space after final #".to_string()})}
     }
 }
