@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{render_to_html, lex};
+    use crate::{lex};
     
     #[test]
     fn test_lex() {
@@ -52,31 +52,6 @@ links [text](link) / [text](link "hover text")
 link without text <link>
 
 */
-
-pub fn render_to_html(source: &str) -> String {
-    let mut output = String::new();
-    for line in source.lines() {
-        if line.starts_with("#"){
-            output.push_str(&render_heading(line))
-        }
-    }
-    output
-}
-
-fn render_heading(line: &str) -> String{
-    let mut output = String::new();
-    let hashes: String = line.chars().take_while(|x| x == &'#').collect();
-    if hashes.len() > 6{
-        return line.to_string()
-    }
-    let lead_heading = "<h".to_owned()+&hashes.len().to_string()+&">".to_owned();
-    let end_heading = "</h".to_owned()+&hashes.len().to_string()+&">".to_owned();
-    let prefix = hashes + " ";
-    output.push_str(&lead_heading);
-    output.push_str(line.strip_prefix(&prefix).unwrap_or(""));
-    output.push_str(&end_heading);
-    output
-}
 
 fn lex(source: &str) -> (){
     let mut char_iter = source.trim().chars().peekable();
