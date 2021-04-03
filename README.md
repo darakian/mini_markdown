@@ -1,2 +1,2 @@
 # MiniMarkdown
-Small markdown renderer
+Small markdown renderer.
