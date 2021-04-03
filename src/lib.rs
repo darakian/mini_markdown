@@ -32,11 +32,15 @@ mod tests {
 enum MarkdownToken{
     MarkdownPlaintext(String),
     MarkdownBeginHeader(u8),
+    MarkdownUnorderedListEntry,
+    MarkdownItalic,
+    MarkdownBold,
+    MarkdownBoldItalic,
 }
 
 #[derive(Debug)]
 struct MarkdownParseError{
-    reason: String,
+    content: String,
 }
 
 
@@ -66,12 +70,19 @@ fn lex(source: &str) -> (){
         match char_iter.peek(){
             None => {return},
             Some('#') => {
-                let heading = lex_heading(&mut char_iter);
-                match heading {
-                    Ok(h) => tokens.push(h),
+                let token = lex_heading(&mut char_iter);
+                match token {
+                    Ok(t) => tokens.push(t),
                     Err(e) => println!("{:?}", e),
                 }
-            }
+            },
+            Some('*') => {
+                let token = lex_asterisk(&mut char_iter);
+                match token {
+                    Ok(t) => tokens.push(t),
+                    Err(e) => println!("{:?}", e),
+                }
+            },
             Some(_) => {
                 let c = char_iter.next().unwrap();
                 match tokens.last_mut() {
@@ -85,23 +96,41 @@ fn lex(source: &str) -> (){
                 }
             },
         }
-        println!("Token: {:?}", tokens.last());
+    }
+    for token in tokens.iter() {
+        println!("Token: {:?}", token)
     }
 }
 
 
 use std::cmp;
 fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownToken, MarkdownParseError>{
-    let mut hashes = 0;
+    let mut hashes = String::new();
     while char_iter.peek() == Some(&'#'){
-        hashes+=1;
-        char_iter.next();
+        hashes.push(char_iter.next().unwrap());
     }
     match char_iter.peek(){
         Some(' ') => {
             char_iter.next();
-            return Ok(MarkdownToken::MarkdownBeginHeader(cmp::min(6, hashes)));
+            return Ok(MarkdownToken::MarkdownBeginHeader(cmp::min(6, hashes.len() as u8)));
         },
-        _ => {Err(MarkdownParseError{reason: "No space after final #".to_string()})}
+        _ => {Err(MarkdownParseError{content: hashes})}
+    }
+}
+
+fn lex_asterisk(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownToken, MarkdownParseError>{
+    let mut asterisks = String::new();
+    asterisks.push(char_iter.next().unwrap());
+    if char_iter.peek() == Some(&' ') {
+        return Ok(MarkdownToken::MarkdownUnorderedListEntry)
+    }
+    while char_iter.peek() == Some(&'*'){
+        asterisks.push(char_iter.next().unwrap());
+    }
+    match asterisks.len() {
+        1 => return Ok(MarkdownToken::MarkdownItalic),
+        2 => return Ok(MarkdownToken::MarkdownBold),
+        3 => return Ok(MarkdownToken::MarkdownBoldItalic),
+        _ => return Err(MarkdownParseError{content: asterisks})
     }
 }
