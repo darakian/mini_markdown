@@ -22,9 +22,9 @@ mod tests {
         }
 
         let bold_tests = vec![
-            ("I just love **bold text**.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold, Token::Plaintext("bold text".to_string()), Token::Bold, Token::Plaintext(".".to_string())]),
-            ("I just love __bold text__.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold, Token::Plaintext("bold text".to_string()), Token::Bold, Token::Plaintext(".".to_string())]),
-            ("I just love *_bold text*_.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold, Token::Plaintext("bold text".to_string()), Token::Bold, Token::Plaintext(".".to_string())]),
+            ("I just love **bold text**.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold("bold text".to_string()), Token::Plaintext(".".to_string())]),
+            ("I just love __bold text__.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold("bold text".to_string()), Token::Plaintext(".".to_string())]),
+            ("I just love *_bold text*_.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold("bold text".to_string()), Token::Plaintext(".".to_string())]),
         ];
         for test in bold_tests.iter(){
             let tokens = lex(test.0);
@@ -122,15 +122,13 @@ pub fn parse(tokens: Vec<Token>) -> String {
     let mut html = String::new();
     for token in tokens.iter(){
         match token {
-            Token::Plaintext(s) => {html.push_str(format!("<p>{}</p>", s).as_str())},
-            Token::Header(l, t) => {
-                html.push_str(format!("<h{level}>{text}</{level}>", level=l, text=t).as_str())
-            },
+            Token::Plaintext(t) => {html.push_str(format!("<p>{}</p>", t).as_str())},
+            Token::Header(l, t) => {html.push_str(format!("<h{level}>{text}</{level}>", level=l, text=t).as_str())},
             // Token::UnorderedListEntry => {},
             // Token::OrderedListEntry => {},
-            //Token::Italic => {},
-            // Token::Bold => {},
-            // Token::BoldItalic => {},
+            Token::Italic(t) => {html.push_str(format!("<em>{}</em>", t).as_str())},
+            Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", t).as_str())},
+            Token::BoldItalic(t) => {html.push_str(format!("<strong><em>{}</em></strong>", t).as_str())},
             // Token::LineBreak => {},
             // Token::HorizontalRule => {},
             // Token::Tab => {},

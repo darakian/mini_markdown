@@ -4,9 +4,9 @@ pub enum Token{
     Header(u8, String),
     UnorderedListEntry,
     OrderedListEntry,
-    Italic,
-    Bold,
-    BoldItalic,
+    Italic(String),
+    Bold(String),
+    BoldItalic(String),
     LineBreak,
     HorizontalRule,
     Tab,
@@ -81,16 +81,54 @@ pub(crate) fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::s
     }
     match asterunds.len() {
         1 => {
-            return Ok(Token::Italic)
+            let mut s = String::new();
+            while char_iter.peek().is_some() && char_iter.peek() != Some(&'*') && char_iter.peek() != Some(&'_'){
+                s.push(char_iter.next().unwrap());
+            }
+            if char_iter.peek() != Some(&'*') || char_iter.peek() != Some(&'_'){
+                asterunds.push(char_iter.next().unwrap());
+                return Ok(Token::Italic(s))
+            } else {
+                return Err(ParseError{content: format!("{}{}", asterunds, s)});
+            }
         },
         2 => {
-            return Ok(Token::Bold)
+            let mut s = String::new();
+            while char_iter.peek().is_some() && char_iter.peek() != Some(&'*') && char_iter.peek() != Some(&'_'){
+                s.push(char_iter.next().unwrap());
+            }
+            if char_iter.peek() != Some(&'*') || char_iter.peek() != Some(&'_'){
+                asterunds.push(char_iter.next().unwrap());
+                if char_iter.peek() != Some(&'*') || char_iter.peek() != Some(&'_'){
+                    while char_iter.peek().is_some() && char_iter.peek() != Some(&'*') && char_iter.peek() != Some(&'_'){
+                        s.push(char_iter.next().unwrap());
+                    }
+                    asterunds.push(char_iter.next().unwrap());
+                    return Ok(Token::Bold(s))
+                } else {
+                    return Err(ParseError{content: format!("{}{}", asterunds, s)});
+                }
+            } else {
+                return Err(ParseError{content: format!("{}{}", asterunds, s)});
+            }
         },
         3 => {
             if asterunds.chars().all(|x| x == '*') && char_iter.peek() == Some(&'\n'){
                 return Ok(Token::HorizontalRule)
             } else {
-                return Ok(Token::BoldItalic)   
+                let mut s = String::new();
+                while char_iter.peek().is_some() && char_iter.peek() != Some(&'*') && char_iter.peek() != Some(&'_'){
+                    s.push(char_iter.next().unwrap());
+                }
+                for _i in 0..3 {
+                    let mut after = String::new();
+                    if char_iter.peek().is_some() && (char_iter.peek() == Some(&'*') || char_iter.peek() == Some(&'_')){
+                        after.push(char_iter.next().unwrap())
+                    } else {
+                        return Err(ParseError{content: format!("{}{}{}", asterunds, s, after)});
+                    }
+                }
+                return Ok(Token::BoldItalic(s))   
             }},
         _ => {
             if asterunds.chars().all(|x| x == '*') || asterunds.chars().all(|x| x == '_'){
