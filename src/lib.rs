@@ -129,17 +129,23 @@ pub fn parse(tokens: Vec<Token>) -> String {
             Token::Italic(t) => {html.push_str(format!("<em>{}</em>", t).as_str())},
             Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", t).as_str())},
             Token::BoldItalic(t) => {html.push_str(format!("<strong><em>{}</em></strong>", t).as_str())},
-            // Token::LineBreak => {},
+            Token::LineBreak => {html.push_str("<br>")},
             // Token::HorizontalRule => {},
             // Token::Tab => {},
             // Token::DoubleTab => {},
-            _ => {},
-            // Token::Code(String) => {},
-            // Token::EscapedCode(String) => {},
+            Token::Code(t) | Token::EscapedCode(t) => {html.push_str(format!("<code>{}</code>", t).as_str())},
             // Token::InlineNewline => {},
             // Token::BlockQuote(u8) => {},
-            // Token::Image(String, String), // (Link, title)
-            // Token::Link(String, Option<String>, Option<String>), //(link, title, hover text)
+            Token::Image(l, t) => html.push_str(format!("<img src=\"{link}\" alt=\"{text}\"", link=l, text=t).as_str()), // (Link, title)
+            Token::Link(l, t, ht) => {
+                match (t, ht){
+                    (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}", link=l, text=t, hover=ht).as_str()),
+                    (Some(t), None) => html.push_str(format!("<a href=\"{link}\">{text}</a>", link=l, text=t).as_str()),
+                    (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\">{link}</a>", link=l, hover=ht).as_str()),
+                    (None, None) => html.push_str(format!("<a href=\"{link}\">{link}</a>", link=l).as_str()),
+                }
+            },
+            _ => {},
         }
     }
     html
