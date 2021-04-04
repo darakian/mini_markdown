@@ -22,7 +22,7 @@ pub enum Token{
 
 #[derive(Debug)]
 pub(crate) struct ParseError{
-    pub content: String,
+    pub(crate) content: String,
 }
 
 pub(crate) fn push_char(t: &mut Vec<Token>, c: char) {
