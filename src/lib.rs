@@ -118,31 +118,32 @@ pub fn lex(source: &str) -> Vec<Token>{
     tokens
 }
 
-// pub fn parse(tokens: Vec<Token>) -> String {
-//     let mut html = String::new();
-//     for token in tokens.iter(){
-//         match token {
-//             Token::Plaintext(s) => {html.push_str(s)},
-//             Token::Header(h) => {
-//                 html.push(format!())
-//             },
-//             Token::UnorderedListEntry => {},
-//             Token::OrderedListEntry => {},
-//             Token::Italic => {},
-//             Token::Bold => {},
-//             Token::BoldItalic => {},
-//             Token::ParagraphBreak => {},
-//             Token::LineBreak => {},
-//             Token::HorizontalRule => {},
-//             Token::Tab => {},
-//             Token::DoubleTab => {},
-//             Token::Code(String) => {},
-//             Token::EscapedCode(String) => {},
-//             Token::InlineNewline => {},
-//             Token::BlockQuote(u8) => {},
-//             Token::Image(String, String), // (Link, title)
-//             Token::Link(String, Option<String>, Option<String>), //(link, title, hover text)
-//             }
-//         }
-//     }
-// }
+pub fn parse(tokens: Vec<Token>) -> String {
+    let mut html = String::new();
+    for token in tokens.iter(){
+        match token {
+            Token::Plaintext(s) => {html.push_str(s)},
+            Token::Header(l, t) => {
+                html.push_str(format!("<h{level}>{text}</{level}>", level=l, text=t).as_str())
+            },
+            // Token::UnorderedListEntry => {},
+            // Token::OrderedListEntry => {},
+            // Token::Italic => {},
+            // Token::Bold => {},
+            // Token::BoldItalic => {},
+            // Token::ParagraphBreak => {},
+            // Token::LineBreak => {},
+            // Token::HorizontalRule => {},
+            // Token::Tab => {},
+            // Token::DoubleTab => {},
+            _ => {},
+            // Token::Code(String) => {},
+            // Token::EscapedCode(String) => {},
+            // Token::InlineNewline => {},
+            // Token::BlockQuote(u8) => {},
+            // Token::Image(String, String), // (Link, title)
+            // Token::Link(String, Option<String>, Option<String>), //(link, title, hover text)
+        }
+    }
+    html
+}
