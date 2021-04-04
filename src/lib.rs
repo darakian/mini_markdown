@@ -25,14 +25,14 @@ mod tests {
             ("I just love\n\n\n _*bold text_*.", "I just love <strong>bold text</strong>."),
         ];
         for test in bold_tests.iter(){
-            println!("Testing bold: {} -> {}", test.0, test.1);
+            // println!("Testing bold: {} -> {}", test.0, test.1);
             lex(test.0);
         }
     }
 }
 
 #[derive(Debug)]
-enum MarkdownToken{
+pub enum MarkdownToken{
     MarkdownPlaintext(String),
     MarkdownBeginHeader(u8),
     MarkdownUnorderedListEntry,
@@ -44,10 +44,12 @@ enum MarkdownToken{
     MarkdownLineBreak,
     MarkdownTab,
     MarkdownDoubleTab,
+    MarkdownCode(String),
+    MarkdownEscapedCode(String),
 }
 
 #[derive(Debug)]
-struct MarkdownParseError{
+pub struct MarkdownParseError{
     content: String,
 }
 
@@ -66,7 +68,7 @@ link without text <link>
 
 */
 
-fn lex(source: &str) -> (){
+pub fn lex(source: &str) -> (){
     let mut char_iter = source.chars().peekable();
     let mut tokens = Vec::new();
     while char_iter.peek().is_some(){
@@ -97,7 +99,18 @@ fn lex(source: &str) -> (){
             },
             Some(' ') => {
                 let token = lex_spaces(&mut char_iter);
+                match token {
+                    Ok(t) => tokens.push(t),
+                    Err(e) => println!("{:?}", e)
+                }
             },
+            Some('`') => {
+                let token = lex_backticks(&mut char_iter);
+                match token {
+                    Ok(t) => tokens.push(t),
+                    Err(e) => println!("{:?}", e)
+                }
+            }
             Some('\n') => {
                 char_iter.next();
                 tokens.push(MarkdownToken::MarkdownParagraphBreak)},
@@ -107,12 +120,12 @@ fn lex(source: &str) -> (){
             },
         }
     }
-    for token in tokens.iter() {
-        println!("Token: {:?}", token)
-    }
+    // for token in tokens.iter() {
+    //     println!("Token: {:?}", token)
+    // }
 }
 
-fn push_char(t: &mut Vec<MarkdownToken>, c: char) {
+pub fn push_char(t: &mut Vec<MarkdownToken>, c: char) {
     match t.last_mut() {
         Some(markdown_token) => {
             match markdown_token {
@@ -125,7 +138,7 @@ fn push_char(t: &mut Vec<MarkdownToken>, c: char) {
 }
 
 use std::cmp;
-fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownToken, MarkdownParseError>{
+pub fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownToken, MarkdownParseError>{
     let mut hashes = String::new();
     while char_iter.peek() == Some(&'#'){
         hashes.push(char_iter.next().unwrap());
@@ -139,7 +152,7 @@ fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<M
     }
 }
 
-fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownToken, MarkdownParseError>{
+pub fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownToken, MarkdownParseError>{
     let mut asterunds = String::new();
     if char_iter.peek() == Some(&'*') {
         asterunds.push(char_iter.next().unwrap());
@@ -158,7 +171,7 @@ fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::str::Chars>)
     }
 }
 
-fn lex_spaces(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownToken, MarkdownParseError>{
+pub fn lex_spaces(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownToken, MarkdownParseError>{
     let mut spaces = char_iter.next().unwrap().to_string();
     // Case 1: space in text => return char
     if char_iter.peek() != Some(&' ') {
@@ -183,4 +196,42 @@ fn lex_spaces(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Ma
         _ => {}
     }
     Err(MarkdownParseError{content: spaces})
+}
+
+pub fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownToken, MarkdownParseError>{
+    let mut ticks = char_iter.next().unwrap().to_string();
+    match char_iter.peek(){
+        Some(&'`') => {
+            ticks.push(char_iter.next().unwrap());
+            let mut s = String::new();
+            while char_iter.peek().is_some() {
+                match char_iter.peek() {
+                    Some(&'`') => {
+                        ticks.push(char_iter.next().unwrap());
+                        match char_iter.peek(){
+                            Some(&'`') => return Ok(MarkdownToken::MarkdownEscapedCode(s)),
+                            Some(_) => s.push('`'),
+                            None => return Err(MarkdownParseError{content: s})
+                        }
+                    },
+                    Some(_) => {s.push(char_iter.next().unwrap())},
+                    None => {return Err(MarkdownParseError{content: s})}
+                }
+            }
+            return  Err(MarkdownParseError{content: s})
+        },
+        Some(_) => {
+            let mut s = String::new();
+            while char_iter.peek().is_some() && char_iter.peek() != Some(&'`'){
+                s.push(char_iter.next().unwrap());
+            }
+            if char_iter.peek() == Some(&'`'){
+                char_iter.next();
+                return Ok(MarkdownToken::MarkdownCode(s))
+            } else {
+                return  Err(MarkdownParseError{content: s})
+            }
+        }
+        None => {return Err(MarkdownParseError{content: ticks})}
+    }
 }
