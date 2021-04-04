@@ -122,16 +122,15 @@ pub fn parse(tokens: Vec<Token>) -> String {
     let mut html = String::new();
     for token in tokens.iter(){
         match token {
-            Token::Plaintext(s) => {html.push_str(s)},
+            Token::Plaintext(s) => {html.push_str(format!("<p>{}</p>", s).as_str())},
             Token::Header(l, t) => {
                 html.push_str(format!("<h{level}>{text}</{level}>", level=l, text=t).as_str())
             },
             // Token::UnorderedListEntry => {},
             // Token::OrderedListEntry => {},
-            // Token::Italic => {},
+            //Token::Italic => {},
             // Token::Bold => {},
             // Token::BoldItalic => {},
-            // Token::ParagraphBreak => {},
             // Token::LineBreak => {},
             // Token::HorizontalRule => {},
             // Token::Tab => {},

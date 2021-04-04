@@ -7,7 +7,6 @@ pub enum Token{
     Italic,
     Bold,
     BoldItalic,
-    ParagraphBreak,
     LineBreak,
     HorizontalRule,
     Tab,
@@ -81,8 +80,12 @@ pub(crate) fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::s
         asterunds.push(char_iter.next().unwrap());
     }
     match asterunds.len() {
-        1 => return Ok(Token::Italic),
-        2 => return Ok(Token::Bold),
+        1 => {
+            return Ok(Token::Italic)
+        },
+        2 => {
+            return Ok(Token::Bold)
+        },
         3 => {
             if asterunds.chars().all(|x| x == '*') && char_iter.peek() == Some(&'\n'){
                 return Ok(Token::HorizontalRule)
@@ -166,12 +169,12 @@ pub(crate) fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>
 pub(crate) fn lex_newlines(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
     let mut new_lines = char_iter.next().unwrap().to_string();
     if char_iter.peek() != Some(&'\n') {
-        return Ok(Token::InlineNewline);
+        return Err(ParseError{content: new_lines});
     }
     while char_iter.peek() == Some(&'\n'){
         new_lines.push(char_iter.next().unwrap())
     }
-    Ok(Token::ParagraphBreak)
+    Ok(Token::Plaintext("".to_string()))
 }
 
 pub(crate) fn lex_blockquotes(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
