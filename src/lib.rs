@@ -20,6 +20,9 @@ mod tests {
 
         let bold_tests = vec![
             ("I just love **bold text**.", "I just love <strong>bold text</strong>."),
+            ("I just love __bold text__.", "I just love <strong>bold text</strong>."),
+            ("I just love *_bold text*_.", "I just love <strong>bold text</strong>."),
+            ("I just love\n\n\n _*bold text_*.", "I just love <strong>bold text</strong>."),
         ];
         for test in bold_tests.iter(){
             println!("Testing bold: {} -> {}", test.0, test.1);
@@ -33,9 +36,14 @@ enum MarkdownToken{
     MarkdownPlaintext(String),
     MarkdownBeginHeader(u8),
     MarkdownUnorderedListEntry,
+    MarkdownOrderedListEntry,
     MarkdownItalic,
     MarkdownBold,
     MarkdownBoldItalic,
+    MarkdownParagraphBreak,
+    MarkdownLineBreak,
+    MarkdownTab,
+    MarkdownDoubleTab,
 }
 
 #[derive(Debug)]
@@ -46,15 +54,10 @@ struct MarkdownParseError{
 
 /*
 Tokens
-#, ##, ... (headers)
-***x*** / ___x___
-**x** / __x__
-*x* / _x_
->, >>, ...
-newline (two or more spaces at end of line)
-1., 2.,  (number dot ordered lists. Can nest)
--/+  (unordered lists. Can nest)
-code blocks (4 spaces for block. Can be multiline. Can be in list (8 spaces if so))
+
+>, >>, ... Quoteblocks
+
+
 images ![text](link)
 `x` code
 ``x`` escape backticks in x
@@ -64,9 +67,10 @@ link without text <link>
 */
 
 fn lex(source: &str) -> (){
-    let mut char_iter = source.trim().chars().peekable();
+    let mut char_iter = source.chars().peekable();
     let mut tokens = Vec::new();
     while char_iter.peek().is_some(){
+        // println!("Working {:?}", char_iter.peek());
         match char_iter.peek(){
             None => {return},
             Some('#') => {
@@ -76,24 +80,30 @@ fn lex(source: &str) -> (){
                     Err(e) => println!("{:?}", e),
                 }
             },
-            Some('*') => {
-                let token = lex_asterisk(&mut char_iter);
+            Some('*') | Some('_') => {
+                let token = lex_asterisk_underscore(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => println!("{:?}", e),
                 }
             },
+            Some('-') | Some('+') => {
+                let c = char_iter.next().unwrap();
+                if char_iter.next_if_eq(&' ').is_some(){
+                    tokens.push(MarkdownToken::MarkdownUnorderedListEntry)
+                } else {
+                    push_char(&mut tokens, c);
+                }
+            },
+            Some(' ') => {
+                let token = lex_spaces(&mut char_iter);
+            },
+            Some('\n') => {
+                char_iter.next();
+                tokens.push(MarkdownToken::MarkdownParagraphBreak)},
             Some(_) => {
                 let c = char_iter.next().unwrap();
-                match tokens.last_mut() {
-                    Some(markdown_token) => {
-                        match markdown_token {
-                            MarkdownToken::MarkdownPlaintext(mp) => mp.push(c),
-                            _ => tokens.push(MarkdownToken::MarkdownPlaintext(c.to_string())),
-                        }
-                    }
-                    None => tokens.push(MarkdownToken::MarkdownPlaintext(c.to_string())),
-                }
+                push_char(&mut tokens, c);
             },
         }
     }
@@ -102,6 +112,17 @@ fn lex(source: &str) -> (){
     }
 }
 
+fn push_char(t: &mut Vec<MarkdownToken>, c: char) {
+    match t.last_mut() {
+        Some(markdown_token) => {
+            match markdown_token {
+                MarkdownToken::MarkdownPlaintext(mp) => mp.push(c),
+                _ => t.push(MarkdownToken::MarkdownPlaintext(c.to_string())),
+            }
+        }
+        None => t.push(MarkdownToken::MarkdownPlaintext(c.to_string())),
+    }
+}
 
 use std::cmp;
 fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownToken, MarkdownParseError>{
@@ -118,19 +139,48 @@ fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<M
     }
 }
 
-fn lex_asterisk(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownToken, MarkdownParseError>{
-    let mut asterisks = String::new();
-    asterisks.push(char_iter.next().unwrap());
-    if char_iter.peek() == Some(&' ') {
-        return Ok(MarkdownToken::MarkdownUnorderedListEntry)
+fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownToken, MarkdownParseError>{
+    let mut asterunds = String::new();
+    if char_iter.peek() == Some(&'*') {
+        asterunds.push(char_iter.next().unwrap());
+        if char_iter.next_if_eq(&' ').is_some(){
+            return Ok(MarkdownToken::MarkdownUnorderedListEntry)
+        }
     }
-    while char_iter.peek() == Some(&'*'){
-        asterisks.push(char_iter.next().unwrap());
+    while char_iter.peek() == Some(&'*') || char_iter.peek() == Some(&'_'){
+        asterunds.push(char_iter.next().unwrap());
     }
-    match asterisks.len() {
+    match asterunds.len() {
         1 => return Ok(MarkdownToken::MarkdownItalic),
         2 => return Ok(MarkdownToken::MarkdownBold),
         3 => return Ok(MarkdownToken::MarkdownBoldItalic),
-        _ => return Err(MarkdownParseError{content: asterisks})
+        _ => return Err(MarkdownParseError{content: asterunds})
     }
+}
+
+fn lex_spaces(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<MarkdownToken, MarkdownParseError>{
+    let mut spaces = char_iter.next().unwrap().to_string();
+    // Case 1: space in text => return char
+    if char_iter.peek() != Some(&' ') {
+        return Ok(MarkdownToken::MarkdownPlaintext(spaces));
+    }
+    // Glob spaces
+    while char_iter.peek() == Some(&' '){
+        spaces.push(char_iter.next().unwrap())
+    }
+    // Case 2: two or more spaces followed by \n => line break
+    if char_iter.peek() == Some(&'\n'){
+        return Ok(MarkdownToken::MarkdownLineBreak);
+    }
+    /* Cases:
+    3. four spaces or a tab => code block
+    3a. four spaces in a list => add paragraph item to prior list element
+    4. eight spaces or two tabs => code block in list
+    */
+    match spaces.len(){
+        4 => return Ok(MarkdownToken::MarkdownTab),
+        8 => return Ok(MarkdownToken::MarkdownDoubleTab),
+        _ => {}
+    }
+    Err(MarkdownParseError{content: spaces})
 }
