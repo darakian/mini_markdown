@@ -134,7 +134,6 @@ pub fn parse(tokens: Vec<Token>) -> String {
             // Token::Tab => {},
             // Token::DoubleTab => {},
             Token::Code(t) | Token::EscapedCode(t) => {html.push_str(format!("<code>{}</code>", t).as_str())},
-            // Token::InlineNewline => {},
             // Token::BlockQuote(u8) => {},
             Token::Image(l, t) => html.push_str(format!("<img src=\"{link}\" alt=\"{text}\"", link=l, text=t).as_str()), // (Link, title)
             Token::Link(l, t, ht) => {

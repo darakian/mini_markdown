@@ -13,7 +13,6 @@ pub enum Token{
     DoubleTab,
     Code(String),
     EscapedCode(String),
-    InlineNewline,
     BlockQuote(u8),
     Image(String, String), // (Link, title)
     Link(String, Option<String>, Option<String>), //(link, title, hover text)
