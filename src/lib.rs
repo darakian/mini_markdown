@@ -21,16 +21,15 @@ mod tests {
             assert_eq!(&tokens[..], &test.1[..]);
         }
 
-        // let bold_tests = vec![
-        //     ("I just love **bold text**.", "I just love <strong>bold text</strong>."),
-        //     ("I just love __bold text__.", "I just love <strong>bold text</strong>."),
-        //     ("I just love *_bold text*_.", "I just love <strong>bold text</strong>."),
-        //     ("I just love\n\n\n _*bold text_*.", "I just love <strong>bold text</strong>."),
-        // ];
-        // for test in bold_tests.iter(){
-        //     println!("Testing bold: {} -> {}", test.0, test.1);
-        //     lex(test.0);
-        // }
+        let bold_tests = vec![
+            ("I just love **bold text**.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold, Token::Plaintext("bold text".to_string()), Token::Bold, Token::Plaintext(".".to_string())]),
+            ("I just love __bold text__.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold, Token::Plaintext("bold text".to_string()), Token::Bold, Token::Plaintext(".".to_string())]),
+            ("I just love *_bold text*_.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold, Token::Plaintext("bold text".to_string()), Token::Bold, Token::Plaintext(".".to_string())]),
+        ];
+        for test in bold_tests.iter(){
+            let tokens = lex(test.0);
+            assert_eq!(&tokens[..], &test.1[..]);
+        }
     }
 }
 
