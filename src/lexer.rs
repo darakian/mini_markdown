@@ -37,6 +37,18 @@ pub(crate) fn push_char(t: &mut Vec<Token>, c: char) {
     }
 }
 
+pub(crate) fn push_str(t: &mut Vec<Token>, s: String) {
+    match t.last_mut() {
+        Some(markdown_token) => {
+            match markdown_token {
+                Token::Plaintext(plaintext_token) => plaintext_token.push_str(&s),
+                _ => t.push(Token::Plaintext(s)),
+            }
+        }
+        None => t.push(Token::Plaintext(s)),
+    }
+}
+
 use std::cmp;
 pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
     let mut hashes = String::new();
