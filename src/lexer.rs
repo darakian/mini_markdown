@@ -15,6 +15,7 @@ pub enum Token{
     EscapedCode(String),
     InlineNewline,
     BlockQuote(u8),
+    Image(String, String)
 }
 
 #[derive(Debug)]
@@ -83,6 +84,13 @@ pub fn lex(source: &str) -> (){
             }
             Some('>') => {
                 let token = lex_blockquotes(&mut char_iter);
+                match token {
+                    Ok(t) => tokens.push(t),
+                    Err(e) => println!("{:?}", e)
+                }
+            }
+            Some('!') => {
+                let token = lex_images(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => println!("{:?}", e)
@@ -229,4 +237,61 @@ pub fn lex_blockquotes(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> 
         level+=1;
     }
     Ok(Token::BlockQuote(level))
+}
+
+pub fn lex_images(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+    let bang = char_iter.next().unwrap();
+    match char_iter.peek(){
+        Some(&'[') => {
+            char_iter.next();
+            let mut title = String::new();
+            while char_iter.peek().is_some() && char_iter.peek() != Some(&']'){
+                title.push(char_iter.next().unwrap());
+            }
+            match char_iter.peek() {
+                Some(&']') => {
+                    char_iter.next();
+                    match char_iter.peek() {
+                        Some(&'(') => {
+                            char_iter.next();
+                            let mut link = String::new();
+                            while char_iter.peek().is_some() && char_iter.peek() != Some(&')'){
+                                link.push(char_iter.next().unwrap());
+                            }
+                            match char_iter.peek() {
+                                Some(')') => {
+                                    return Ok(Token::Image(title, link))
+                                },
+                                _ => {
+                                    let mut s = String::new();
+                                    s.push(bang);
+                                    s.push('[');
+                                    s.push_str(&title);
+                                    s.push(']');
+                                    s.push_str(&link);
+                                    return Err(ParseError{content: s});  
+                                }
+                            }
+                        }, 
+                        _ => {
+                            let mut s = String::new();
+                            s.push(bang);
+                            s.push('[');
+                            s.push_str(&title);
+                            s.push(']');
+                            return Err(ParseError{content: s});
+                        }
+                    }
+                },
+                _ => {
+                    let mut s = String::new();
+                    s.push(bang);
+                    s.push('[');
+                    s.push_str(&title);
+                    return Err(ParseError{content: s});
+                }
+            }
+        },
+        _ => return Ok(Token::Plaintext(bang.to_string()))
+    }
 }
