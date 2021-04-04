@@ -130,7 +130,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
             Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", t).as_str())},
             Token::BoldItalic(t) => {html.push_str(format!("<strong><em>{}</em></strong>", t).as_str())},
             Token::LineBreak => {html.push_str("<br>")},
-            // Token::HorizontalRule => {},
+            Token::HorizontalRule => {html.push_str("<hr>")},
             // Token::Tab => {},
             // Token::DoubleTab => {},
             Token::Code(t) | Token::EscapedCode(t) => {html.push_str(format!("<code>{}</code>", t).as_str())},
