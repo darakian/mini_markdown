@@ -43,21 +43,27 @@ pub fn lex(source: &str) -> Vec<Token>{
                 let token = lex_heading(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
-                    Err(e) => println!("{:?}", e),
+                    Err(e) => {
+                        for c in e.content.chars(){push_char(&mut tokens, c)}
+                    },
                 }
             },
             Some('*') | Some('_') => {
                 let token = lex_asterisk_underscore(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
-                    Err(e) => println!("{:?}", e),
+                    Err(e) => {
+                        for c in e.content.chars(){push_char(&mut tokens, c)}
+                    },
                 }
             },
             Some('-') | Some('+') => {
                 let token = lex_plus_minus(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
-                    Err(e) => println!("{:?}", e),
+                    Err(e) => {
+                        for c in e.content.chars(){push_char(&mut tokens, c)}
+                    },
                 }
             },
             Some(' ') => {
@@ -73,42 +79,54 @@ pub fn lex(source: &str) -> Vec<Token>{
                 let token = lex_backticks(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
-                    Err(e) => println!("{:?}", e)
+                    Err(e) => {
+                        for c in e.content.chars(){push_char(&mut tokens, c)}
+                    }
                 }
             },
             Some('\n') => {
                 let token = lex_newlines(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
-                    Err(e) => println!("{:?}", e)
+                    Err(e) => {
+                        for c in e.content.chars(){push_char(&mut tokens, c)}
+                    }
                 }
             },
             Some('>') => {
                 let token = lex_blockquotes(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
-                    Err(e) => println!("{:?}", e)
+                    Err(e) => {
+                        for c in e.content.chars(){push_char(&mut tokens, c)}
+                    }
                 }
             },
             Some('!') => {
                 let token = lex_images(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
-                    Err(e) => println!("{:?}", e)
+                    Err(e) => {
+                        for c in e.content.chars(){push_char(&mut tokens, c)}
+                    }
                 }
             },
             Some('[') => {
                 let token = lex_links(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
-                    Err(e) => println!("{:?}", e)
+                    Err(e) => {
+                        for c in e.content.chars(){push_char(&mut tokens, c)}
+                    }
                 }
             },
             Some('<') => {
                 let token = lex_easy_links(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
-                    Err(e) => println!("{:?}", e)
+                    Err(e) => {
+                        for c in e.content.chars(){push_char(&mut tokens, c)}
+                    }
                 }
             },
             Some(_) => {
