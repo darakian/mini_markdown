@@ -26,7 +26,6 @@ pub(crate) struct ParseError{
 }
 
 pub(crate) fn push_char(t: &mut Vec<Token>, c: char) {
-    println!("pushing char: {}\nPrior token: {:?}", c, t.last());
     match t.last_mut() {
         Some(markdown_token) => {
             match markdown_token {

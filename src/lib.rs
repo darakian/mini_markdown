@@ -7,29 +7,18 @@ mod tests {
     
     #[test]
     fn test_lex() {
-        // let heading_tests = vec![
-        //     ("# Heading level 1", vec![Token::Header(1), ]),
-        //     ("## Heading level 2", "<h2>Heading level 2</h2>"),
-        //     ("### Heading level 3", "<h3>Heading level 3</h3>"),
-        //     ("#### Heading level 4", "<h4>Heading level 4</h4>"),
-        //     ("##### Heading level 5", "<h5>Heading level 5</h5>"),
-        //     ("###### Heading level 6", "<h6>Heading level 6</h6>"),
-        //     ("####### Invalid Heading level 7", "<h6>Heading level 6</h6>"), 
-        // 1
-        // ];
-        let mut heading_tests = Vec::new();
-        heading_tests.push(
-            ("# Heading level 1", 
-            vec![Token::Header(1),Token::Plaintext("Heading level 1".to_string()),]
-            )
-        );
+        let heading_tests = vec![
+            ("# Heading level 1", vec![Token::Header(1),Token::Plaintext("Heading level 1".to_string())]),
+            ("## Heading level 2", vec![Token::Header(2),Token::Plaintext("Heading level 2".to_string())]),
+            ("### Heading level 3", vec![Token::Header(3),Token::Plaintext("Heading level 3".to_string())]),
+            ("#### Heading level 4", vec![Token::Header(4),Token::Plaintext("Heading level 4".to_string())]),
+            ("##### Heading level 5", vec![Token::Header(5),Token::Plaintext("Heading level 5".to_string())]),
+            ("###### Heading level 6", vec![Token::Header(6),Token::Plaintext("Heading level 6".to_string())]),
+            ("####### Invalid Heading level 7", vec![Token::Header(6),Token::Plaintext("Invalid Heading level 7".to_string())]), 
+        ];
         for test in heading_tests.iter(){
-            println!("Testing: {} -> {:?}", test.0, test.1);
             let tokens = lex(test.0);
             assert_eq!(&tokens[..], &test.1[..]);
-            for token in tokens{
-                println!("Token: {:?}", token)
-            }
         }
 
         // let bold_tests = vec![
@@ -78,7 +67,7 @@ pub fn lex(source: &str) -> Vec<Token>{
                     Ok(t) => tokens.push(t),
                     Err(e) => {
                         for c in e.content.chars(){push_char(&mut tokens, c)}
-                        println!("{:?}", e)}
+                    }
                 }
             },
             Some('`') => {
