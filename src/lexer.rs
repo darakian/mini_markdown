@@ -9,6 +9,7 @@ pub enum Token{
     BoldItalic,
     ParagraphBreak,
     LineBreak,
+    HorizontalRule,
     Tab,
     DoubleTab,
     Code(String),
@@ -46,11 +47,10 @@ pub fn lex(source: &str) -> (){
                 }
             },
             Some('-') | Some('+') => {
-                let c = char_iter.next().unwrap();
-                if char_iter.next_if_eq(&' ').is_some(){
-                    tokens.push(Token::UnorderedListEntry)
-                } else {
-                    push_char(&mut tokens, c);
+                let token = lex_plus_minus(&mut char_iter);
+                match token {
+                    Ok(t) => tokens.push(t),
+                    Err(e) => println!("{:?}", e),
                 }
             },
             Some(' ') => {
@@ -108,9 +108,6 @@ pub fn lex(source: &str) -> (){
             },
         }
     }
-    // for token in tokens.iter() {
-    //     println!("Token: {:?}", token)
-    // }
 }
 
 pub fn push_char(t: &mut Vec<Token>, c: char) {
@@ -154,8 +151,18 @@ pub fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::str::Cha
     match asterunds.len() {
         1 => return Ok(Token::Italic),
         2 => return Ok(Token::Bold),
-        3 => return Ok(Token::BoldItalic),
-        _ => return Err(ParseError{content: asterunds})
+        3 => {
+            if asterunds.chars().all(|x| x == '*') && char_iter.peek() == Some(&'\n'){
+                return Ok(Token::HorizontalRule)
+            } else {
+                return Ok(Token::BoldItalic)   
+            }},
+        _ => {
+            if asterunds.chars().all(|x| x == '*') || asterunds.chars().all(|x| x == '_'){
+                return Ok(Token::HorizontalRule)
+            } else {
+                return Err(ParseError{content: asterunds})
+            }}
     }
 }
 
@@ -226,11 +233,9 @@ pub fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Re
 
 pub fn lex_newlines(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
     let mut new_lines = char_iter.next().unwrap().to_string();
-    // Case 1: newline in text => return char
     if char_iter.peek() != Some(&'\n') {
         return Ok(Token::InlineNewline);
     }
-    // Glob new lines
     while char_iter.peek() == Some(&'\n'){
         new_lines.push(char_iter.next().unwrap())
     }
@@ -396,4 +401,27 @@ pub fn lex_easy_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> R
         }
         _ => return Err(ParseError{content: "".to_string()})
     }
+}
+
+pub fn lex_plus_minus(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+    let c = char_iter.next().unwrap();
+    if char_iter.next_if_eq(&' ').is_some(){
+        return Ok(Token::UnorderedListEntry)
+    }
+    match c {
+        '-' => {
+            let mut s = String::new();
+            while char_iter.peek().is_some() && char_iter.peek() == Some(&'-'){
+                s.push(char_iter.next().unwrap());
+            }
+            if s.chars().all(|x| x == '-') && char_iter.peek() == Some(&'\n'){
+                return Ok(Token::HorizontalRule)
+            } else {
+                s.insert(0, c);
+                return Ok(Token::Plaintext(s))
+            }
+        },
+        _ => return Ok(Token::Plaintext(c.to_string())),
+    }
+
 }
