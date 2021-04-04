@@ -1,7 +1,7 @@
 #[derive(Debug, PartialEq)]
 pub enum Token{
     Plaintext(String),
-    Header(u8),
+    Header(u8, String),
     UnorderedListEntry,
     OrderedListEntry,
     Italic,
@@ -58,7 +58,12 @@ pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) 
     match char_iter.peek(){
         Some(' ') => {
             char_iter.next();
-            return Ok(Token::Header(cmp::min(6, hashes.len() as u8)));
+            let level = cmp::min(6, hashes.len() as u8);
+            let mut s = String::new();
+            while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n'){
+                s.push(char_iter.next().unwrap());
+            }
+            return Ok(Token::Header(level, s));
         },
         _ => {Err(ParseError{content: hashes})}
     }

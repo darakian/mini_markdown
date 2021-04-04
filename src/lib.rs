@@ -8,13 +8,13 @@ mod tests {
     #[test]
     fn test_lex() {
         let heading_tests = vec![
-            ("# Heading level 1", vec![Token::Header(1),Token::Plaintext("Heading level 1".to_string())]),
-            ("## Heading level 2", vec![Token::Header(2),Token::Plaintext("Heading level 2".to_string())]),
-            ("### Heading level 3", vec![Token::Header(3),Token::Plaintext("Heading level 3".to_string())]),
-            ("#### Heading level 4", vec![Token::Header(4),Token::Plaintext("Heading level 4".to_string())]),
-            ("##### Heading level 5", vec![Token::Header(5),Token::Plaintext("Heading level 5".to_string())]),
-            ("###### Heading level 6", vec![Token::Header(6),Token::Plaintext("Heading level 6".to_string())]),
-            ("####### Invalid Heading level 7", vec![Token::Header(6),Token::Plaintext("Invalid Heading level 7".to_string())]), 
+            ("# Heading level 1", vec![Token::Header(1, "Heading level 1".to_string())]),
+            ("## Heading level 2", vec![Token::Header(2, "Heading level 2".to_string())]),
+            ("### Heading level 3", vec![Token::Header(3, "Heading level 3".to_string())]),
+            ("#### Heading level 4", vec![Token::Header(4, "Heading level 4".to_string())]),
+            ("##### Heading level 5", vec![Token::Header(5, "Heading level 5".to_string())]),
+            ("###### Heading level 6", vec![Token::Header(6, "Heading level 6".to_string())]),
+            ("####### Invalid Heading level 7", vec![Token::Header(6, "Invalid Heading level 7".to_string())]), 
         ];
         for test in heading_tests.iter(){
             let tokens = lex(test.0);
@@ -117,3 +117,32 @@ pub fn lex(source: &str) -> Vec<Token>{
     }
     tokens
 }
+
+// pub fn parse(tokens: Vec<Token>) -> String {
+//     let mut html = String::new();
+//     for token in tokens.iter(){
+//         match token {
+//             Token::Plaintext(s) => {html.push_str(s)},
+//             Token::Header(h) => {
+//                 html.push(format!())
+//             },
+//             Token::UnorderedListEntry => {},
+//             Token::OrderedListEntry => {},
+//             Token::Italic => {},
+//             Token::Bold => {},
+//             Token::BoldItalic => {},
+//             Token::ParagraphBreak => {},
+//             Token::LineBreak => {},
+//             Token::HorizontalRule => {},
+//             Token::Tab => {},
+//             Token::DoubleTab => {},
+//             Token::Code(String) => {},
+//             Token::EscapedCode(String) => {},
+//             Token::InlineNewline => {},
+//             Token::BlockQuote(u8) => {},
+//             Token::Image(String, String), // (Link, title)
+//             Token::Link(String, Option<String>, Option<String>), //(link, title, hover text)
+//             }
+//         }
+//     }
+// }
