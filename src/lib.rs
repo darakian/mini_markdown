@@ -26,6 +26,7 @@ mod tests {
             ("I just love *italic text*.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text".to_string()), Token::Plaintext(".".to_string())]),
             ("I just love _italic text_.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text".to_string()), Token::Plaintext(".".to_string())]),
             ("I just love *italic text_.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text".to_string()), Token::Plaintext(".".to_string())]),
+            ("I just\n love *italic\n text_.", vec![Token::Plaintext("I just\n love ".to_string()), Token::Italic("italic\n text".to_string()), Token::Plaintext(".".to_string())]),
         ]);
         tests.extend(vec![
             ("I just love ***bold italic text***.", vec![Token::Plaintext("I just love ".to_string()), Token::BoldItalic("bold italic text".to_string()), Token::Plaintext(".".to_string())]),
