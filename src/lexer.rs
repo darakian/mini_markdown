@@ -2,8 +2,8 @@
 pub enum Token{
     Plaintext(String),
     Header(u8, String),
-    UnorderedListEntry,
-    OrderedListEntry,
+    UnorderedListEntry(String),
+    OrderedListEntry(String),
     Italic(String),
     Bold(String),
     BoldItalic(String),
@@ -72,7 +72,11 @@ pub(crate) fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::s
     if char_iter.peek() == Some(&'*') {
         asterunds.push(char_iter.next().unwrap());
         if char_iter.next_if_eq(&' ').is_some(){
-            return Ok(Token::UnorderedListEntry)
+            let mut s = String::new();
+            while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n'){
+                s.push(char_iter.next().unwrap());
+            }
+            return Ok(Token::UnorderedListEntry(s))
         }
     }
     while char_iter.peek() == Some(&'*') || char_iter.peek() == Some(&'_'){
@@ -378,7 +382,11 @@ pub(crate) fn lex_easy_links(char_iter: &mut std::iter::Peekable<std::str::Chars
 pub(crate) fn lex_plus_minus(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
     let c = char_iter.next().unwrap();
     if char_iter.next_if_eq(&' ').is_some(){
-        return Ok(Token::UnorderedListEntry)
+        let mut s = String::new();
+        while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n'){
+            s.push(char_iter.next().unwrap());
+        }
+        return Ok(Token::UnorderedListEntry(s))
     }
     match c {
         '-' => {
@@ -395,5 +403,23 @@ pub(crate) fn lex_plus_minus(char_iter: &mut std::iter::Peekable<std::str::Chars
         },
         _ => return Ok(Token::Plaintext(c.to_string())),
     }
+}
 
+pub(crate) fn lex_numbers(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+    let c = char_iter.next().unwrap();
+    match char_iter.peek() {
+        Some('.') => {
+            let dot = char_iter.next().unwrap();
+            if char_iter.peek() != Some(&' '){
+                return Err(ParseError{content: format!("{}{}",c,dot)})
+            }
+            char_iter.next();
+            let mut s = String::new();
+            while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n'){
+                s.push(char_iter.next().unwrap());
+            }
+            return Ok(Token::OrderedListEntry(s))
+        },
+        _ => return Err(ParseError{content: c.to_string()})
+    }
 }
