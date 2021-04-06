@@ -141,6 +141,23 @@ pub fn parse(tokens: Vec<Token>) -> String {
     let mut in_ordered_list = false;
     let mut in_unordered_list = false;
     for token in tokens.iter(){
+        // Close multi-liners
+        if in_ordered_list {
+            match token {
+                Token::OrderedListEntry | Token::UnorderedListEntry => {},
+                Token::Tab | Token::DoubleTab => {},
+                _ => {html.push_str(format!("</ol>").as_str())}
+            }
+        }
+        if in_unordered_list {
+            match token {
+                Token::OrderedListEntry | Token::UnorderedListEntry => {},
+                Token::Tab | Token::DoubleTab => {},
+                _ => {html.push_str(format!("</ul>").as_str())}
+            }
+        }
+
+        // Add content
         match token {
             Token::Plaintext(t) => {html.push_str(format!("<p>{}</p>", t).as_str())},
             Token::Header(l, t) => {html.push_str(format!("<h{level}>{text}</{level}>", level=l, text=t).as_str())},
@@ -151,7 +168,13 @@ pub fn parse(tokens: Vec<Token>) -> String {
                 }
                 html.push_str(format!("<li>{}</li>", t).as_str())
             },
-            // Token::OrderedListEntry => {},
+            Token::OrderedListEntry => {
+                if in_ordered_list == false {
+                    in_ordered_list = true;
+                    html.push_str(format!("<ol>").as_str())
+                }
+                html.push_str(format!("<li>{}</li>", t).as_str())
+            },
             Token::Italic(t) => {html.push_str(format!("<em>{}</em>", t).as_str())},
             Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", t).as_str())},
             Token::BoldItalic(t) => {html.push_str(format!("<strong><em>{}</em></strong>", t).as_str())},
