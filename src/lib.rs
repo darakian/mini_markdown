@@ -35,8 +35,8 @@ mod tests {
         ]);
         tests.extend(vec![
             ("* unodered list\n", vec![Token::UnorderedListEntry("unodered list".to_string())]),
-            ("* unodered list\n * with two\n", vec![Token::Plaintext("I just love ".to_string()), Token::UnorderedListEntry("with two".to_string())]),
-            ("* unodered list\n * with two\n * with three\n", vec![Token::Plaintext("I just love ".to_string()), Token::UnorderedListEntry("with two".to_string()), Token::UnorderedListEntry("with three".to_string())]),
+            ("* unodered list\n* with two\n", vec![Token::UnorderedListEntry("unodered list".to_string()), Token::UnorderedListEntry("with two".to_string())]),
+            ("* unodered list\n* with two\n* with three\n", vec![Token::UnorderedListEntry("unodered list".to_string()), Token::UnorderedListEntry("with two".to_string()), Token::UnorderedListEntry("with three".to_string())]),
         ]);
         for test in tests.iter(){
             let tokens = lex(test.0);
