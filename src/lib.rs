@@ -148,7 +148,8 @@ pub fn parse(tokens: Vec<Token>) -> String {
                 Token::Tab | Token::DoubleTab => {},
                 _ => {
                     in_ordered_list = false;
-                    html.push_str(format!("</ol>").as_str())}
+                    html.push_str(format!("</ol>").as_str())
+                }
             }
         }
         if in_unordered_list {
@@ -157,7 +158,8 @@ pub fn parse(tokens: Vec<Token>) -> String {
                 Token::Tab | Token::DoubleTab => {},
                 _ => {
                     in_unordered_list = false;
-                    html.push_str(format!("</ul>").as_str())}
+                    html.push_str(format!("</ul>").as_str())
+                }
             }
         }
 
