@@ -61,6 +61,7 @@ pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) 
             while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n'){
                 s.push(char_iter.next().unwrap());
             }
+            char_iter.next();
             return Ok(Token::Header(level, s));
         },
         _ => {Err(ParseError{content: hashes})}
@@ -76,6 +77,7 @@ pub(crate) fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::s
             while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n'){
                 s.push(char_iter.next().unwrap());
             }
+            char_iter.next();
             return Ok(Token::UnorderedListEntry(s))
         }
     }

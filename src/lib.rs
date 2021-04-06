@@ -33,6 +33,11 @@ mod tests {
             ("I just love ___bold italic text___.", vec![Token::Plaintext("I just love ".to_string()), Token::BoldItalic("bold italic text".to_string()), Token::Plaintext(".".to_string())]),
             ("I just love _*_bold italic text*_*.", vec![Token::Plaintext("I just love ".to_string()), Token::BoldItalic("bold italic text".to_string()), Token::Plaintext(".".to_string())]),
         ]);
+        tests.extend(vec![
+            ("* unodered list\n", vec![Token::UnorderedListEntry("unodered list".to_string())]),
+            ("* unodered list\n * with two\n", vec![Token::Plaintext("I just love ".to_string()), Token::UnorderedListEntry("with two".to_string())]),
+            ("* unodered list\n * with two\n * with three\n", vec![Token::Plaintext("I just love ".to_string()), Token::UnorderedListEntry("with two".to_string()), Token::UnorderedListEntry("with three".to_string())]),
+        ]);
         for test in tests.iter(){
             let tokens = lex(test.0);
             assert_eq!(&tokens[..], &test.1[..]);
@@ -133,13 +138,19 @@ pub fn lex(source: &str) -> Vec<Token>{
 
 pub fn parse(tokens: Vec<Token>) -> String {
     let mut html = String::new();
-    //let mut in_ordered_list = false;
-    //let mut in_unordered_list = false;
+    let mut in_ordered_list = false;
+    let mut in_unordered_list = false;
     for token in tokens.iter(){
         match token {
             Token::Plaintext(t) => {html.push_str(format!("<p>{}</p>", t).as_str())},
             Token::Header(l, t) => {html.push_str(format!("<h{level}>{text}</{level}>", level=l, text=t).as_str())},
-            // Token::UnorderedListEntry => {},
+            Token::UnorderedListEntry(t) => {
+                if in_unordered_list == false {
+                    in_unordered_list = true;
+                    html.push_str(format!("<ul>").as_str())
+                }
+                html.push_str(format!("<li>{}</li>", t).as_str())
+            },
             // Token::OrderedListEntry => {},
             Token::Italic(t) => {html.push_str(format!("<em>{}</em>", t).as_str())},
             Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", t).as_str())},
