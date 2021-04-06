@@ -140,11 +140,12 @@ pub fn parse(tokens: Vec<Token>) -> String {
     let mut html = String::new();
     let mut in_ordered_list = false;
     let mut in_unordered_list = false;
+    let mut quote_level = 0;
     for token in tokens.iter(){
         // Close multi-liners
         if in_ordered_list {
             match token {
-                Token::OrderedListEntry | Token::UnorderedListEntry => {},
+                Token::OrderedListEntry(_) | Token::UnorderedListEntry(_) => {},
                 Token::Tab | Token::DoubleTab => {},
                 _ => {
                     in_ordered_list = false;
@@ -154,11 +155,21 @@ pub fn parse(tokens: Vec<Token>) -> String {
         }
         if in_unordered_list {
             match token {
-                Token::OrderedListEntry | Token::UnorderedListEntry => {},
+                Token::OrderedListEntry(_) | Token::UnorderedListEntry(_) => {},
                 Token::Tab | Token::DoubleTab => {},
                 _ => {
                     in_unordered_list = false;
                     html.push_str(format!("</ul>").as_str())
+                }
+            }
+        }
+        if quote_level > 0 {
+            match token {
+                Token::BlockQuote(_l, _s) => {},
+                _ => {
+                    for _i in 0..quote_level {
+                        html.push_str(format!("</blockquote>").as_str());
+                    }
                 }
             }
         }
@@ -174,7 +185,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
                 }
                 html.push_str(format!("<li>{}</li>", t).as_str())
             },
-            Token::OrderedListEntry => {
+            Token::OrderedListEntry(t) => {
                 if in_ordered_list == false {
                     in_ordered_list = true;
                     html.push_str(format!("<ol>").as_str())
@@ -189,7 +200,28 @@ pub fn parse(tokens: Vec<Token>) -> String {
             // Token::Tab => {},
             // Token::DoubleTab => {},
             Token::Code(t) | Token::EscapedCode(t) => {html.push_str(format!("<code>{}</code>", t).as_str())},
-            // Token::BlockQuote(u8) => {},
+            Token::BlockQuote(l, t) => {
+                match quote_level {
+                    _ if l == &quote_level => {},
+                    _ if l < &quote_level => {
+                        let diff = quote_level - l;
+                        quote_level = *l;
+                        for _i in 0..diff {
+                            html.push_str(format!("</blockquote>").as_str());
+                        }
+                    },
+                    _ if l > &quote_level => {
+                        let diff = l - quote_level;
+                        quote_level = *l;
+                        for _i in 0..diff {
+                            html.push_str(format!("<blockquote>").as_str());
+                        }
+                    },
+                    _ => {},
+                }
+                html.push_str(format!("<p>{}</p>", t).as_str())
+
+            },
             Token::Image(l, t) => html.push_str(format!("<img src=\"{link}\" alt=\"{text}\"", link=l, text=t).as_str()),
             Token::Link(l, t, ht) => {
                 match (t, ht){

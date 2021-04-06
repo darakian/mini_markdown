@@ -13,7 +13,7 @@ pub enum Token{
     DoubleTab,
     Code(String),
     EscapedCode(String),
-    BlockQuote(u8),
+    BlockQuote(u8, String),
     Image(String, String), // (Link, title)
     Link(String, Option<String>, Option<String>), //(link, title, hover text)
 }
@@ -221,11 +221,19 @@ pub(crate) fn lex_newlines(char_iter: &mut std::iter::Peekable<std::str::Chars>)
 }
 
 pub(crate) fn lex_blockquotes(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
-    let mut level = 0;
-    while char_iter.next_if_eq(&'>').is_some() {
-        level+=1;
+    let mut right_arrows = String::new();
+    while char_iter.peek() == Some(&'>') {
+        right_arrows.push(char_iter.next().unwrap());
     }
-    Ok(Token::BlockQuote(level))
+    match char_iter.peek() {
+        Some(&' ') => {char_iter.next();},
+        _ => {return Err(ParseError{content: right_arrows})}
+    }
+    let mut s = String::new();
+    while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n') {
+        s.push(char_iter.next().unwrap());
+    }
+    Ok(Token::BlockQuote(right_arrows.len() as u8, s))
 }
 
 pub(crate) fn lex_images(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
