@@ -146,14 +146,18 @@ pub fn parse(tokens: Vec<Token>) -> String {
             match token {
                 Token::OrderedListEntry | Token::UnorderedListEntry => {},
                 Token::Tab | Token::DoubleTab => {},
-                _ => {html.push_str(format!("</ol>").as_str())}
+                _ => {
+                    in_ordered_list = false;
+                    html.push_str(format!("</ol>").as_str())}
             }
         }
         if in_unordered_list {
             match token {
                 Token::OrderedListEntry | Token::UnorderedListEntry => {},
                 Token::Tab | Token::DoubleTab => {},
-                _ => {html.push_str(format!("</ul>").as_str())}
+                _ => {
+                    in_unordered_list = false;
+                    html.push_str(format!("</ul>").as_str())}
             }
         }
 
