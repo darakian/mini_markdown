@@ -133,7 +133,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
         // Add content
         match token {
             Token::Plaintext(t) => {html.push_str(format!("<p>{}</p>", t).as_str())},
-            Token::Header(l, t) => {html.push_str(format!("<h{level}>{text}</{level}>", level=l, text=t).as_str())},
+            Token::Header(l, t) => {html.push_str(format!("<h{level}>{text}</h{level}>", level=l, text=t).as_str())},
             Token::UnorderedListEntry(t) => {
                 if in_unordered_list == false {
                     in_unordered_list = true;
@@ -191,4 +191,8 @@ pub fn parse(tokens: Vec<Token>) -> String {
         }
     }
     html
+}
+
+pub fn render(source: &str) -> String {
+    parse(lex(source))
 }
