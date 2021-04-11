@@ -168,7 +168,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
             },
             Token::ParagraphBreak => {
                 if in_paragraph {
-                    html.push_str(format!("</p>").as_str());
+                    html.push_str(format!("</p>\n").as_str());
                     in_paragraph = false;
                 }
             },
@@ -200,7 +200,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
                     },
                     _ => {},
                 }
-                html.push_str(format!("<p>{}</p>", t).as_str())
+                html.push_str(format!("<p>{}</p>\n", t).as_str())
 
             },
             Token::Image(l, t) => html.push_str(format!("<img src=\"{link}\" alt=\"{text}\"", link=l, text=t).as_str()),
@@ -216,7 +216,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
         }
     }
     if in_paragraph {
-        html.push_str(format!("</p>").as_str());
+        html.push_str(format!("</p>\n").as_str());
         // in_paragraph = true;
     }
     html
