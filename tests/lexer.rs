@@ -36,12 +36,11 @@ fn test_lex() {
     ]);
     tests.extend(vec![
         ("Some text _with italics_ in the same paragraph\n", vec![Token::Plaintext("Some text ".to_string()), Token::Italic("with italics".to_string()), Token::Plaintext(" in the same paragraph\n".to_string())]),
-        ("Text attributes _italic_, 
-        **bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.", 
+        ("Text attributes _italic_, \n**bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.", 
         vec![
             Token::Plaintext("Text attributes ".to_string()), 
             Token::Italic("italic".to_string()), 
-            Token::Plaintext(", ".to_string()), 
+            Token::Plaintext(", \n".to_string()), 
             Token::Bold("bold".to_string()), 
             Token::Plaintext(", ".to_string()), 
             Token::Code("monospace".to_string()),

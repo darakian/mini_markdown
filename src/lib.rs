@@ -138,7 +138,6 @@ pub fn parse(tokens: Vec<Token>) -> String {
                     html.push_str(format!("<p>").as_str());
                     in_paragraph = true;
                 }
-                println!("Adding >{}<", t);
                 html.push_str(format!("{}", t).as_str())
             },
             Token::Header(l, t) => {html.push_str(format!("<h{level}>{text}</h{level}>", level=l, text=t).as_str())},
@@ -201,6 +200,10 @@ pub fn parse(tokens: Vec<Token>) -> String {
             },
             _ => {},
         }
+    }
+    if in_paragraph {
+        html.push_str(format!("</p>").as_str());
+        // in_paragraph = true;
     }
     html
 }

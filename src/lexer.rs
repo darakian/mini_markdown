@@ -211,15 +211,14 @@ pub(crate) fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>
 }
 
 pub(crate) fn lex_newlines(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
-    let mut new_lines = char_iter.next().unwrap().to_string();
+    let new_line = char_iter.next().unwrap().to_string();
     if char_iter.peek() != Some(&'\n') {
-        return Err(ParseError{content: new_lines});
+        return Err(ParseError{content: new_line});
     }
     while char_iter.peek() == Some(&'\n'){
         char_iter.next();
-        return Ok(Token::ParagraphBreak);
     }
-    Ok(Token::Plaintext("".to_string()))
+    return Ok(Token::ParagraphBreak);
 }
 
 pub(crate) fn lex_blockquotes(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
