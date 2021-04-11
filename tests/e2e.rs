@@ -10,7 +10,7 @@ fn test_markdown_render() {
         ("#### Heading level 4", "<h4>Heading level 4</h4>"),
         ("##### Heading level 5", "<h5>Heading level 5</h5>"),
         ("###### Heading level 6", "<h6>Heading level 6</h6>"),
-        ("####### Invalid Heading level 7", "<h6>Heading level 1</h6>"), 
+        ("####### Invalid Heading level 7", "<h6>Invalid Heading level 7</h6>"), 
     ]);
 
     for test in tests.iter(){
