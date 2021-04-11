@@ -20,6 +20,13 @@ pub fn lex(source: &str) -> Vec<Token>{
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
+            '~' => {
+                let token = lex_tilde(&mut char_iter);
+                match token {
+                    Ok(t) => tokens.push(t),
+                    Err(e) => push_str(&mut tokens, e.content),
+                }
+            },
             '-' | '+' => {
                 let token = lex_plus_minus(&mut char_iter);
                 match token {
@@ -156,14 +163,17 @@ pub fn parse(tokens: Vec<Token>) -> String {
                 html.push_str(format!("<li>{}</li>", t).as_str())
             },
             Token::ParagraphBreak => {
-                html.push_str(format!("</p>").as_str());
-                in_paragraph = false;
+                if in_paragraph {
+                    html.push_str(format!("</p>").as_str());
+                    in_paragraph = false;
+                }
             },
             Token::Italic(t) => {html.push_str(format!("<em>{}</em>", t).as_str())},
             Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", t).as_str())},
             Token::BoldItalic(t) => {html.push_str(format!("<strong><em>{}</em></strong>", t).as_str())},
             Token::LineBreak => {html.push_str("<br>")},
-            Token::HorizontalRule => {html.push_str("<hr>")},
+            Token::HorizontalRule => {html.push_str("<hr />")},
+            Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", t).as_str())},
             // Token::Tab => {},
             // Token::DoubleTab => {},
             Token::Code(t) | Token::EscapedCode(t) => {html.push_str(format!("<code>{}</code>", t).as_str())},

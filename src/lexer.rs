@@ -12,6 +12,7 @@ pub enum Token{
     HorizontalRule,
     Tab,
     DoubleTab,
+    Strikethrough(String),
     Code(String),
     EscapedCode(String),
     BlockQuote(u8, String),
@@ -432,5 +433,27 @@ pub(crate) fn lex_numbers(char_iter: &mut std::iter::Peekable<std::str::Chars>) 
             return Ok(Token::OrderedListEntry(s))
         },
         _ => return Err(ParseError{content: c.to_string()})
+    }
+}
+
+pub(crate) fn lex_tilde(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+    let mut lead_tildes = char_iter.next().unwrap().to_string();
+    if char_iter.peek() != Some(&'~') {
+        return Err(ParseError{content: lead_tildes})
+    }
+    lead_tildes.push(char_iter.next().unwrap());
+    if char_iter.peek() == Some(&'~') || char_iter.peek() == None {
+        return Err(ParseError{content: lead_tildes})
+    }
+    let mut s = String::new();
+    while char_iter.peek().is_some() && char_iter.peek() != Some(&'~'){
+        s.push(char_iter.next().unwrap());
+    }
+    let tail_tildes = char_iter.next().unwrap().to_string();
+    if char_iter.peek() != Some(&'~') {
+        return Err(ParseError{content: format!("{}{}{}", lead_tildes, s, tail_tildes)})
+    } else {
+        char_iter.next();
+        return Ok(Token::Strikethrough(s));
     }
 }

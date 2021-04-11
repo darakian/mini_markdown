@@ -26,6 +26,9 @@ fn test_moderate_render(){
     tests.extend(vec![
         ("Text attributes _italic_, \n**bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.",
         "<p>Text attributes <em>italic</em>, \n<strong>bold</strong>, <code>monospace</code>. Some implementations may use <em>single-asterisks</em> for italic text.</p>"),
+        ("Horizontal rule:\n\n---\n\nStrikethrough:\n\n~~strikethrough~~\n\n",
+        "<p>Horizontal rule:</p><hr /><p>Strikethrough:</p><strike>strikethrough</strike>"
+        ),
     ]);
 
     for test in tests.iter(){
