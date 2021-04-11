@@ -36,3 +36,23 @@ fn test_moderate_render(){
         assert_eq!(html, test.1);
     }
 }
+
+use std::fs;
+
+#[test]
+fn test_full_render(){
+    let tests_dir = fs::read_dir("tests/pages").expect("Error opening test dir");
+    for entry in tests_dir{
+        if !entry.is_ok() {
+            continue;
+        }
+        let e = entry.unwrap();
+        if e.path().extension().unwrap() == "md"{
+            println!("Testing: {:?}", e.path());
+            let markdown = fs::read_to_string(e.path()).expect("Error reading markdown");
+            let associated_html: String = e.path().to_str().unwrap().replace(".md", ".html");
+            let html = fs::read_to_string(associated_html).expect("Error reading html");
+            assert_eq!(render(&markdown), html)
+        }
+    }
+}
