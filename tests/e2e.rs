@@ -25,25 +25,9 @@ fn test_moderate_render(){
     let mut tests = Vec::new();
     tests.extend(vec![
         ("Text attributes _italic_, 
-        **bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.
-        
-        Horizontal rule:
-        
-        ---
-        
-        Strikethrough:
-        ~~strikethrough~~
-        ",
+        **bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.",
         "<p>Text attributes <em>italic</em>, 
-        <strong>bold</strong>, <code>monospace</code>. Some implementations may use <i>single-asterisks</i> for italic text.</p>
-        
-        <p>Horizontal rule:</p>
-        
-        <hr />
-        
-        <p>Strikethrough:</p>
-        <strike>strikethrough</strike>
-        "),
+        <strong>bold</strong>, <code>monospace</code>. Some implementations may use <i>single-asterisks</i> for italic text.</p>"),
     ]);
 
     for test in tests.iter(){
