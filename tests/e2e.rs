@@ -20,18 +20,18 @@ fn test_simple_render() {
     }
 }
 
-#[test]
-fn test_moderate_render(){
-    let mut tests = Vec::new();
-    tests.extend(vec![
-        ("Text attributes _italic_, 
-        **bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.",
-        "<p>Text attributes <em>italic</em>, 
-        <strong>bold</strong>, <code>monospace</code>. Some implementations may use <i>single-asterisks</i> for italic text.</p>"),
-    ]);
+// #[test]
+// fn test_moderate_render(){
+//     let mut tests = Vec::new();
+//     tests.extend(vec![
+//         ("Text attributes _italic_, 
+//         **bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.",
+//         "<p>Text attributes <em>italic</em>, 
+//         <strong>bold</strong>, <code>monospace</code>. Some implementations may use <i>single-asterisks</i> for italic text.</p>"),
+//     ]);
 
-    for test in tests.iter(){
-        let html = render(test.0);
-        assert_eq!(html, test.1);
-    }
-}
+//     for test in tests.iter(){
+//         let html = render(test.0);
+//         assert_eq!(html, test.1);
+//     }
+// }
