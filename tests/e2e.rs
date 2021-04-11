@@ -4,13 +4,13 @@ use mini_markdown::render;
 fn test_simple_render() {
     let mut tests = Vec::new();
     tests.extend(vec![
-        ("# Heading level 1", "<h1>Heading level 1</h1>"),
-        ("## Heading level 2", "<h2>Heading level 2</h2>"),
-        ("### Heading level 3", "<h3>Heading level 3</h3>"),
-        ("#### Heading level 4", "<h4>Heading level 4</h4>"),
-        ("##### Heading level 5", "<h5>Heading level 5</h5>"),
-        ("###### Heading level 6", "<h6>Heading level 6</h6>"),
-        ("####### Invalid Heading level 7", "<h6>Invalid Heading level 7</h6>"),
+        ("# Heading level 1", "<h1 id=\"heading-level-1\">Heading level 1</h1>\n"),
+        ("## Heading level 2", "<h2 id=\"heading-level-2\">Heading level 2</h2>\n"),
+        ("### Heading level 3", "<h3 id=\"heading-level-3\">Heading level 3</h3>\n"),
+        ("#### Heading level 4", "<h4 id=\"heading-level-4\">Heading level 4</h4>\n"),
+        ("##### Heading level 5", "<h5 id=\"heading-level-5\">Heading level 5</h5>\n"),
+        ("###### Heading level 6", "<h6 id=\"heading-level-6\">Heading level 6</h6>\n"),
+        ("####### Invalid Heading level 7", "<h6 id=\"invalid-heading-level-7\">Invalid Heading level 7</h6>\n"),
         ("Some text _with italics_ in the same paragraph\n", "<p>Some text <em>with italics</em> in the same paragraph\n</p>"),
     ]);
 

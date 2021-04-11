@@ -147,7 +147,11 @@ pub fn parse(tokens: Vec<Token>) -> String {
                 }
                 html.push_str(format!("{}", t).as_str())
             },
-            Token::Header(l, t) => {html.push_str(format!("<h{level}>{text}</h{level}>", level=l, text=t).as_str())},
+            Token::Header(l, t) => {
+                let mut id = t.clone();
+                id.make_ascii_lowercase();
+                html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", level=l, text=t, id=id.replace(" ", "-")).as_str())
+            },
             Token::UnorderedListEntry(t) => {
                 if in_unordered_list == false {
                     in_unordered_list = true;
