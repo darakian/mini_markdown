@@ -10,7 +10,8 @@ fn test_simple_render() {
         ("#### Heading level 4", "<h4>Heading level 4</h4>"),
         ("##### Heading level 5", "<h5>Heading level 5</h5>"),
         ("###### Heading level 6", "<h6>Heading level 6</h6>"),
-        ("####### Invalid Heading level 7", "<h6>Invalid Heading level 7</h6>"), 
+        ("####### Invalid Heading level 7", "<h6>Invalid Heading level 7</h6>"),
+        ("Some text _with italics_ in the same paragraph\n", "<p>Some text <em>with italics</em> in the same paragraph</p>"),
     ]);
 
     for test in tests.iter(){

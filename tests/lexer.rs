@@ -34,6 +34,9 @@ fn test_lex() {
         ("* unodered list\n* with two\n", vec![Token::UnorderedListEntry("unodered list".to_string()), Token::UnorderedListEntry("with two".to_string())]),
         ("* unodered list\n* with two\n* with three\n", vec![Token::UnorderedListEntry("unodered list".to_string()), Token::UnorderedListEntry("with two".to_string()), Token::UnorderedListEntry("with three".to_string())]),
     ]);
+    tests.extend(vec![
+        ("Some text _with italics_ in the same paragraph\n", vec![Token::Plaintext("Some text ".to_string()), Token::Italic("with italics".to_string()), Token::Plaintext(" in the same paragraph\n".to_string())]),
+    ]);
     for test in tests.iter(){
         let tokens = lex(test.0);
         assert_eq!(&tokens[..], &test.1[..]);
