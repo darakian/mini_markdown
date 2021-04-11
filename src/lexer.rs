@@ -8,6 +8,7 @@ pub enum Token{
     Bold(String),
     BoldItalic(String),
     LineBreak,
+    ParagraphBreak,
     HorizontalRule,
     Tab,
     DoubleTab,
@@ -212,7 +213,7 @@ pub(crate) fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>
 pub(crate) fn lex_newlines(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
     let mut new_lines = char_iter.next().unwrap().to_string();
     if char_iter.peek() != Some(&'\n') {
-        return Err(ParseError{content: new_lines});
+        return Ok(Token::ParagraphBreak);
     }
     while char_iter.peek() == Some(&'\n'){
         new_lines.push(char_iter.next().unwrap())

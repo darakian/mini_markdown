@@ -96,6 +96,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
     let mut html = String::new();
     let mut in_ordered_list = false;
     let mut in_unordered_list = false;
+    let mut in_paragraph = false;
     let mut quote_level = 0;
     for token in tokens.iter(){
         // Close multi-liners
@@ -132,7 +133,13 @@ pub fn parse(tokens: Vec<Token>) -> String {
 
         // Add content
         match token {
-            Token::Plaintext(t) => {html.push_str(format!("<p>{}</p>", t).as_str())},
+            Token::Plaintext(t) => {
+                if !in_paragraph {
+                    html.push_str(format!("<p>").as_str());
+                    in_paragraph = true;
+                }
+                html.push_str(format!("{}", t).as_str())
+            },
             Token::Header(l, t) => {html.push_str(format!("<h{level}>{text}</h{level}>", level=l, text=t).as_str())},
             Token::UnorderedListEntry(t) => {
                 if in_unordered_list == false {
@@ -147,6 +154,10 @@ pub fn parse(tokens: Vec<Token>) -> String {
                     html.push_str(format!("<ol>").as_str())
                 }
                 html.push_str(format!("<li>{}</li>", t).as_str())
+            },
+            Token::ParagraphBreak => {
+                html.push_str(format!("</p>").as_str());
+                in_paragraph = false;
             },
             Token::Italic(t) => {html.push_str(format!("<em>{}</em>", t).as_str())},
             Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", t).as_str())},
