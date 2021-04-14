@@ -235,6 +235,7 @@ pub(crate) fn lex_blockquotes(char_iter: &mut std::iter::Peekable<std::str::Char
     while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n') {
         s.push(char_iter.next().unwrap());
     }
+    char_iter.next_if_eq(&'\n');
     Ok(Token::BlockQuote(right_arrows.len() as u8, s))
 }
 
