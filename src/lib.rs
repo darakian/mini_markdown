@@ -131,14 +131,13 @@ pub fn parse(tokens: Vec<Token>) -> String {
             match token {
                 Token::BlockQuote(l, _s) => {
                     while l < &quote_level {
-                        html.push_str(format!("{}</blockquote>", " ".repeat((quote_level*2).into())).as_str());
+                        html.push_str(format!("</blockquote>").as_str());
                         quote_level-=1;
                     }
                 },
                 _ => {
-                    for i in 0..quote_level {
-                        html.push_str(format!("{}</blockquote>", " ".repeat((i*2).into())).as_str());
-                        html.push('\n');
+                    for _i in 0..quote_level {
+                        html.push_str(format!("</blockquote>").as_str());
                     }
                 }
             }
@@ -174,7 +173,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
             },
             Token::ParagraphBreak => {
                 if in_paragraph {
-                    html.push_str(format!("</p>\n").as_str());
+                    html.push_str(format!("</p>").as_str());
                     in_paragraph = false;
                 }
             },
@@ -194,24 +193,20 @@ pub fn parse(tokens: Vec<Token>) -> String {
                         let diff = quote_level - l;
                         quote_level = *l;
                         for _i in 0..diff {
-                            html.push_str(format!("{}</blockquote>", " ".repeat((l*2).into())).as_str());
+                            html.push_str(format!("</blockquote>").as_str());
                         }
                     },
                     _ if l > &quote_level => {
                         let diff = l - quote_level;
                         quote_level = *l;
                         for _i in 0..diff {
-                            html.push_str(format!("{}<blockquote>", " ".repeat(((l-1)*2).into())).as_str());
-                            html.push('\n');
+                            html.push_str(format!("<blockquote>").as_str());
                         }
                     },
                     _ => {},
                 }
                 if !t.is_empty(){
-                    html.push_str(format!("{}<p>{}</p>", " ".repeat((l*2).into()), t).as_str());
-                    html.push('\n');
-                } else {
-                    html.push_str(format!(" \n").as_str());
+                    html.push_str(format!("<p>{}</p>", t).as_str());
                 }
             },
             Token::Image(l, t) => html.push_str(format!("<img src=\"{link}\" alt=\"{text}\"", link=l, text=t).as_str()),
@@ -231,8 +226,8 @@ pub fn parse(tokens: Vec<Token>) -> String {
         // in_paragraph = true;
     }
     if quote_level > 0 {
-        for i in (0..quote_level).rev(){
-            html.push_str(format!("{}</blockquote>\n", " ".repeat((i*2).into())).as_str());
+        for _i in (0..quote_level).rev(){
+            html.push_str(format!("</blockquote>").as_str());
         }
     }
     html

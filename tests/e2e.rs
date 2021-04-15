@@ -29,10 +29,10 @@ fn test_moderate_render(){
         ("Text attributes _italic_, \n**bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.",
         "<p>Text attributes <em>italic</em>, \n<strong>bold</strong>, <code>monospace</code>. Some implementations may use <em>single-asterisks</em> for italic text.</p>"),
         ("Horizontal rule:\n\n---\n\nStrikethrough:\n\n~~strikethrough~~\n\n",
-        "<p>Horizontal rule:</p>\n<hr /><p>Strikethrough:</p>\n<strike>strikethrough</strike>"
+        "<p>Horizontal rule:</p><hr /><p>Strikethrough:</p><strike>strikethrough</strike>"
         ),
         ("> Outer quote with some text.\n> \n>> Inner quote with some other text",
-        "<blockquote>\n  <p>Outer quote with some text.</p>\n \n  <blockquote>\n    <p>Inner quote with some other text</p>\n  </blockquote>\n</blockquote>\n"
+        "<blockquote><p>Outer quote with some text.</p><blockquote><p>Inner quote with some other text</p></blockquote></blockquote>"
         )
     ]);
 
