@@ -38,7 +38,6 @@ fn test_moderate_render(){
 
     for test in tests.iter(){
         let html = render(test.0);
-        println!("{:?}", lex(test.0));
         assert_eq!(html, test.1);
     }
 }
