@@ -32,7 +32,7 @@ fn test_moderate_render(){
         "<p>Horizontal rule:</p>\n<hr /><p>Strikethrough:</p>\n<strike>strikethrough</strike>"
         ),
         ("> Outer quote with some text.\n> \n>> Inner quote with some other text",
-        "<blockquote>\n  <p>Outer quote with some text.</p>\n \n  <blockquote>\n    <p>Inner quote with some other text</p>\n  </blockquote>\n</blockquote>"
+        "<blockquote>\n  <p>Outer quote with some text.</p>\n \n  <blockquote>\n    <p>Inner quote with some other text</p>\n  </blockquote>\n</blockquote>\n"
         )
     ]);
 
