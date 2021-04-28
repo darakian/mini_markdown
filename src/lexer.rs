@@ -174,38 +174,35 @@ pub(crate) fn lex_spaces(char_iter: &mut std::iter::Peekable<std::str::Chars>) -
 }
 
 pub(crate) fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
-    let mut ticks = char_iter.next().unwrap().to_string();
+    let mut ticks = String::new();
     match char_iter.peek(){
         Some(&'`') => {
             ticks.push(char_iter.next().unwrap());
-            let mut s = String::new();
-            while char_iter.peek().is_some() {
-                match char_iter.peek() {
-                    Some(&'`') => {
-                        ticks.push(char_iter.next().unwrap());
-                        match char_iter.peek(){
-                            Some(&'`') => return Ok(Token::EscapedCode(s)),
-                            Some(_) => s.push('`'),
-                            None => return Err(ParseError{content: s})
-                        }
-                    },
-                    Some(_) => {s.push(char_iter.next().unwrap())},
-                    None => {return Err(ParseError{content: s})}
-                }
-            }
-            return  Err(ParseError{content: s})
-        },
-        Some(_) => {
-            let mut s = String::new();
-            while char_iter.peek().is_some() && char_iter.peek() != Some(&'`'){
-                s.push(char_iter.next().unwrap());
+            if char_iter.peek() == Some(&'`'){
+                ticks.push(char_iter.next().unwrap());
             }
             if char_iter.peek() == Some(&'`'){
-                char_iter.next();
-                return Ok(Token::Code(s))
-            } else {
-                return  Err(ParseError{content: s})
+                ticks.push(char_iter.next().unwrap());
             }
+            if ticks.len() == 3 && char_iter.peek() == Some(&'\n'){
+                char_iter.next().unwrap();
+            }
+            let mut s = String::new();
+            while char_iter.peek().is_some() && char_iter.peek() != Some(&'`') {
+                s.push(char_iter.next().unwrap())
+            }
+            let mut end_ticks = String::new();
+            while char_iter.peek() == Some(&'`') {
+                end_ticks.push(char_iter.next().unwrap())
+            }
+            if ticks.len() != end_ticks.len(){
+                return Err(ParseError{content: format!("{}{}{}",ticks,s,end_ticks)}) 
+            } else {
+                return Ok(Token::Code(s))
+            }
+        },
+        Some(_) => {
+            return Err(ParseError{content: char_iter.next().unwrap().to_string()})
         }
         None => {return Err(ParseError{content: ticks})}
     }
