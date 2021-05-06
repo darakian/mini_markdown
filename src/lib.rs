@@ -244,3 +244,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
 pub fn render(source: &str) -> String {
     parse(lex(source))
 }
+
+fn strip_tags(source: &String) -> &String {
+
+}
