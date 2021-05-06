@@ -49,6 +49,12 @@ fn test_lex() {
             Token::Plaintext(" for italic text.".to_string()),
         ])
     ]);
+    tests.extend(vec![
+        ("¯\\\\\\_(ツ)\\_/¯", vec![Token::Plaintext("¯\\_(ツ)_/¯".to_string())]),
+        ("\\_test\\_", vec![Token::Plaintext("_test_".to_string())]),
+        ("\\*escaping\\_", vec![Token::Plaintext("*escaping_".to_string())]),
+        ("\\>controls\\<", vec![Token::Plaintext(">controls<".to_string())])
+    ]);
     for test in tests.iter(){
         let tokens = lex(test.0);
         assert_eq!(&tokens[..], &test.1[..]);
