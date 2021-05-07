@@ -250,11 +250,20 @@ pub fn render(source: &str) -> String {
 }
 
 pub fn remove_tags(source: &String) -> String {
-    let mut inner_source = source.clone();
-    while inner_source.contains('<') && inner_source.contains('>') {
-        let i = inner_source.find('<').expect("< not in string");
-        let j = inner_source.find('>').expect("> not in string");
-        inner_source.replace_range(i..=j, "");
+    let mut inner_source = String::new();
+    let mut count = 0;
+    for c in source.chars() {
+        match c {
+            '<' => {count+=1},
+            '>' if count > 0 => {
+                count-=1;
+                continue;
+            },
+            _ => {}
+        }
+        if count == 0 {
+            inner_source.push(c);
+        }
     }
     inner_source
 }
