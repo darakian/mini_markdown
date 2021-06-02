@@ -5,8 +5,8 @@ authors = ["Jon Moroney <darakian@gmail.com>"]
 edition = "2018"
 license = "LGPL-3.0"
 description = "Small markdown renderer"
-homepage = "https://github.com/darakian/MiniMarkdown"
-repository = "https://github.com/darakian/MiniMarkdown"
+homepage = "https://github.com/darakian/mini_markdown"
+repository = "https://github.com/darakian/mini_markdown"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
