@@ -1,7 +1,7 @@
 #[derive(Debug, PartialEq)]
 pub enum Token{
     Plaintext(String),
-    Header(u8, String),
+    Header(u8, String, Option<String>),
     UnorderedListEntry(String),
     OrderedListEntry(String),
     Italic(String),
@@ -49,6 +49,12 @@ pub(crate) fn push_str(t: &mut Vec<Token>, s: String) {
     }
 }
 
+fn consume_until_eol(char_iter: &mut std::iter::Peekable<std::str::Chars>) {
+    while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n'){
+        char_iter.next();
+    }
+}
+
 use std::cmp;
 pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
     let mut hashes = String::new();
@@ -58,13 +64,32 @@ pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) 
     match char_iter.peek(){
         Some(' ') => {
             char_iter.next();
+            let mut lbl = None;
             let level = cmp::min(6, hashes.len() as u8);
             let mut s = String::new();
-            while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n'){
+            while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n') && char_iter.peek() != Some(&'{'){
                 s.push(char_iter.next().unwrap());
             }
-            char_iter.next();
-            return Ok(Token::Header(level, s));
+            if char_iter.peek() == Some(&'{'){
+                char_iter.next();
+                let mut label = String::new();
+                if char_iter.peek() == Some(&'#'){
+                    char_iter.next();
+                } else {
+                    consume_until_eol(char_iter);
+                }
+                while char_iter.peek().is_some() && char_iter.peek() != Some(&'}'){
+                    label.push(char_iter.next().unwrap()); 
+                }
+                lbl = Some(label);
+                if char_iter.peek() == Some(&'}'){
+                    char_iter.next();
+                }
+            }
+            if char_iter.peek() == Some(&'\n'){
+                char_iter.next();
+            }
+            return Ok(Token::Header(level, s.trim().to_string(), lbl));
         },
         _ => {Err(ParseError{content: hashes})}
     }

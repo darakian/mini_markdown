@@ -160,8 +160,12 @@ pub fn parse(tokens: Vec<Token>) -> String {
                 }
                 html.push_str(format!("{}", remove_tags(t)).as_str())
             },
-            Token::Header(l, t) => {
-                let mut id = t.clone();
+            Token::Header(l, t, lbl) => {
+                let mut id = String::new();
+                match lbl {
+                    Some(t) => id = lbl.as_ref().unwrap().clone(),
+                    None => id = t.clone(),
+                };
                 id.make_ascii_lowercase();
                 html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", 
                     level=l, 
