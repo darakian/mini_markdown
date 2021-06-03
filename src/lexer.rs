@@ -14,7 +14,7 @@ pub enum Token{
     DoubleTab,
     Strikethrough(String),
     Code(String),
-    EscapedCode(String),
+    CodeBlock(String, String),
     BlockQuote(u8, String),
     Image(String, String), // (Link, title)
     Link(String, Option<String>, Option<String>), //(link, title, hover text)
@@ -200,6 +200,7 @@ pub(crate) fn lex_spaces(char_iter: &mut std::iter::Peekable<std::str::Chars>) -
 
 pub(crate) fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
     let mut ticks = String::new();
+    let mut lang = "plaintext".to_string();
     match char_iter.peek(){
         Some(&'`') => {
             ticks.push(char_iter.next().unwrap());
@@ -211,10 +212,16 @@ pub(crate) fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>
             }
             if ticks.len() == 3 && char_iter.peek() == Some(&'\n'){
                 char_iter.next().unwrap();
+            } else if ticks.len() == 3 && char_iter.peek() != Some(&'\n') {
+                lang.clear();
+                while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n'){
+                    lang.push(char_iter.next().unwrap());
+                }
+                char_iter.next();
             }
             let mut s = String::new();
             while char_iter.peek().is_some() && char_iter.peek() != Some(&'`') {
-                s.push(char_iter.next().unwrap())
+                s.push(char_iter.next().unwrap());
             }
             let mut end_ticks = String::new();
             while char_iter.peek() == Some(&'`') {
@@ -223,7 +230,11 @@ pub(crate) fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>
             if ticks.len() != end_ticks.len(){
                 return Err(ParseError{content: format!("{}{}{}",ticks,s,end_ticks)}) 
             } else {
-                return Ok(Token::Code(s))
+                if ticks.len() == 1{
+                    return Ok(Token::Code(s))
+                } else {
+                    return Ok(Token::CodeBlock(s, lang))
+                }
             }
         },
         Some(_) => {

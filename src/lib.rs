@@ -201,7 +201,14 @@ pub fn parse(tokens: Vec<Token>) -> String {
             Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", remove_tags(t)).as_str())},
             // Token::Tab => {},
             // Token::DoubleTab => {},
-            Token::Code(t) | Token::EscapedCode(t) => {html.push_str(format!("<code>{}</code>", remove_tags(t)).as_str())},
+            Token::Code(t) => {html.push_str(format!("<code>{}</code>", remove_tags(t)).as_str())},
+            Token::CodeBlock(t, lang) => {
+                html.push_str(format!(
+                "<div class=\"language-{} highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>{}</code></pre></div></div>",
+                remove_tags(lang), 
+                remove_tags(t)
+                ).as_str())
+            },
             Token::BlockQuote(l, t) => {
                 match quote_level {
                     _ if l == &quote_level => {},

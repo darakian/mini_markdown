@@ -34,11 +34,14 @@ fn test_moderate_render(){
         ("> Outer quote with some text.\n> \n>> Inner quote with some other text",
         "<blockquote><p>Outer quote with some text.</p><blockquote><p>Inner quote with some other text</p></blockquote></blockquote>"
         ),
-        ("```Code block```",
-        "<code>Code block</code>"
+        ("```\nCode block 1\n```",
+        "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Code block 1\n</code></pre></div></div>"
         ),
-        ("```\nMulti\nLine\nCode block```",
-        "<code>Multi\nLine\nCode block</code>"
+        ("```python\nCode block 2\n```",
+        "<div class=\"language-python highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Code block 2\n</code></pre></div></div>"
+        ),
+        ("```\nMulti\nLine\nCode block\n```",
+        "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Multi\nLine\nCode block\n</code></pre></div></div>"
         ),
         ("> Outer quote with some text.\n> \n>> Inner quote with some other text",
         "<blockquote><p>Outer quote with some text.</p><blockquote><p>Inner quote with some other text</p></blockquote></blockquote>"
