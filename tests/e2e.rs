@@ -46,6 +46,12 @@ fn test_moderate_render(){
         ("> Outer quote with some text.\n> \n>> Inner quote with some other text",
         "<blockquote><p>Outer quote with some text.</p><blockquote><p>Inner quote with some other text</p></blockquote></blockquote>"
         ),
+        ("Testing an inline link [Link title](http://google.com)",
+        "<p>Testing an inline link <a href=\"http://google.com\">Link title</a></p>"
+        ),
+        ("Testing an inline link to a header id [Link title](#some-header)",
+        "<p>Testing an inline link to a header id <a href=\"#some-header\">Link title</a></p>"
+        ),
     ]);
 
     for test in tests.iter(){

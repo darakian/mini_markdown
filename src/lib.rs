@@ -163,7 +163,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
             Token::Header(l, t, lbl) => {
                 let mut id = String::new();
                 match lbl {
-                    Some(t) => id = lbl.as_ref().unwrap().clone(),
+                    Some(_t) => id = lbl.as_ref().unwrap().clone(),
                     None => id = t.clone(),
                 };
                 id.make_ascii_lowercase();

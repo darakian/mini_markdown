@@ -349,7 +349,9 @@ pub(crate) fn lex_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
                             }
                             match char_iter.peek() {
                                 Some(')') => {
-                                    return Ok(Token::Link(link, Some(title), None))
+                                    consume_until_eol(char_iter);
+                                    char_iter.next();
+                                    return Ok(Token::Link(link, Some(title), None));
                                 },
                                 Some(' ') => {
                                     let mut hover = String::new();
