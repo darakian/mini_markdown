@@ -5,7 +5,8 @@ The design goal of this project is to provide a dependency free markdown to html
 
 ## Status
 The basic markdown syntax is currently supported. Extended syntax is ongoing.   
-Testing is also ongoing. Please report bugs as issues should you find any.
+Testing is also ongoing. Please report bugs as issues should you find any.  
+Any output is considered unstable for the time being.
 
 ## Currently Supported Syntax
 ### Headings
