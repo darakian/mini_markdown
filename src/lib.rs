@@ -55,10 +55,12 @@ pub fn lex(source: &str) -> Vec<Token>{
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            '>' => {
+            '>' if (tokens.last() == Some(&Token::Newline) || tokens.len() == 0) => {
                 let token = lex_blockquotes(&mut char_iter);
                 match token {
-                    Ok(t) => tokens.push(t),
+                    Ok(t) => {
+                        tokens.push(t);
+                        },
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
@@ -143,6 +145,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
                         quote_level-=1;
                     }
                 },
+                Token::Newline => {},
                 _ => {
                     for _i in 0..quote_level {
                         html.push_str(format!("</blockquote>").as_str());
@@ -187,6 +190,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
                 }
                 html.push_str(format!("<li>{}</li>", remove_tags(t)).as_str())
             },
+            Token::Newline => {html.push('\n')},
             Token::ParagraphBreak => {
                 if in_paragraph {
                     html.push_str(format!("</p>").as_str());
@@ -229,7 +233,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
                     _ => {},
                 }
                 if !t.is_empty(){
-                    html.push_str(format!("<p>{}</p>", remove_tags(t)).as_str());
+                    html.push_str(format!("{}", remove_tags(t)).as_str());
                 }
             },
             Token::Image(l, t) => html.push_str(format!("<img src=\"{link}\" alt=\"{text}\"", link=l, text=remove_tags(t)).as_str()),

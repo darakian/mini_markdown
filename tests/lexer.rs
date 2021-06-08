@@ -31,7 +31,7 @@ fn test_lex() {
         ("I just love *italic text*.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text".to_string()), Token::Plaintext(".".to_string())]),
         ("I just love _italic text_.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text".to_string()), Token::Plaintext(".".to_string())]),
         ("I just love *italic text_.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text".to_string()), Token::Plaintext(".".to_string())]),
-        ("I just\n love *italic\n text_.", vec![Token::Plaintext("I just\n love ".to_string()), Token::Italic("italic\n text".to_string()), Token::Plaintext(".".to_string())]),
+        ("I just\n love *italic\n text_.", vec![Token::Plaintext("I just".to_string()), Token::Newline, Token::Plaintext(" love ".to_string()), Token::Italic("italic\n text".to_string()), Token::Plaintext(".".to_string())]),
     ]);
     tests.extend(vec![
         ("I just love ***bold italic text***.", vec![Token::Plaintext("I just love ".to_string()), Token::BoldItalic("bold italic text".to_string()), Token::Plaintext(".".to_string())]),
@@ -44,12 +44,13 @@ fn test_lex() {
         ("* unodered list\n* with two\n* with three\n", vec![Token::UnorderedListEntry("unodered list".to_string()), Token::UnorderedListEntry("with two".to_string()), Token::UnorderedListEntry("with three".to_string())]),
     ]);
     tests.extend(vec![
-        ("Some text _with italics_ in the same paragraph\n", vec![Token::Plaintext("Some text ".to_string()), Token::Italic("with italics".to_string()), Token::Plaintext(" in the same paragraph\n".to_string())]),
+        ("Some text _with italics_ in the same paragraph", vec![Token::Plaintext("Some text ".to_string()), Token::Italic("with italics".to_string()), Token::Plaintext(" in the same paragraph".to_string())]),
         ("Text attributes _italic_, \n**bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.", 
         vec![
             Token::Plaintext("Text attributes ".to_string()), 
             Token::Italic("italic".to_string()), 
-            Token::Plaintext(", \n".to_string()), 
+            Token::Plaintext(", ".to_string()),
+            Token::Newline, 
             Token::Bold("bold".to_string()), 
             Token::Plaintext(", ".to_string()), 
             Token::Code("monospace".to_string()),

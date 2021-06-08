@@ -29,10 +29,10 @@ fn test_moderate_render(){
         ("Text attributes _italic_, \n**bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.",
         "<p>Text attributes <em>italic</em>, \n<strong>bold</strong>, <code>monospace</code>. Some implementations may use <em>single-asterisks</em> for italic text.</p>"),
         ("Horizontal rule:\n\n---\n\nStrikethrough:\n\n~~strikethrough~~\n\n",
-        "<p>Horizontal rule:</p><hr /><p>Strikethrough:</p><strike>strikethrough</strike>"
+        "<p>Horizontal rule:\n<hr />\nStrikethrough:\n<strike>strikethrough</strike>\n</p>"
         ),
-        ("> Outer quote with some text.\n> \n>> Inner quote with some other text",
-        "<blockquote><p>Outer quote with some text.</p><blockquote><p>Inner quote with some other text</p></blockquote></blockquote>"
+        ("> Outer quote with some text 1.\n> \n>> Inner quote with some other text",
+        "<blockquote>Outer quote with some text 1.\n\n<blockquote>Inner quote with some other text</blockquote></blockquote>"
         ),
         ("```\nCode block 1\n```",
         "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Code block 1\n</code></pre></div></div>"
@@ -44,7 +44,10 @@ fn test_moderate_render(){
         "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Multi\nLine\nCode block\n</code></pre></div></div>"
         ),
         ("> Outer quote with some text.\n> \n>> Inner quote with some other text",
-        "<blockquote><p>Outer quote with some text.</p><blockquote><p>Inner quote with some other text</p></blockquote></blockquote>"
+        "<blockquote>Outer quote with some text.\n\n<blockquote>Inner quote with some other text</blockquote></blockquote>"
+        ),
+        ("Don't -> quote",
+        "<p>Don't -> quote</p>"
         ),
         ("Testing an inline link [Link title](http://google.com)",
         "<p>Testing an inline link <a href=\"http://google.com\">Link title</a></p>"

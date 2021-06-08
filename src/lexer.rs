@@ -9,6 +9,7 @@ pub enum Token{
     BoldItalic(String),
     LineBreak,
     ParagraphBreak,
+    Newline,
     HorizontalRule,
     Tab,
     DoubleTab,
@@ -246,13 +247,10 @@ pub(crate) fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>
 
 pub(crate) fn lex_newlines(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
     let new_line = char_iter.next().unwrap().to_string();
-    if char_iter.peek() != Some(&'\n') {
-        return Err(ParseError{content: new_line});
-    }
     while char_iter.peek() == Some(&'\n'){
         char_iter.next();
     }
-    return Ok(Token::ParagraphBreak);
+    return Ok(Token::Newline);
 }
 
 pub(crate) fn lex_blockquotes(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
@@ -268,7 +266,6 @@ pub(crate) fn lex_blockquotes(char_iter: &mut std::iter::Peekable<std::str::Char
     while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n') {
         s.push(char_iter.next().unwrap());
     }
-    char_iter.next_if_eq(&'\n');
     Ok(Token::BlockQuote(right_arrows.len() as u8, s))
 }
 
