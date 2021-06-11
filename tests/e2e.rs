@@ -43,8 +43,8 @@ fn test_moderate_render(){
         ("```\nMulti\nLine\nCode block\n```",
         "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Multi\nLine\nCode block\n</code></pre></div></div>"
         ),
-        ("> Outer quote with some text.\n> \n>> Inner quote with some other text",
-        "<blockquote>Outer quote with some text.\n\n<blockquote>Inner quote with some other text</blockquote></blockquote>"
+        ("> Outer quote with some text.\nNon-quoted text\n> Quote with some other text",
+        "<blockquote>Outer quote with some text.\n</blockquote>Non-quoted text\n<blockquote>Quote with some other text</blockquote>"
         ),
         ("Don't -> quote",
         "<p>Don't -> quote</p>"
