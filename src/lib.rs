@@ -215,6 +215,10 @@ pub fn parse(tokens: Vec<Token>) -> String {
                 ).as_str())
             },
             Token::BlockQuote(l, t) => {
+                if in_paragraph {
+                    html.push_str(format!("</p>").as_str());
+                    in_paragraph = false;
+                }
                 match quote_level {
                     _ if l == &quote_level => {},
                     _ if l < &quote_level => {
