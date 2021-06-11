@@ -31,8 +31,8 @@ fn test_moderate_render(){
         ("Horizontal rule:\n\n---\n\nStrikethrough:\n\n~~strikethrough~~\n\n",
         "<p>Horizontal rule:\n<hr />\nStrikethrough:\n<strike>strikethrough</strike>\n</p>"
         ),
-        ("> Outer quote with some text 1.\n> \n>> Inner quote with some other text",
-        "<blockquote>Outer quote with some text 1.\n\n<blockquote>Inner quote with some other text</blockquote></blockquote>"
+        ("> Outer quote with some text 1.\n> \n>> Inner quote with some other text\n> Outer again",
+        "<blockquote>Outer quote with some text 1.\n\n<blockquote>Inner quote with some other text\n</blockquote>Outer again</blockquote>"
         ),
         ("```\nCode block 1\n```",
         "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Code block 1\n</code></pre></div></div>"
@@ -45,6 +45,9 @@ fn test_moderate_render(){
         ),
         ("> Outer quote with some text.\nNon-quoted text\n> Quote with some other text",
         "<blockquote>Outer quote with some text.\n</blockquote><p>Non-quoted text\n</p><blockquote>Quote with some other text</blockquote>"
+        ),
+        ("> Outer quote with some text.\nNon-quoted text\nMore non-quoted\n> Quote with some other text",
+        "<blockquote>Outer quote with some text.\n</blockquote><p>Non-quoted text\nMore non-quoted\n</p><blockquote>Quote with some other text</blockquote>"
         ),
         ("Don't -> quote",
         "<p>Don't -> quote</p>"
@@ -59,6 +62,7 @@ fn test_moderate_render(){
 
     for test in tests.iter(){
         let html = render(test.0);
+        // println!("lex: {:?}", lex(test.0));
         assert_eq!(html, test.1);
     }
 }

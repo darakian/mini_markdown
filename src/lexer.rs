@@ -246,7 +246,6 @@ pub(crate) fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>
 }
 
 pub(crate) fn lex_newlines(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
-    let new_line = char_iter.next().unwrap().to_string();
     while char_iter.peek() == Some(&'\n'){
         char_iter.next();
     }
