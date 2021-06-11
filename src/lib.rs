@@ -139,7 +139,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
         }
         if quote_level > 0 {
             match token {
-                Token::BlockQuote(l, _s) => {
+                Token::BlockQuote(l, s) => {
                     while l < &quote_level {
                         html.push_str(format!("</blockquote>").as_str());
                         quote_level-=1;
@@ -149,6 +149,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
                 _ => {
                     for _i in 0..quote_level {
                         html.push_str(format!("</blockquote>").as_str());
+                        quote_level-=1;
                     }
                 }
             }
