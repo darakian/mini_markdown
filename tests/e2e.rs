@@ -1,5 +1,5 @@
 use mini_markdown::render;
-use mini_markdown::lex;
+// use mini_markdown::lex;
 
 
 #[test]
@@ -70,7 +70,7 @@ fn test_moderate_render(){
     }
 }
 
-use std::fs;
+// use std::fs;
 
 #[test]
 fn test_full_render(){
