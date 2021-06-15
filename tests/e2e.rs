@@ -52,6 +52,9 @@ fn test_moderate_render(){
         ("Don't -> quote",
         "<p>Don't -> quote</p>"
         ),
+        ("Don't -> quote\n> Do Quote\nDon't quote this either",
+        "<p>Don't -> quote\n</p><blockquote>Do Quote\n</blockquote><p>Don't quote this either</p>"
+        ),
         ("Testing an inline link [Link title](http://google.com)",
         "<p>Testing an inline link <a href=\"http://google.com\">Link title</a></p>"
         ),
