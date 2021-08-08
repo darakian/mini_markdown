@@ -8,6 +8,16 @@ The basic markdown syntax is currently supported. Extended syntax is ongoing.
 Testing is also ongoing. Please report bugs as issues should you find any.  
 Any output is considered unstable for the time being.
 
+
+## Usage
+The primary function in this library is the `render` function.
+```
+pub fn render(source: &str) -> String {
+    parse(lex(source))
+}
+```
+If all you want is to take markdown and get html `render` is your function. If you want see work with the internal structure the `parse` and `lex` functions are public and exposed.
+
 ## Currently Supported Syntax
 ### Headings
 Headings are supported with the `#` syntax only. Up to six levels are supported
