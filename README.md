@@ -16,7 +16,7 @@ pub fn render(source: &str) -> String {
     parse(lex(source))
 }
 ```
-If all you want is to take markdown and get html `render` is your function. If you want see work with the internal structure the `parse` and `lex` functions are public.
+If all you want is to take markdown and get html `render` is your function. If you want to work with the internal structure the `parse` and `lex` functions are public.
 
 ## Currently Supported Syntax
 ### Headings
