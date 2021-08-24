@@ -320,8 +320,7 @@ pub(crate) fn lex_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
                             }
                             match char_iter.peek() {
                                 Some(')') => {
-                                    char_iter.skip_while(|c| c != &'\n');
-                                    char_iter.next();
+                                    char_iter.skip_while(|c| c != &'\n').next();
                                     return Ok(Token::Link(link, Some(title), None));
                                 },
                                 Some(' ') => {
