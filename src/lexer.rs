@@ -56,38 +56,19 @@ pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) 
     while char_iter.peek() == Some(&'#'){
         hashes.push(char_iter.next().unwrap());
     }
-    match char_iter.peek(){
-        Some(' ') => {
-            char_iter.next();
-            let mut lbl = None;
-            let level = cmp::min(6, hashes.len() as u8);
-            let mut s = String::new();
-            while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n') && char_iter.peek() != Some(&'{'){
-                s.push(char_iter.next().unwrap());
-            }
-            if char_iter.peek() == Some(&'{'){
-                char_iter.next();
-                let mut label = String::new();
-                if char_iter.peek() == Some(&'#'){
-                    char_iter.next();
-                } else {
-                    char_iter.skip_while(|c| c != &'\n');
-                }
-                while char_iter.peek().is_some() && char_iter.peek() != Some(&'}'){
-                    label.push(char_iter.next().unwrap()); 
-                }
-                lbl = Some(label);
-                if char_iter.peek() == Some(&'}'){
-                    char_iter.next();
-                }
-            }
-            if char_iter.peek() == Some(&'\n'){
-                char_iter.next();
-            }
-            return Ok(Token::Header(level, s.trim().to_string(), lbl));
-        },
-        _ => {Err(ParseError{content: hashes})}
+    if char_iter.next_if_eq(&' ').is_none(){
+        return Err(ParseError{content: hashes});
     }
+    let level = cmp::min(6, hashes.len() as u8);
+    let mut line = char_iter.take_while(|c| c != &'\n').collect::<String>();
+    if line.contains("{#") && 
+        line.contains('}') {
+            let heading = line.chars().take_while(|c| c != &'{').collect::<String>();
+            line.replace_range(..heading.len(), "");
+            line.retain(|c| c != '{' && c != '#' && c != '}');
+            return Ok(Token::Header(level, heading.trim().to_string(), Some(line)));
+        }
+    return Ok(Token::Header(level, line, None));
 }
 
 pub(crate) fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
@@ -339,7 +320,7 @@ pub(crate) fn lex_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
                             }
                             match char_iter.peek() {
                                 Some(')') => {
-                                    char_iter.skip_while(|c| c != &'\n');;
+                                    char_iter.skip_while(|c| c != &'\n');
                                     char_iter.next();
                                     return Ok(Token::Link(link, Some(title), None));
                                 },
