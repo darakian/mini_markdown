@@ -50,12 +50,6 @@ pub(crate) fn push_str(t: &mut Vec<Token>, s: String) {
     }
 }
 
-fn consume_until_eol(char_iter: &mut std::iter::Peekable<std::str::Chars>) {
-    while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n'){
-        char_iter.next();
-    }
-}
-
 use std::cmp;
 pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
     let mut hashes = String::new();
@@ -77,7 +71,7 @@ pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) 
                 if char_iter.peek() == Some(&'#'){
                     char_iter.next();
                 } else {
-                    consume_until_eol(char_iter);
+                    char_iter.skip_while(|c| c != &'\n');
                 }
                 while char_iter.peek().is_some() && char_iter.peek() != Some(&'}'){
                     label.push(char_iter.next().unwrap()); 
@@ -345,7 +339,7 @@ pub(crate) fn lex_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
                             }
                             match char_iter.peek() {
                                 Some(')') => {
-                                    consume_until_eol(char_iter);
+                                    char_iter.skip_while(|c| c != &'\n');;
                                     char_iter.next();
                                     return Ok(Token::Link(link, Some(title), None));
                                 },
