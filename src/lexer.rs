@@ -245,68 +245,33 @@ pub(crate) fn lex_images(char_iter: &mut std::iter::Peekable<std::str::Chars>) -
 }
 
 pub(crate) fn lex_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
-    match char_iter.peek(){
-        Some(&'[') => {
-            char_iter.next();
-            let title = consume_while_case_holds(char_iter, &|c| c != &']');
-            match char_iter.peek() {
-                Some(&']') => {
-                    char_iter.next();
-                    match char_iter.peek() {
-                        Some(&'(') => {
-                            char_iter.next();
-                            let link = consume_while_case_holds(char_iter, &|c| c != &')' && c != &' ');
-                            match char_iter.peek() {
-                                Some(')') => {
-                                    char_iter.skip_while(|c| c != &'\n').next();
-                                    return Ok(Token::Link(link, Some(title), None));
-                                },
-                                Some(' ') => {
-                                    let hover = consume_while_case_holds(char_iter, &|c| c != &')');
-                                    match char_iter.peek() {
-                                        Some(')') => {
-                                            return Ok(Token::Link(link, Some(title), Some(hover)))
-                                        },
-                                        _ => {
-                                            let mut s = String::new();
-                                            s.push('[');
-                                            s.push_str(&title);
-                                            s.push(']');
-                                            s.push_str(&link);
-                                            s.push_str(&hover);
-                                            return Err(ParseError{content: s});  
-                                        }
-                                    }
-                                },
-                                _ => {
-                                    let mut s = String::new();
-                                    s.push('[');
-                                    s.push_str(&title);
-                                    s.push(']');
-                                    s.push_str(&link);
-                                    return Err(ParseError{content: s});  
-                                }
-                            }
-                        }, 
-                        _ => {
-                            let mut s = String::new();
-                            s.push('[');
-                            s.push_str(&title);
-                            s.push(']');
-                            return Err(ParseError{content: s});
-                        }
-                    }
-                },
-                _ => {
-                    let mut s = String::new();
-                    s.push('[');
-                    s.push_str(&title);
-                    return Err(ParseError{content: s});
-                }
-            }
-        },
-        _ => return Err(ParseError{content: "".to_string()})
+    if char_iter.peek() != Some(&'[') {
+        return Err(ParseError{content: "".to_string()})
     }
+    char_iter.next();
+    let title = consume_while_case_holds(char_iter, &|c| c != &']');
+    if char_iter.peek() != Some(&']') {
+        return Err(ParseError{content: "[".to_string()+&title})
+    }
+    char_iter.next();
+    if char_iter.peek() != Some(&'(') {
+        return Err(ParseError{content: "[".to_string()+&title+"]"})
+    }
+    char_iter.next();
+    let link = consume_while_case_holds(char_iter, &|c| c != &')' && c != &' ');
+    if char_iter.peek() != Some(&')') && char_iter.peek() != Some(&' ') {
+        return Err(ParseError{content: "[".to_string()+&title+&"]".to_string()+&link})
+    }
+    if char_iter.peek() == Some(&')') {
+        char_iter.skip_while(|c| c != &'\n').next();
+        return Ok(Token::Link(link, Some(title), None));
+    }
+    if char_iter.peek() == Some(&' ') {
+        let hover = consume_while_case_holds(char_iter, &|c| c != &')');
+        char_iter.skip_while(|c| c != &'\n').next();
+        return Ok(Token::Link(link, Some(title), Some(hover)));
+    }
+    Err(ParseError{content: "".to_string()})
 }
 
 pub(crate) fn lex_side_carrot(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
