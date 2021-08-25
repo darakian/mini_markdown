@@ -50,17 +50,23 @@ pub(crate) fn push_str(t: &mut Vec<Token>, s: String) {
     }
 }
 
+
+fn consume_until_next_is(char_iter: &mut std::iter::Peekable<std::str::Chars>, func: &dyn Fn(&char) -> bool) -> String{
+    let mut s = String::new();
+    while char_iter.peek().is_some() && func(char_iter.peek().unwrap()) {
+        s.push(char_iter.next().unwrap());
+    }
+    s
+}
+
 use std::cmp;
 pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
-    let mut hashes = String::new();
-    while char_iter.peek() == Some(&'#'){
-        hashes.push(char_iter.next().unwrap());
-    }
+    let hashes = consume_until_next_is(char_iter, &|c| c == &'#');
     if char_iter.next_if_eq(&' ').is_none(){
         return Err(ParseError{content: hashes});
     }
     let level = cmp::min(6, hashes.len() as u8);
-    let mut line = char_iter.take_while(|c| c != &'\n').collect::<String>();
+    let mut line = consume_until_next_is(char_iter, &|c| c != &'\n');
     if line.contains("{#") && 
         line.contains('}') {
             let heading = line.chars().take_while(|c| c != &'{').collect::<String>();
@@ -72,20 +78,14 @@ pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) 
 }
 
 pub(crate) fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
-    let mut asterunds = String::new();
-    if char_iter.peek() == Some(&'*') {
-        asterunds.push(char_iter.next().unwrap());
-        if char_iter.next_if_eq(&' ').is_some(){
-            let mut s = String::new();
-            while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n'){
-                s.push(char_iter.next().unwrap());
-            }
-            char_iter.next();
-            return Ok(Token::UnorderedListEntry(s))
+    let mut asterunds = consume_until_next_is(char_iter, &|c| c == &'*' || c == &'_');
+    if asterunds.len() == 1 && char_iter.next_if_eq(&' ').is_some(){
+        let mut s = String::new();
+        while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n'){
+            s.push(char_iter.next().unwrap());
         }
-    }
-    while char_iter.peek() == Some(&'*') || char_iter.peek() == Some(&'_'){
-        asterunds.push(char_iter.next().unwrap());
+        char_iter.next();
+        return Ok(Token::UnorderedListEntry(s))
     }
     match asterunds.len() {
         1 => {
@@ -228,10 +228,7 @@ pub(crate) fn lex_newlines(char_iter: &mut std::iter::Peekable<std::str::Chars>)
 }
 
 pub(crate) fn lex_blockquotes(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
-    let mut right_arrows = String::new();
-    while char_iter.peek() == Some(&'>') {
-        right_arrows.push(char_iter.next().unwrap());
-    }
+    let right_arrows = consume_until_next_is(char_iter, &|c| c == &'>');
     match char_iter.peek() {
         Some(&' ') => {char_iter.next();},
         _ => {return Err(ParseError{content: right_arrows})}
