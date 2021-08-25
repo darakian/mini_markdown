@@ -78,94 +78,64 @@ pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) 
 }
 
 pub(crate) fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
-    let mut asterunds = consume_until_next_is(char_iter, &|c| c == &'*' || c == &'_');
+    let asterunds = consume_until_next_is(char_iter, &|c| c == &'*' || c == &'_');
     if asterunds.len() == 1 && char_iter.next_if_eq(&' ').is_some(){
-        let mut s = String::new();
-        while char_iter.peek().is_some() && char_iter.peek() != Some(&'\n'){
-            s.push(char_iter.next().unwrap());
-        }
+        let s = consume_until_next_is(char_iter, &|c| c != &'\n');
         char_iter.next();
         return Ok(Token::UnorderedListEntry(s))
     }
+    if asterunds.chars().all(|x| x == '*') && char_iter.peek() == Some(&'\n'){
+        return Ok(Token::HorizontalRule)
+    }
     match asterunds.len() {
         1 => {
-            let mut s = String::new();
-            while char_iter.peek().is_some() && char_iter.peek() != Some(&'*') && char_iter.peek() != Some(&'_'){
-                s.push(char_iter.next().unwrap());
-            }
+            let s = consume_until_next_is(char_iter, &|c| c != &'*' && c != &'_');
             if char_iter.peek() != Some(&'*') || char_iter.peek() != Some(&'_'){
-                asterunds.push(char_iter.next().unwrap());
+                char_iter.next();
                 return Ok(Token::Italic(s))
             } else {
                 return Err(ParseError{content: format!("{}{}", asterunds, s)});
             }
         },
         2 => {
-            let mut s = String::new();
-            while char_iter.peek().is_some() && char_iter.peek() != Some(&'*') && char_iter.peek() != Some(&'_'){
-                s.push(char_iter.next().unwrap());
-            }
-            if char_iter.peek() != Some(&'*') || char_iter.peek() != Some(&'_'){
-                asterunds.push(char_iter.next().unwrap());
-                if char_iter.peek() != Some(&'*') || char_iter.peek() != Some(&'_'){
-                    while char_iter.peek().is_some() && char_iter.peek() != Some(&'*') && char_iter.peek() != Some(&'_'){
-                        s.push(char_iter.next().unwrap());
-                    }
-                    asterunds.push(char_iter.next().unwrap());
-                    return Ok(Token::Bold(s))
-                } else {
-                    return Err(ParseError{content: format!("{}{}", asterunds, s)});
-                }
+            let s = consume_until_next_is(char_iter, &|c| c != &'*' && c != &'_');
+            let trailing_astunds = consume_until_next_is(char_iter, &|c| c == &'*' || c == &'_');
+            if trailing_astunds.len() == 2 {
+                return Ok(Token::Bold(s))
             } else {
-                return Err(ParseError{content: format!("{}{}", asterunds, s)});
+                return Err(ParseError{content: format!("{}{}{}", asterunds, s, trailing_astunds)});
             }
         },
         3 => {
-            if asterunds.chars().all(|x| x == '*') && char_iter.peek() == Some(&'\n'){
-                return Ok(Token::HorizontalRule)
+            let s = consume_until_next_is(char_iter, &|c| c != &'*' && c != &'_');
+            let trailing_astunds = consume_until_next_is(char_iter, &|c| c == &'*' || c == &'_');
+            if trailing_astunds.len() == 3 {
+                return Ok(Token::BoldItalic(s))
             } else {
-                let mut s = String::new();
-                while char_iter.peek().is_some() && char_iter.peek() != Some(&'*') && char_iter.peek() != Some(&'_'){
-                    s.push(char_iter.next().unwrap());
-                }
-                for _i in 0..3 {
-                    let mut after = String::new();
-                    if char_iter.peek().is_some() && (char_iter.peek() == Some(&'*') || char_iter.peek() == Some(&'_')){
-                        after.push(char_iter.next().unwrap())
-                    } else {
-                        return Err(ParseError{content: format!("{}{}{}", asterunds, s, after)});
-                    }
-                }
-                return Ok(Token::BoldItalic(s))   
-            }},
+                return Err(ParseError{content: format!("{}{}{}", asterunds, s, trailing_astunds)});
+            }
+        },
         _ => {
             if asterunds.chars().all(|x| x == '*') || asterunds.chars().all(|x| x == '_'){
                 return Ok(Token::HorizontalRule)
             } else {
                 return Err(ParseError{content: asterunds})
-            }}
+            }
+        }
     }
 }
 
 pub(crate) fn lex_spaces(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError>{
-    let mut spaces = char_iter.next().unwrap().to_string();
+    let spaces = consume_until_next_is(char_iter, &|c| c == &' ');
     // Case 1: space in text => return char
-    if char_iter.peek() != Some(&' ') {
+    if spaces.len() == 1 {
         return Err(ParseError{content: spaces})
-    }
-    // Glob spaces
-    while char_iter.peek() == Some(&' '){
-        spaces.push(char_iter.next().unwrap())
     }
     // Case 2: two or more spaces followed by \n => line break
     if char_iter.peek() == Some(&'\n'){
         return Ok(Token::LineBreak);
     }
-    /* Cases:
-    3. four spaces or a tab => code block
-    3a. four spaces in a list => add paragraph item to prior list element
-    4. eight spaces or two tabs => code block in list
-    */
+    // Case 3: Tokenize for parser
     match spaces.len(){
         4 => return Ok(Token::Tab),
         8 => return Ok(Token::DoubleTab),
@@ -221,9 +191,7 @@ pub(crate) fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>
 }
 
 pub(crate) fn lex_newlines(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
-    while char_iter.peek() == Some(&'\n'){
-        char_iter.next();
-    }
+    consume_until_next_is(char_iter, &|c| c == &'\n');
     return Ok(Token::Newline);
 }
 
