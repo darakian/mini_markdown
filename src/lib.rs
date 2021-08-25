@@ -79,7 +79,7 @@ pub fn lex(source: &str) -> Vec<Token>{
                 }
             },
             '<' => {
-                let token = lex_easy_links(&mut char_iter);
+                let token = lex_side_carrot(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),

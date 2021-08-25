@@ -374,22 +374,16 @@ pub(crate) fn lex_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
     }
 }
 
-pub(crate) fn lex_easy_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+pub(crate) fn lex_side_carrot(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
     match char_iter.peek() {
         Some(&'<') => {
-            let mut s = String::new();
-            while char_iter.peek().is_some() && char_iter.peek() != Some(&'>'){
-                s.push(char_iter.next().unwrap());
-            }
+            let s = char_iter.take_while(|c| c != &'>').collect::<String>();
             match char_iter.peek(){
                 Some(&'>') => {
                     return Ok(Token::Link(s, None, None))
                 },
                 _ => {
-                    let mut e = String::new();
-                    e.push('<');
-                    e.push_str(&s);
-                    return Err(ParseError{content: e});
+                    return Err(ParseError{content: s});
                 }
             }
         }
