@@ -191,56 +191,15 @@ pub(crate) fn lex_blockquotes(char_iter: &mut std::iter::Peekable<std::str::Char
 }
 
 pub(crate) fn lex_images(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
-    let bang = char_iter.next().unwrap();
-    match char_iter.peek(){
-        Some(&'[') => {
-            char_iter.next();
-            let title = consume_while_case_holds(char_iter, &|c| c != &']');
-            match char_iter.peek() {
-                Some(&']') => {
-                    char_iter.next();
-                    match char_iter.peek() {
-                        Some(&'(') => {
-                            char_iter.next();
-                            let mut link = String::new();
-                            while char_iter.peek().is_some() && char_iter.peek() != Some(&')'){
-                                link.push(char_iter.next().unwrap());
-                            }
-                            match char_iter.peek() {
-                                Some(')') => {
-                                    return Ok(Token::Image(link, title))
-                                },
-                                _ => {
-                                    let mut s = String::new();
-                                    s.push(bang);
-                                    s.push('[');
-                                    s.push_str(&title);
-                                    s.push(']');
-                                    s.push_str(&link);
-                                    return Err(ParseError{content: s});  
-                                }
-                            }
-                        }, 
-                        _ => {
-                            let mut s = String::new();
-                            s.push(bang);
-                            s.push('[');
-                            s.push_str(&title);
-                            s.push(']');
-                            return Err(ParseError{content: s});
-                        }
-                    }
-                },
-                _ => {
-                    let mut s = String::new();
-                    s.push(bang);
-                    s.push('[');
-                    s.push_str(&title);
-                    return Err(ParseError{content: s});
-                }
-            }
-        },
-        _ => return Ok(Token::Plaintext(bang.to_string()))
+    if char_iter.peek() != Some(&'!'){
+        return Err(ParseError{content: "".to_string()})
+    }
+    char_iter.next();
+    let link_result = lex_links(char_iter);
+    match link_result {
+        Err(e) => return Err(e),
+        Ok(Token::Link(link, title, _)) => return Ok(Token::Image(link, title.unwrap_or("".to_string()))),
+        _ => return Err(ParseError{content: "Non link token returned from lex_links".to_string()})
     }
 }
 
