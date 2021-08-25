@@ -383,10 +383,7 @@ pub(crate) fn lex_side_carrot(char_iter: &mut std::iter::Peekable<std::str::Char
                     return Ok(Token::Link(s, None, None))
                 },
                 _ => {
-                    let mut e = String::new();
-                    e.push('<');
-                    e.push_str(&s);
-                    return Err(ParseError{content: e});
+                    return Err(ParseError{content: s});
                 }
             }
         }
