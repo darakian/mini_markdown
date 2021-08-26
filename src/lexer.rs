@@ -59,13 +59,12 @@ fn consume_while_case_holds(char_iter: &mut std::iter::Peekable<std::str::Chars>
     s
 }
 
-use std::cmp;
 pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
     let hashes = consume_while_case_holds(char_iter, &|c| c == &'#');
     if char_iter.next_if_eq(&' ').is_none(){
         return Err(ParseError{content: hashes});
     }
-    let level = cmp::min(6, hashes.len() as u8);
+    let level = std::cmp::min(6, hashes.len() as u8);
     let mut line = consume_while_case_holds(char_iter, &|c| c != &'\n');
     if line.contains("{#") && 
         line.contains('}') {
