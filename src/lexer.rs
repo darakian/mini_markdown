@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq)]
-pub enum Token{
+pub enum Token {
     Plaintext(String),
     Header(u8, String, Option<String>),
     UnorderedListEntry(String),
@@ -258,15 +258,11 @@ pub(crate) fn lex_plus_minus(char_iter: &mut std::iter::Peekable<std::str::Chars
     }
     match c {
         '-' => {
-            let mut s = String::new();
-            while char_iter.peek().is_some() && char_iter.peek() == Some(&'-'){
-                s.push(char_iter.next().unwrap());
-            }
+            let s = consume_while_case_holds(char_iter, &|c| c == &'-');
             if s.chars().all(|x| x == '-') && char_iter.peek() == Some(&'\n'){
                 return Ok(Token::HorizontalRule)
             } else {
-                s.insert(0, c);
-                return Ok(Token::Plaintext(s))
+                return Ok(Token::Plaintext("-".to_string()+&s))
             }
         },
         _ => return Ok(Token::Plaintext(c.to_string())),
