@@ -157,7 +157,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
                     html.push_str(format!("<p>").as_str());
                     in_paragraph = true;
                 }
-                html.push_str(format!("{}", remove_tags(t)).as_str())
+                html.push_str(format!("{}", sanitize(t)).as_str())
             },
             Token::Header(l, t, lbl) => {
                 let mut id;
@@ -168,7 +168,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
                 id.make_ascii_lowercase();
                 html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", 
                     level=l, 
-                    text=remove_tags(t), 
+                    text=sanitize(t), 
                     id=id.replace(" ", "-"))
                 .as_str())
             },
@@ -177,14 +177,14 @@ pub fn parse(tokens: Vec<Token>) -> String {
                     in_unordered_list = true;
                     html.push_str(format!("<ul>").as_str())
                 }
-                html.push_str(format!("<li>{}</li>", remove_tags(t)).as_str())
+                html.push_str(format!("<li>{}</li>", sanitize(t)).as_str())
             },
             Token::OrderedListEntry(t) => {
                 if in_ordered_list == false {
                     in_ordered_list = true;
                     html.push_str(format!("<ol>").as_str())
                 }
-                html.push_str(format!("<li>{}</li>", remove_tags(t)).as_str())
+                html.push_str(format!("<li>{}</li>", sanitize(t)).as_str())
             },
             Token::Newline => {html.push('\n')},
             Token::ParagraphBreak => {
@@ -193,20 +193,20 @@ pub fn parse(tokens: Vec<Token>) -> String {
                     in_paragraph = false;
                 }
             },
-            Token::Italic(t) => {html.push_str(format!("<em>{}</em>", remove_tags(t)).as_str())},
-            Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", remove_tags(t)).as_str())},
-            Token::BoldItalic(t) => {html.push_str(format!("<strong><em>{}</em></strong>", remove_tags(t)).as_str())},
+            Token::Italic(t) => {html.push_str(format!("<em>{}</em>", sanitize(t)).as_str())},
+            Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", sanitize(t)).as_str())},
+            Token::BoldItalic(t) => {html.push_str(format!("<strong><em>{}</em></strong>", sanitize(t)).as_str())},
             Token::LineBreak => {html.push_str("<br>")},
             Token::HorizontalRule => {html.push_str("<hr />")},
-            Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", remove_tags(t)).as_str())},
+            Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", sanitize(t)).as_str())},
             // Token::Tab => {},
             // Token::DoubleTab => {},
-            Token::Code(t) => {html.push_str(format!("<code>{}</code>", remove_tags(t)).as_str())},
+            Token::Code(t) => {html.push_str(format!("<code>{}</code>", sanitize(t)).as_str())},
             Token::CodeBlock(t, lang) => {
                 html.push_str(format!(
                 "<div class=\"language-{} highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>{}</code></pre></div></div>",
-                remove_tags(lang), 
-                remove_tags(t)
+                sanitize(lang), 
+                sanitize(t)
                 ).as_str())
             },
             Token::BlockQuote(l, t) => {
@@ -233,15 +233,15 @@ pub fn parse(tokens: Vec<Token>) -> String {
                     _ => {},
                 }
                 if !t.is_empty(){
-                    html.push_str(format!("{}", remove_tags(t)).as_str());
+                    html.push_str(format!("{}", sanitize(t)).as_str());
                 }
             },
-            Token::Image(l, t) => html.push_str(format!("<img src=\"{link}\" alt=\"{text}\"", link=l, text=remove_tags(t)).as_str()),
+            Token::Image(l, t) => html.push_str(format!("<img src=\"{link}\" alt=\"{text}\"", link=l, text=sanitize(t)).as_str()),
             Token::Link(l, t, ht) => {
                 match (t, ht){
-                    (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}", link=l, text=remove_tags(t), hover=ht).as_str()),
-                    (Some(t), None) => html.push_str(format!("<a href=\"{link}\">{text}</a>", link=l, text=remove_tags(t)).as_str()),
-                    (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\">{link}</a>", link=l, hover=remove_tags(ht)).as_str()),
+                    (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}", link=l, text=sanitize(t), hover=ht).as_str()),
+                    (Some(t), None) => html.push_str(format!("<a href=\"{link}\">{text}</a>", link=l, text=sanitize(t)).as_str()),
+                    (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\">{link}</a>", link=l, hover=sanitize(ht)).as_str()),
                     (None, None) => html.push_str(format!("<a href=\"{link}\">{link}</a>", link=l).as_str()),
                 }
             },
@@ -264,21 +264,9 @@ pub fn render(source: &str) -> String {
     parse(lex(source))
 }
 
-pub fn remove_tags(source: &String) -> String {
-    let mut inner_source = String::new();
-    let mut count = 0;
-    for c in source.chars() {
-        match c {
-            '<' => {count+=1},
-            '>' if count > 0 => {
-                count-=1;
-                continue;
-            },
-            _ => {}
-        }
-        if count == 0 {
-            inner_source.push(c);
-        }
-    }
-    inner_source
+pub fn sanitize(source: &String) -> String {
+    source.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
 }
