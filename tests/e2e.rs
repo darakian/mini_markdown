@@ -83,6 +83,28 @@ fn test_moderate_render(){
     }
 }
 
+#[test]
+fn test_table_render() {
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        ("| Syntax      | Description | Test Text     |\n| :---        |    :----:   |          ---: |\n| Header      | Title       | Here's this   |\n| Paragraph   | Text        | And more      |", 
+        "<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n\t\t<th style=\"text-align: left\">Syntax</th>\t\t<th style=\"text-align: center\">Description</th>\t\t<th style=\"text-align: right\">Test Text</th>\t</tr>\n\t</thead>\n\t<tbody>\n\t<tr>\n\t\t<td style=\"text-align: left\">Header</td>\n\t\t<td style=\"text-align: center\">Title</td>\n\t\t<td style=\"text-align: right\">Here's this</td>\n\t</tr>\n\t<tr>\n\t\t<td style=\"text-align: left\">Paragraph</td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">And more</td>\n\t</tr>\n\t</tbody>\n</table>"),
+    ]);
+
+    for test in tests.iter(){
+        let html = render(test.0);
+        if html != test.1 {
+            println!("Test failing\n{:?}\n{:?}", html, test.1);
+            for (c1, c2) in test.1.chars().zip(html.chars()) {
+                if c1 != c2 {
+                    println!("Difference in {:?} {:?}", c1, c2);
+                }
+            }
+        }
+        assert_eq!(html, test.1);
+    }
+}
+
 // use std::fs;
 
 #[test]

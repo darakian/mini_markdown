@@ -85,6 +85,13 @@ pub fn lex(source: &str) -> Vec<Token>{
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
+            '|' => {
+                let token = lex_pipes(&mut char_iter);
+                match token {
+                    Ok(t) => tokens.push(t),
+                    Err(e) => push_str(&mut tokens, e.content),
+                }
+            },
             '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '0' => {
                 let token = lex_numbers(&mut char_iter);
                 match token {
@@ -248,7 +255,23 @@ pub fn parse(tokens: &Vec<Token>) -> String {
             Token::Detail(summary, inner_tokens) => {
                 let inner_html = parse(inner_tokens);
                 html.push_str(format!("<details>\n<summary>{sum}</summary>\n{in_html}\n</details>", sum=sanitize(summary), in_html=inner_html).as_str());
-            }
+            },
+            Token::Table(headings, rows) => {
+                //Assert headings.len() == rows.width()
+                html.push_str("<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n");
+                for h in headings.into_iter() {
+                    html.push_str(format!("\t\t<th style=\"text-align: {align}\">{heading}</th>", heading=h.1, align=h.0).as_str());
+                }
+                html.push_str("\t</tr>\n\t</thead>\n\t<tbody>");
+                for row in rows.iter(){
+                    html.push_str("\n\t<tr>");
+                    for elem in row.iter(){
+                        html.push_str(format!("\n\t\t<td style=\"text-align: {align}\">{row_text}</td>", align=elem.0, row_text=elem.1).as_str());
+                    }
+                    html.push_str("\n\t</tr>");
+                }
+                html.push_str("\n\t</tbody>\n</table>");
+            },
             _ => {},
         }
     }
