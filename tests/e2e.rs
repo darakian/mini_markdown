@@ -61,11 +61,24 @@ fn test_moderate_render(){
         ("Testing an inline link to a header id [Link title](#some-header)",
         "<p>Testing an inline link to a header id <a href=\"#some-header\">Link title</a></p>"
         ),
+        ("Testing some details <details>\n<summary markdown=\"span\">Summary text goes here</summary>\nSome text goes here\n</details>",
+        "<p>Testing some details <details>\n<summary>Summary text goes here</summary>\n\n<p>Some text goes here\n</p>\n</details></p>"
+        ),
+        ("Testing some nested details <details>\n<summary markdown=\"span\">Outer summary</summary>\nOuter text<details>\n<summary markdown=\"span\">Inner Summary</summary>\nInner text\n</details>\n</details>",
+        "<p>Testing some nested details <details>\n<summary>Outer summary</summary>\n\n<p>Outer text<details>\n<summary>Inner Summary</summary>\n\n<p>Inner text\n</p>\n</details>\n</p>\n</details></p>"
+        ),
     ]);
 
     for test in tests.iter(){
         let html = render(test.0);
-        // println!("lex: {:?}", lex(test.0));
+        if html != test.1 {
+            println!("Test failing\n{:?}\n{:?}", html, test.1);
+            for (c1, c2) in test.1.chars().zip(html.chars()) {
+                if c1 != c2 {
+                    println!("Difference in {:?} {:?}", c1, c2);
+                }
+            }
+        }
         assert_eq!(html, test.1);
     }
 }

@@ -19,6 +19,7 @@ pub enum Token {
     BlockQuote(u8, String),
     Image(String, String), // (Link, title)
     Link(String, Option<String>, Option<String>), //(link, title, hover text)
+    Detail(String, Vec<Token>)
 }
 
 #[derive(Debug)]
@@ -54,6 +55,14 @@ pub(crate) fn push_str(t: &mut Vec<Token>, s: String) {
 fn consume_while_case_holds(char_iter: &mut std::iter::Peekable<std::str::Chars>, func: &dyn Fn(&char) -> bool) -> String{
     let mut s = String::new();
     while char_iter.peek().is_some() && func(char_iter.peek().unwrap()) {
+        s.push(char_iter.next().unwrap());
+    }
+    s
+}
+
+fn consume_until_tail_is(char_iter: &mut std::iter::Peekable<std::str::Chars>, tail: &str) -> String{
+    let mut s = String::new();
+    while char_iter.peek().is_some() && !s.ends_with(tail) {
         s.push(char_iter.next().unwrap());
     }
     s
@@ -237,8 +246,16 @@ pub(crate) fn lex_side_carrot(char_iter: &mut std::iter::Peekable<std::str::Char
         Some(&'<') => {
             let s = consume_while_case_holds(char_iter, &|c| c != &'>');
             match char_iter.peek(){
-                Some(&'>') => {
+                Some(&'>') if s != "<details" => {
+                    char_iter.next();
                     return Ok(Token::Link(s, None, None))
+                },
+                Some(&'>') if s == "<details" => {
+                    char_iter.next();
+                    if !char_iter.next_if_eq(&'\n').is_some(){
+                        return Err(ParseError{content: s});
+                    }
+                    return parse_details(char_iter)
                 },
                 _ => {
                     return Err(ParseError{content: s});
@@ -301,4 +318,38 @@ pub(crate) fn lex_tilde(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
         char_iter.next();
         return Ok(Token::Strikethrough(s));
     }
+}
+
+fn parse_details(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError>{
+    let mut summary_line = consume_while_case_holds(char_iter, &|c| c != &'\n');
+    if !summary_line.starts_with("<summary") || !summary_line.ends_with("</summary>") {
+        return Err(ParseError{content: summary_line});
+    }
+    summary_line = summary_line.strip_prefix("<summary").unwrap_or("").to_string();
+    summary_line = summary_line.strip_suffix("</summary>").unwrap_or("").to_string();
+    match summary_line.chars().nth(0){
+        Some('>') => {summary_line.clear()},
+        Some(' ') => {
+            if !summary_line.starts_with(" markdown=\"span\">"){
+                return Err(ParseError{content:format!("{}{}{}","<summary" ,summary_line, "</summary>")})
+            }
+            summary_line = summary_line.strip_prefix(" markdown=\"span\">").unwrap_or("").to_string();
+        },
+        Some(c) => {
+            return Err(ParseError{content:format!("{}{}{}{}","<summary", c,summary_line, "</summary>")})
+        },
+        None => return Err(ParseError{content:format!("{}{}{}","<summary" ,summary_line, "</summary>")})
+    }
+    let mut remaining_text = consume_until_tail_is(char_iter, "</details>");
+    if remaining_text.contains("<details>") {
+        let mut opens = remaining_text.matches("<details>").count();
+        let mut closes = remaining_text.matches("</details>").count();
+        while opens == closes {
+            remaining_text = remaining_text+&consume_until_tail_is(char_iter, "</details>");
+            opens = remaining_text.matches("<details>").count();
+            closes = remaining_text.matches("</details>").count();
+        }
+    }
+    let inner_tokens = crate::lex(remaining_text.strip_suffix("</details>").unwrap_or(""));
+    Ok(Token::Detail(summary_line, inner_tokens))
 }
