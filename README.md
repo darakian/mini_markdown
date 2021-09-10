@@ -76,3 +76,17 @@ ______
 ```
 ### Escaping characters
 Control characters can be escaped by preceding them with a backslash `\`
+
+### Collapsable sections
+Collapsable sections are supported and follow the html for a `details` section.
+```
+<details>
+<summary>Summary text</summary>
+Text
+</details>
+```
+Will render as 
+<details>
+<summary>Summary text</summary>
+Text
+</details>

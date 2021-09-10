@@ -109,7 +109,7 @@ pub fn lex(source: &str) -> Vec<Token>{
     tokens
 }
 
-pub fn parse(tokens: Vec<Token>) -> String {
+pub fn parse(tokens: &Vec<Token>) -> String {
     let mut html = String::new();
     let mut in_ordered_list = false;
     let mut in_unordered_list = false;
@@ -245,6 +245,10 @@ pub fn parse(tokens: Vec<Token>) -> String {
                     (None, None) => html.push_str(format!("<a href=\"{link}\">{link}</a>", link=l).as_str()),
                 }
             },
+            Token::Detail(summary, inner_tokens) => {
+                let inner_html = parse(inner_tokens);
+                html.push_str(format!("<details>\n<summary>{sum}</summary>\n{in_html}\n</details>", sum=sanitize(summary), in_html=inner_html).as_str());
+            }
             _ => {},
         }
     }
@@ -261,7 +265,7 @@ pub fn parse(tokens: Vec<Token>) -> String {
 }
 
 pub fn render(source: &str) -> String {
-    parse(lex(source))
+    parse(&lex(source))
 }
 
 pub fn sanitize(source: &String) -> String {
