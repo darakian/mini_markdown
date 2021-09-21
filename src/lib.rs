@@ -260,13 +260,13 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                 //Assert headings.len() == rows.width()
                 html.push_str("<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n");
                 for h in headings.into_iter() {
-                    html.push_str(format!("\t\t<th style=\"text-align: {align}\">{heading}</th>", heading=h.1, align=h.0).as_str());
+                    html.push_str(format!("\t\t<th style=\"text-align: {align}\">{heading}</th>", heading=sanitize(&h.1), align=h.0).as_str());
                 }
                 html.push_str("\t</tr>\n\t</thead>\n\t<tbody>");
                 for row in rows.iter(){
                     html.push_str("\n\t<tr>");
                     for elem in row.iter(){
-                        html.push_str(format!("\n\t\t<td style=\"text-align: {align}\">{row_text}</td>", align=elem.0, row_text=elem.1).as_str());
+                        html.push_str(format!("\n\t\t<td style=\"text-align: {align}\">{row_text}</td>", align=elem.0, row_text=sanitize(&elem.1)).as_str());
                     }
                     html.push_str("\n\t</tr>");
                 }
