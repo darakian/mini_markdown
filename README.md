@@ -100,9 +100,11 @@ HTML tables are supported with the following
 | Paragraph   | Text        | And more      |
 
 ```
-whichn renders as 
+whichn renders a
+
 | Syntax      | Description | Test Text     |
 | :---        |    :----:   |          ---: |
 | Header      | Title       | Here's this   |
 | Paragraph   | Text        | And more      |
+
 The `:` character will define the alignments as shown.
