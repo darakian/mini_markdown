@@ -93,14 +93,14 @@ Text
 
 ### Tables
 HTML tables are supported with the following
-````
+```
 | Syntax      | Description | Test Text     |
 | :---        |    :----:   |          ---: |
 | Header      | Title       | Here's this   |
 | Paragraph   | Text        | And more      |
-
 ```
-whichn renders a
+
+which renders as
 
 | Syntax      | Description | Test Text     |
 | :---        |    :----:   |          ---: |
