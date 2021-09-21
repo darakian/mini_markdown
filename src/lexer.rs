@@ -19,8 +19,28 @@ pub enum Token {
     BlockQuote(u8, String),
     Image(String, String), // (Link, title)
     Link(String, Option<String>, Option<String>), //(link, title, hover text)
-    Detail(String, Vec<Token>)
+    Detail(String, Vec<Token>),
+    Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, String)>>)
 }
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Alignment {
+    Left,
+    Right,
+    Center
+}
+
+use std::fmt;
+impl fmt::Display for Alignment{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result{
+        match self {
+            Alignment::Left => return write!(f, "left"),
+            Alignment::Right => return write!(f, "right"),
+            Alignment::Center => return write!(f, "center"),
+        }
+    }
+}
+
 
 #[derive(Debug)]
 pub(crate) struct ParseError{
@@ -352,4 +372,47 @@ fn parse_details(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result
     }
     let inner_tokens = crate::lex(remaining_text.strip_suffix("</details>").unwrap_or(""));
     Ok(Token::Detail(summary_line, inner_tokens))
+}
+
+pub(crate) fn lex_pipes(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+    let mut lines = Vec::new();
+    while char_iter.next_if_eq(&'|') == Some('|') {
+        lines.push(consume_while_case_holds(char_iter, &|c| c != &'\n'));
+        char_iter.next();
+    }
+    if lines.len() < 3 {
+        return Err(ParseError{content: lines.join("\n")})
+    }
+    if !lines.iter().all(|l| l.matches("|").count() == lines[0].matches("|").count()) {
+        return Err(ParseError{content: lines.join("\n")})
+    }
+    let headings: Vec<_> = lines.remove(0).split("|")
+        .filter(|&x| x != "")
+        .map(|x| x.trim().to_string())
+        .collect();
+    let alignments: Vec<_> = lines.remove(0).split("|")
+        .filter(|&x| x != "")
+        .map(|x| 
+            {
+            match (x.trim().to_string().starts_with(":"), x.trim().to_string().ends_with(":")) {
+                (true, false) => Alignment::Left,
+                (true, true) => Alignment::Center,
+                (false, true) => Alignment::Right,
+                _ => Alignment::Left,
+            }}
+        )
+        .collect();
+    let mut rows = Vec::new();
+    for l in lines.iter() {
+        let elements: Vec<String> = l.split("|")
+        .filter(|&x| x != "")
+        .map(|x| x.trim().to_string())
+        .collect();
+        let mut r = Vec::new();
+        for e in elements.into_iter() {
+            r.push(e);
+        }
+        rows.push(alignments.clone().into_iter().zip(r.into_iter()).collect());
+    }
+    Ok(Token::Table(alignments.into_iter().zip(headings.into_iter()).collect(), rows))
 }
