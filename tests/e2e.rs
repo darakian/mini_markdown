@@ -50,10 +50,10 @@ fn test_moderate_render(){
         "<blockquote>Outer quote with some text.\n</blockquote><p>Non-quoted text\nMore non-quoted\n</p><blockquote>Quote with some other text</blockquote>"
         ),
         ("Don't -> quote",
-        "<p>Don't -&gt; quote</p>"
+        "<p>Don&apos;t -&gt; quote</p>"
         ),
         ("Don't -> quote\n> Do Quote\nDon't quote this either",
-        "<p>Don't -&gt; quote\n</p><blockquote>Do Quote\n</blockquote><p>Don't quote this either</p>"
+        "<p>Don&apos;t -&gt; quote\n</p><blockquote>Do Quote\n</blockquote><p>Don&apos;t quote this either</p>"
         ),
         ("Testing an inline link [Link title](http://google.com)",
         "<p>Testing an inline link <a href=\"http://google.com\">Link title</a></p>"
@@ -88,11 +88,11 @@ fn test_table_render() {
     let mut tests = Vec::new();
     tests.extend(vec![
         ("| Syntax      | Description | Test Text     |\n| :---        |    :----:   |          ---: |\n| Body      | Text       | Here's this   |\n| Paragraph   | Text        | And more      |", 
-        "<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n\t\t<th style=\"text-align: left\">Syntax</th>\t\t<th style=\"text-align: center\">Description</th>\t\t<th style=\"text-align: right\">Test Text</th>\t</tr>\n\t</thead>\n\t<tbody>\n\t<tr>\n\t\t<td style=\"text-align: left\">Body</td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">Here's this</td>\n\t</tr>\n\t<tr>\n\t\t<td style=\"text-align: left\">Paragraph</td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">And more</td>\n\t</tr>\n\t</tbody>\n</table>"),
+        "<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n\t\t<th style=\"text-align: left\">Syntax</th>\t\t<th style=\"text-align: center\">Description</th>\t\t<th style=\"text-align: right\">Test Text</th>\t</tr>\n\t</thead>\n\t<tbody>\n\t<tr>\n\t\t<td style=\"text-align: left\">Body</td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">Here&apos;s this</td>\n\t</tr>\n\t<tr>\n\t\t<td style=\"text-align: left\">Paragraph</td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">And more</td>\n\t</tr>\n\t</tbody>\n</table>"),
         ("| Syntax      | Description | Test Text     |\n| :---        |    :----:   |          ---: |\n| *Body*      | **Text**       | ***Here's this***   |\n| `Paragraph`   | Text        | And more      |", 
-        "<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n\t\t<th style=\"text-align: left\">Syntax</th>\t\t<th style=\"text-align: center\">Description</th>\t\t<th style=\"text-align: right\">Test Text</th>\t</tr>\n\t</thead>\n\t<tbody>\n\t<tr>\n\t\t<td style=\"text-align: left\"><em>Body</em></td>\n\t\t<td style=\"text-align: center\"><strong>Text</strong></td>\n\t\t<td style=\"text-align: right\"><strong><em>Here's this</em></strong></td>\n\t</tr>\n\t<tr>\n\t\t<td style=\"text-align: left\"><code>Paragraph</code></td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">And more</td>\n\t</tr>\n\t</tbody>\n</table>"),
+        "<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n\t\t<th style=\"text-align: left\">Syntax</th>\t\t<th style=\"text-align: center\">Description</th>\t\t<th style=\"text-align: right\">Test Text</th>\t</tr>\n\t</thead>\n\t<tbody>\n\t<tr>\n\t\t<td style=\"text-align: left\"><em>Body</em></td>\n\t\t<td style=\"text-align: center\"><strong>Text</strong></td>\n\t\t<td style=\"text-align: right\"><strong><em>Here&apos;s this</em></strong></td>\n\t</tr>\n\t<tr>\n\t\t<td style=\"text-align: left\"><code>Paragraph</code></td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">And more</td>\n\t</tr>\n\t</tbody>\n</table>"),
         ("| Syntax      | Description | Test Text     |\n| :---        |    :----:   |          ---: |\n| *Body*      | **Text**       | ***Here's this***   |\n| `Paragraph <script=foo.js>test</script>`   | Text        | And more      |", 
-        "<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n\t\t<th style=\"text-align: left\">Syntax</th>\t\t<th style=\"text-align: center\">Description</th>\t\t<th style=\"text-align: right\">Test Text</th>\t</tr>\n\t</thead>\n\t<tbody>\n\t<tr>\n\t\t<td style=\"text-align: left\"><em>Body</em></td>\n\t\t<td style=\"text-align: center\"><strong>Text</strong></td>\n\t\t<td style=\"text-align: right\"><strong><em>Here's this</em></strong></td>\n\t</tr>\n\t<tr>\n\t\t<td style=\"text-align: left\"><code>Paragraph &lt;script=foo.js&gt;test&lt;/script&gt;</code></td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">And more</td>\n\t</tr>\n\t</tbody>\n</table>"),
+        "<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n\t\t<th style=\"text-align: left\">Syntax</th>\t\t<th style=\"text-align: center\">Description</th>\t\t<th style=\"text-align: right\">Test Text</th>\t</tr>\n\t</thead>\n\t<tbody>\n\t<tr>\n\t\t<td style=\"text-align: left\"><em>Body</em></td>\n\t\t<td style=\"text-align: center\"><strong>Text</strong></td>\n\t\t<td style=\"text-align: right\"><strong><em>Here&apos;s this</em></strong></td>\n\t</tr>\n\t<tr>\n\t\t<td style=\"text-align: left\"><code>Paragraph &lt;script=foo.js&gt;test&lt;/script&gt;</code></td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">And more</td>\n\t</tr>\n\t</tbody>\n</table>"),
     ]);
 
     for test in tests.iter(){
