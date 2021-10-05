@@ -176,7 +176,7 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                 html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", 
                     level=l, 
                     text=sanitize(t), 
-                    id=id.replace(" ", "-"))
+                    id=sanitize(&id.replace(" ", "-")))
                 .as_str())
             },
             Token::UnorderedListEntry(t) => {
@@ -243,13 +243,17 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                     html.push_str(format!("{}", sanitize(t)).as_str());
                 }
             },
-            Token::Image(l, t) => html.push_str(format!("<img src=\"{link}\" alt=\"{text}\"", link=l, text=sanitize(t)).as_str()),
+            Token::Image(l, t) => {
+                // TODO Validate link URL
+                html.push_str(format!("<img src=\"{link}\" alt=\"{text}\"", link=sanitize(l), text=sanitize(t)).as_str())
+            },
             Token::Link(l, t, ht) => {
+                // TODO Validate link URL
                 match (t, ht){
-                    (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}", link=l, text=sanitize(t), hover=ht).as_str()),
-                    (Some(t), None) => html.push_str(format!("<a href=\"{link}\">{text}</a>", link=l, text=sanitize(t)).as_str()),
-                    (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\">{link}</a>", link=l, hover=sanitize(ht)).as_str()),
-                    (None, None) => html.push_str(format!("<a href=\"{link}\">{link}</a>", link=l).as_str()),
+                    (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}", link=sanitize(l), text=sanitize(t), hover=ht).as_str()),
+                    (Some(t), None) => html.push_str(format!("<a href=\"{link}\">{text}</a>", link=sanitize(l), text=sanitize(t)).as_str()),
+                    (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\">{link}</a>", link=sanitize(l), hover=sanitize(ht)).as_str()),
+                    (None, None) => html.push_str(format!("<a href=\"{link}\">{link}</a>", link=sanitize(l)).as_str()),
                 }
             },
             Token::Detail(summary, inner_tokens) => {
@@ -305,4 +309,5 @@ pub fn sanitize(source: &String) -> String {
         .replace('<', "&lt;")
         .replace('>', "&gt;")
         .replace('"', "&quot;")
+        .replace('\'', "&apos;")
 }
