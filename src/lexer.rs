@@ -20,7 +20,21 @@ pub enum Token {
     Image(String, String), // (Link, title)
     Link(String, Option<String>, Option<String>), //(link, title, hover text)
     Detail(String, Vec<Token>),
-    Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, String)>>)
+    Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, Vec<Token>)>>)
+}
+
+impl Token {
+    fn is_usable_in_table(&self) -> bool {
+        match self {
+            Token::Code(_) => true,
+            Token::Link(_, _, _) => true,
+            Token::Bold(_) => true,
+            Token::Italic(_) => true,
+            Token::BoldItalic(_) => true,
+            Token::Plaintext(_) => true,
+            _ => false
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -410,7 +424,9 @@ pub(crate) fn lex_pipes(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
         .collect();
         let mut r = Vec::new();
         for e in elements.into_iter() {
-            r.push(e);
+            let mut inner_tokens = crate::lex(&e);
+            inner_tokens.retain(|token| token.is_usable_in_table());
+            r.push(inner_tokens);
         }
         rows.push(alignments.clone().into_iter().zip(r.into_iter()).collect());
     }
