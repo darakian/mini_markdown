@@ -266,7 +266,14 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                 for row in rows.iter(){
                     html.push_str("\n\t<tr>");
                     for elem in row.iter(){
-                        html.push_str(format!("\n\t\t<td style=\"text-align: {align}\">{row_text}</td>", align=elem.0, row_text=sanitize(&elem.1)).as_str());
+                        let mut row_string = String::new();
+                        for token in elem.1.iter() {
+                           match token {
+                            Token::Plaintext(s) => row_string.push_str(&sanitize(&s)),
+                            _ => row_string.push_str(&parse(&elem.1))
+                            } 
+                        }
+                        html.push_str(format!("\n\t\t<td style=\"text-align: {align}\">{row_text}</td>", align=elem.0, row_text=row_string).as_str());
                     }
                     html.push_str("\n\t</tr>");
                 }
@@ -275,6 +282,8 @@ pub fn parse(tokens: &Vec<Token>) -> String {
             _ => {},
         }
     }
+
+    // Close out any open tags
     if in_paragraph {
         html.push_str(format!("</p>").as_str());
         // in_paragraph = true;
