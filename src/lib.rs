@@ -1,6 +1,11 @@
 pub mod lexer;
 use crate::lexer::*;
 
+#[derive(Debug)]
+pub(crate) struct SanitizationError{
+    pub(crate) content: String,
+}
+
 pub fn lex(source: &str) -> Vec<Token>{
     let mut char_iter = source.chars().peekable();
     let mut tokens = Vec::new();
@@ -164,7 +169,7 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                     html.push_str(format!("<p>").as_str());
                     in_paragraph = true;
                 }
-                html.push_str(format!("{}", sanitize(t)).as_str())
+                html.push_str(format!("{}", sanitize_display_text(t)).as_str())
             },
             Token::Header(l, t, lbl) => {
                 let mut id;
@@ -175,8 +180,8 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                 id.make_ascii_lowercase();
                 html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", 
                     level=l, 
-                    text=sanitize(t), 
-                    id=sanitize(&id.replace(" ", "-")))
+                    text=sanitize_display_text(t), 
+                    id=sanitize_display_text(&id.replace(" ", "-")))
                 .as_str())
             },
             Token::UnorderedListEntry(t) => {
@@ -184,14 +189,14 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                     in_unordered_list = true;
                     html.push_str(format!("<ul>").as_str())
                 }
-                html.push_str(format!("<li>{}</li>", sanitize(t)).as_str())
+                html.push_str(format!("<li>{}</li>", sanitize_display_text(t)).as_str())
             },
             Token::OrderedListEntry(t) => {
                 if in_ordered_list == false {
                     in_ordered_list = true;
                     html.push_str(format!("<ol>").as_str())
                 }
-                html.push_str(format!("<li>{}</li>", sanitize(t)).as_str())
+                html.push_str(format!("<li>{}</li>", sanitize_display_text(t)).as_str())
             },
             Token::Newline => {html.push('\n')},
             Token::ParagraphBreak => {
@@ -200,20 +205,20 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                     in_paragraph = false;
                 }
             },
-            Token::Italic(t) => {html.push_str(format!("<em>{}</em>", sanitize(t)).as_str())},
-            Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", sanitize(t)).as_str())},
-            Token::BoldItalic(t) => {html.push_str(format!("<strong><em>{}</em></strong>", sanitize(t)).as_str())},
+            Token::Italic(t) => {html.push_str(format!("<em>{}</em>", sanitize_display_text(t)).as_str())},
+            Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", sanitize_display_text(t)).as_str())},
+            Token::BoldItalic(t) => {html.push_str(format!("<strong><em>{}</em></strong>", sanitize_display_text(t)).as_str())},
             Token::LineBreak => {html.push_str("<br>")},
             Token::HorizontalRule => {html.push_str("<hr />")},
-            Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", sanitize(t)).as_str())},
+            Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", sanitize_display_text(t)).as_str())},
             // Token::Tab => {},
             // Token::DoubleTab => {},
-            Token::Code(t) => {html.push_str(format!("<code>{}</code>", sanitize(t)).as_str())},
+            Token::Code(t) => {html.push_str(format!("<code>{}</code>", sanitize_display_text(t)).as_str())},
             Token::CodeBlock(t, lang) => {
                 html.push_str(format!(
                 "<div class=\"language-{} highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>{}</code></pre></div></div>",
-                sanitize(lang), 
-                sanitize(t)
+                sanitize_display_text(lang), 
+                sanitize_display_text(t)
                 ).as_str())
             },
             Token::BlockQuote(l, t) => {
@@ -240,31 +245,43 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                     _ => {},
                 }
                 if !t.is_empty(){
-                    html.push_str(format!("{}", sanitize(t)).as_str());
+                    html.push_str(format!("{}", sanitize_display_text(t)).as_str());
                 }
             },
             Token::Image(l, t) => {
-                // TODO Validate link URL
-                html.push_str(format!("<img src=\"{link}\" alt=\"{text}\"", link=sanitize(l), text=sanitize(t)).as_str())
+                let l = match validate_url(l){
+                    Ok(vl) => vl,
+                    _ => "",
+                };
+                match (l, t) {
+                    (l, None) if l.trim() == "" => {html.push_str(format!("<img src=\"data:,\">").as_str())}
+                    (l, Some(t)) if l.trim() == "" => {html.push_str(format!("<img src=\"data:,\" alt=\"{text}\">", text=sanitize_display_text(t)).as_str())}
+                    (l, None) => {html.push_str(format!("<img src=\"{link}\">", link=l).as_str())}
+                    (l, Some(t)) => {html.push_str(format!("<img src=\"{link}\" alt=\"{text}\">", link=l, text=sanitize_display_text(t)).as_str())}
+                }
+                
             },
             Token::Link(l, t, ht) => {
-                // TODO Validate link URL
+                let l = match validate_url(l){
+                    Ok(vl) => vl,
+                    _ => "",
+                };
                 match (t, ht){
-                    (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}", link=sanitize(l), text=sanitize(t), hover=ht).as_str()),
-                    (Some(t), None) => html.push_str(format!("<a href=\"{link}\">{text}</a>", link=sanitize(l), text=sanitize(t)).as_str()),
-                    (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\">{link}</a>", link=sanitize(l), hover=sanitize(ht)).as_str()),
-                    (None, None) => html.push_str(format!("<a href=\"{link}\">{link}</a>", link=sanitize(l)).as_str()),
+                    (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}", link=l, text=sanitize_display_text(t), hover=ht).as_str()),
+                    (Some(t), None) => html.push_str(format!("<a href=\"{link}\">{text}</a>", link=l, text=sanitize_display_text(t)).as_str()),
+                    (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\">{link}</a>", link=l, hover=sanitize_display_text(ht)).as_str()),
+                    (None, None) => html.push_str(format!("<a href=\"{link}\">{link}</a>", link=l).as_str()),
                 }
             },
             Token::Detail(summary, inner_tokens) => {
                 let inner_html = parse(inner_tokens);
-                html.push_str(format!("<details>\n<summary>{sum}</summary>\n{in_html}\n</details>", sum=sanitize(summary), in_html=inner_html).as_str());
+                html.push_str(format!("<details>\n<summary>{sum}</summary>\n{in_html}\n</details>", sum=sanitize_display_text(summary), in_html=inner_html).as_str());
             },
             Token::Table(headings, rows) => {
                 //Assert headings.len() == rows.width()
                 html.push_str("<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n");
                 for h in headings.into_iter() {
-                    html.push_str(format!("\t\t<th style=\"text-align: {align}\">{heading}</th>", heading=sanitize(&h.1), align=h.0).as_str());
+                    html.push_str(format!("\t\t<th style=\"text-align: {align}\">{heading}</th>", heading=sanitize_display_text(&h.1), align=h.0).as_str());
                 }
                 html.push_str("\t</tr>\n\t</thead>\n\t<tbody>");
                 for row in rows.iter(){
@@ -273,7 +290,7 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                         let mut row_string = String::new();
                         for token in elem.1.iter() {
                            match token {
-                            Token::Plaintext(s) => row_string.push_str(&sanitize(&s)),
+                            Token::Plaintext(s) => row_string.push_str(&sanitize_display_text(&s)),
                             _ => row_string.push_str(&parse(&elem.1))
                             } 
                         }
@@ -304,10 +321,31 @@ pub fn render(source: &str) -> String {
     parse(&lex(source))
 }
 
-pub fn sanitize(source: &String) -> String {
+pub fn sanitize_display_text(source: &String) -> String {
     source.replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
         .replace('"', "&quot;")
         .replace('\'', "&apos;")
+        .replace('[', "&lbrack;")
+        .replace(']', "&rbrack;")
+        .replace('{', "&lbrace;")
+        .replace('}', "&rbrace;")
+        .replace('|', "&mid;")
+        .replace('\\', "&backslash;")
+        .replace('~', "&tilde;")
+}
+
+pub(crate) fn validate_url(source: &str) -> Result<&str, SanitizationError> {
+    if source.contains("\"") {
+        return Err(SanitizationError{content: "Unsupported character".to_string()})
+    }
+    let (schema, path) = source.split_at(source.find(':').unwrap_or(0));
+    if schema.to_lowercase() == "javascript" || !schema.is_ascii() {
+        return Err(SanitizationError{content: "Unsupported Schema".to_string()})
+    }
+    if !path.is_ascii() { // https://www.rfc-editor.org/rfc/rfc3986#section-2
+        return Err(SanitizationError{content: "Unsupported Path".to_string()})
+    }
+    Ok(source)
 }
