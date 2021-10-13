@@ -337,15 +337,15 @@ pub fn sanitize_display_text(source: &String) -> String {
 }
 
 pub(crate) fn validate_url(source: &str) -> Result<&str, SanitizationError> {
-    if source.contains("\"") {
-        return Err(SanitizationError{content: "Unsupported character".to_string()})
+    if source.contains("\"") || !source.is_ascii() { // https://www.rfc-editor.org/rfc/rfc3986#section-2
+        return Err(SanitizationError{content: "Unsupported characters".to_string()})
     }
     let (schema, path) = source.split_at(source.find(':').unwrap_or(0));
     if schema.to_lowercase() == "javascript" || !schema.is_ascii() {
         return Err(SanitizationError{content: "Unsupported Schema".to_string()})
     }
-    if !path.is_ascii() { // https://www.rfc-editor.org/rfc/rfc3986#section-2
-        return Err(SanitizationError{content: "Unsupported Path".to_string()})
+    if schema.to_lowercase() == "data" && !path.starts_with(":image/"){
+        return Err(SanitizationError{content: "Unsupported Data URL".to_string()})
     }
     Ok(source)
 }
