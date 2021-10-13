@@ -118,6 +118,8 @@ fn test_images(){
         ("![Alt text](   )", "<img src=\"data:,\" alt=\"Alt text\">"),
         ("![Alt text](https://example.com/my/cool/image.png)", "<img src=\"https://example.com/my/cool/image.png\" alt=\"Alt text\">"),
         ("![Red dot](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==)", "<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==\" alt=\"Red dot\">"),
+        ("![Red dot](data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==)", "<img src=\"data:,\" alt=\"Red dot\">"),
+
     ]);
 
     for test in tests.iter(){
