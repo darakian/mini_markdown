@@ -109,6 +109,23 @@ fn test_table_render() {
     }
 }
 
+#[test]
+fn test_images(){
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        ("![Alt text](foo.jpeg)", "<img src=\"foo.jpeg\" alt=\"Alt text\">"),
+        ("![Alt text]()", "<img src=\"data:,\" alt=\"Alt text\">"),
+        ("![Alt text](   )", "<img src=\"data:,\" alt=\"Alt text\">"),
+        ("![Alt text](https://example.com/my/cool/image.png)", "<img src=\"https://example.com/my/cool/image.png\" alt=\"Alt text\">"),
+        ("![Red dot](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==)", "<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==\" alt=\"Red dot\">"),
+    ]);
+
+    for test in tests.iter(){
+        let html = render(test.0);
+        assert_eq!(html, test.1);
+    }
+}
+
 // use std::fs;
 
 #[test]

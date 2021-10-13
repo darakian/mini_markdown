@@ -17,7 +17,7 @@ pub enum Token {
     Code(String),
     CodeBlock(String, String),
     BlockQuote(u8, String),
-    Image(String, String), // (Link, title)
+    Image(String, Option<String>), // (Link, title)
     Link(String, Option<String>, Option<String>), //(link, title, hover text)
     Detail(String, Vec<Token>),
     Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, Vec<Token>)>>)
@@ -240,7 +240,7 @@ pub(crate) fn lex_images(char_iter: &mut std::iter::Peekable<std::str::Chars>) -
     let link_result = lex_links(char_iter);
     match link_result {
         Err(e) => return Err(e),
-        Ok(Token::Link(link, title, _)) => return Ok(Token::Image(link, title.unwrap_or("".to_string()))),
+        Ok(Token::Link(link, title, _)) => return Ok(Token::Image(link, title)),
         _ => return Err(ParseError{content: "Non link token returned from lex_links".to_string()})
     }
 }

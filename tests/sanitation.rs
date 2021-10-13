@@ -1,4 +1,4 @@
-use mini_markdown::sanitize;
+use mini_markdown::sanitize_display_text;
 
 #[test]
 fn test_simple_tag_removal() {
@@ -13,7 +13,37 @@ fn test_simple_tag_removal() {
     ]);
 
     for test in tests.iter_mut(){
-        let untagged = sanitize(&mut test.0);
+        let untagged = sanitize_display_text(&mut test.0);
         assert_eq!(untagged, test.1);
+    }
+}
+
+use mini_markdown::render;
+#[test]
+fn test_image_xss(){
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        ("![Alt text](foo.jpeg)", "<img src=\"foo.jpeg\" alt=\"Alt text\">"),
+        ("![Alt text]()", "<img src=\"data:,\" alt=\"Alt text\">"),
+        ("![Alt text](   )", "<img src=\"data:,\" alt=\"Alt text\">"),
+        ("![Alt text](javascript:alert(0))", "<img src=\"data:,\" alt=\"Alt text\">"),
+    ]);
+
+    for test in tests.iter(){
+        let html = render(test.0);
+        assert_eq!(html, test.1);
+    }
+}
+
+#[test]
+fn test_link_xss() {
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        ("[text](javascript:alert(0))", "<a href=\"\">text</a>"),
+    ]);
+
+    for test in tests.iter(){
+        let html = render(test.0);
+        assert_eq!(html, test.1);
     }
 }

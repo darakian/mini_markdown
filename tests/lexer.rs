@@ -60,6 +60,10 @@ fn test_lex() {
         ])
     ]);
     tests.extend(vec![
+        ("![alt](https://example.com/foo.jpeg)", vec![Token::Image("https://example.com/foo.jpeg".to_string(), Some("alt".to_string()))]),
+        ("![alt]()", vec![Token::Image("".to_string(), Some("alt".to_string()))]),
+    ]);
+    tests.extend(vec![
         ("¯\\\\\\_(ツ)\\_/¯", vec![Token::Plaintext("¯\\_(ツ)_/¯".to_string())]),
         ("\\_test\\_", vec![Token::Plaintext("_test_".to_string())]),
         ("\\*escaping\\_", vec![Token::Plaintext("*escaping_".to_string())]),
