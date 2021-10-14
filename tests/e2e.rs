@@ -128,6 +128,40 @@ fn test_images(){
     }
 }
 
+#[test]
+fn test_tasklists(){
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        ("- [ ] One task",
+        "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One task</li></ul>"),
+        ("- [x] One other task",
+        "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" checked=\"\">One other task</li></ul>"),
+        ("- [x] One other task\n- [ ] One task\n- [ ] One last task",
+        "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" checked=\"\">One other task</li></ul>\n<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One task</li></ul>\n<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One last task</li></ul>"),
+    ]);
+
+    for test in tests.iter(){
+        let html = render(test.0);
+        assert_eq!(html, test.1);
+    }
+}
+
+#[test]
+fn test_lists(){
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        ("* One entry",
+        "<ul><li>One entry</li></ul>"),
+        ("1. One entry",
+        "<ol><li>One entry</li></ol>"),
+    ]);
+
+    for test in tests.iter(){
+        let html = render(test.0);
+        assert_eq!(html, test.1);
+    }
+}
+
 // use std::fs;
 
 #[test]
