@@ -130,35 +130,23 @@ pub fn parse(tokens: &Vec<Token>) -> String {
     let mut quote_level = 0;
     for token in tokens.iter(){
         // Close multi-liners
-        if in_ordered_list {
-            match token {
-                Token::OrderedListEntry(_) | Token::UnorderedListEntry(_) => {},
-                Token::Tab | Token::DoubleTab => {},
-                _ => {
-                    in_ordered_list = false;
-                    html.push_str(format!("</ol>").as_str())
-                }
-            }
-        }
-        if in_unordered_list {
-            match token {
-                Token::OrderedListEntry(_) | Token::UnorderedListEntry(_) => {},
-                Token::Tab | Token::DoubleTab => {},
-                _ => {
-                    in_unordered_list = false;
-                    html.push_str(format!("</ul>").as_str())
-                }
-            }
-        }
-        if in_task_list {
-            match token {
-                Token::TaskListItem(_, _) => {},
-                Token::Tab | Token::DoubleTab => {},
-                _ => {
-                    in_unordered_list = false;
-                    html.push_str(format!("</ul>").as_str())
-                }
-            }
+        match token {
+            Token::Tab | Token::DoubleTab => {},
+            Token::OrderedListEntry(_) | Token::UnorderedListEntry(_) if in_ordered_list | in_unordered_list => {},
+            Token::TaskListItem(_, _)  | Token::Newline if in_task_list => {},
+            _ if in_ordered_list => {
+                in_ordered_list = false;
+                html.push_str(format!("</ol>").as_str())
+            },
+            _ if in_unordered_list => {
+                in_unordered_list = false;
+                html.push_str(format!("</ul>").as_str())
+            },
+            _ if in_task_list => {
+                in_task_list = false;
+                html.push_str(format!("</ul>").as_str())
+            },
+            _ => {}
         }
         if quote_level > 0 {
             match token {
@@ -282,8 +270,8 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                 match (l, t) {
                     (l, None) if l.trim() == "" => {html.push_str(format!("<img src=\"data:,\">").as_str())}
                     (l, Some(t)) if l.trim() == "" => {html.push_str(format!("<img src=\"data:,\" alt=\"{text}\">", text=sanitize_display_text(t)).as_str())}
-                    (l, None) => {html.push_str(format!("<img src=\"{link}\">", link=l).as_str())}
-                    (l, Some(t)) => {html.push_str(format!("<img src=\"{link}\" alt=\"{text}\">", link=l, text=sanitize_display_text(t)).as_str())}
+                    (l, None) => {html.push_str(format!("<img src=\"{link}\"> referrerpolicy=\"no-referrer\"", link=l).as_str())}
+                    (l, Some(t)) => {html.push_str(format!("<img src=\"{link}\" alt=\"{text}\" referrerpolicy=\"no-referrer\">", link=l, text=sanitize_display_text(t)).as_str())}
                 }
                 
             },
@@ -293,10 +281,10 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                     _ => "",
                 };
                 match (t, ht){
-                    (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}", link=l, text=sanitize_display_text(t), hover=ht).as_str()),
-                    (Some(t), None) => html.push_str(format!("<a href=\"{link}\">{text}</a>", link=l, text=sanitize_display_text(t)).as_str()),
-                    (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\">{link}</a>", link=l, hover=sanitize_display_text(ht)).as_str()),
-                    (None, None) => html.push_str(format!("<a href=\"{link}\">{link}</a>", link=l).as_str()),
+                    (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\" referrerpolicy=\"no-referrer\">{text}</a>", link=l, text=sanitize_display_text(t), hover=ht).as_str()),
+                    (Some(t), None) => html.push_str(format!("<a href=\"{link}\" referrerpolicy=\"no-referrer\">{text}</a>", link=l, text=sanitize_display_text(t)).as_str()),
+                    (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\" referrerpolicy=\"no-referrer\">{link}</a>", link=l, hover=sanitize_display_text(ht)).as_str()),
+                    (None, None) => html.push_str(format!("<a href=\"{link}\" referrerpolicy=\"no-referrer\">{link}</a>", link=l).as_str()),
                 }
             },
             Token::Detail(summary, inner_tokens) => {
@@ -352,7 +340,7 @@ pub fn render(source: &str) -> String {
     parse(&lex(source))
 }
 
-pub fn sanitize_display_text(source: &String) -> String {
+pub(crate) fn sanitize_display_text(source: &String) -> String {
     source.replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
@@ -368,7 +356,7 @@ pub fn sanitize_display_text(source: &String) -> String {
 }
 
 pub(crate) fn validate_url(source: &str) -> Result<&str, SanitizationError> {
-    if source.contains("\"") || !source.is_ascii() { // https://www.rfc-editor.org/rfc/rfc3986#section-2
+    if source.contains("\"") || !source.is_ascii() || source.contains(char::is_whitespace) { // https://www.rfc-editor.org/rfc/rfc3986#section-2
         return Err(SanitizationError{content: "Unsupported characters".to_string()})
     }
     let (schema, path) = source.split_at(source.find(':').unwrap_or(0));

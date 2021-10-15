@@ -56,10 +56,10 @@ fn test_moderate_render(){
         "<p>Don&apos;t -&gt; quote\n</p><blockquote>Do Quote\n</blockquote><p>Don&apos;t quote this either</p>"
         ),
         ("Testing an inline link [Link title](http://google.com)",
-        "<p>Testing an inline link <a href=\"http://google.com\">Link title</a></p>"
+        "<p>Testing an inline link <a href=\"http://google.com\" referrerpolicy=\"no-referrer\">Link title</a></p>"
         ),
         ("Testing an inline link to a header id [Link title](#some-header)",
-        "<p>Testing an inline link to a header id <a href=\"#some-header\">Link title</a></p>"
+        "<p>Testing an inline link to a header id <a href=\"#some-header\" referrerpolicy=\"no-referrer\">Link title</a></p>"
         ),
         ("Testing some details <details>\n<summary markdown=\"span\">Summary text goes here</summary>\nSome text goes here\n</details>",
         "<p>Testing some details <details>\n<summary>Summary text goes here</summary>\n\n<p>Some text goes here\n</p>\n</details></p>"
@@ -113,11 +113,11 @@ fn test_table_render() {
 fn test_images(){
     let mut tests = Vec::new();
     tests.extend(vec![
-        ("![Alt text](foo.jpeg)", "<img src=\"foo.jpeg\" alt=\"Alt text\">"),
+        ("![Alt text](foo.jpeg)", "<img src=\"foo.jpeg\" alt=\"Alt text\" referrerpolicy=\"no-referrer\">"),
         ("![Alt text]()", "<img src=\"data:,\" alt=\"Alt text\">"),
         ("![Alt text](   )", "<img src=\"data:,\" alt=\"Alt text\">"),
-        ("![Alt text](https://example.com/my/cool/image.png)", "<img src=\"https://example.com/my/cool/image.png\" alt=\"Alt text\">"),
-        ("![Red dot](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==)", "<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==\" alt=\"Red dot\">"),
+        ("![Alt text](https://example.com/my/cool/image.png)", "<img src=\"https://example.com/my/cool/image.png\" alt=\"Alt text\" referrerpolicy=\"no-referrer\">"),
+        ("![Red dot](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==)", "<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==\" alt=\"Red dot\" referrerpolicy=\"no-referrer\">"),
         ("![Red dot](data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==)", "<img src=\"data:,\" alt=\"Red dot\">"),
 
     ]);
@@ -137,7 +137,7 @@ fn test_tasklists(){
         ("- [x] One other task",
         "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" checked=\"\">One other task</li></ul>"),
         ("- [x] One other task\n- [ ] One task\n- [ ] One last task",
-        "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" checked=\"\">One other task</li></ul>\n<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One task</li></ul>\n<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One last task</li></ul>"),
+        "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" checked=\"\">One other task</li>\n<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One task</li>\n<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One last task</li></ul>"),
     ]);
 
     for test in tests.iter(){
