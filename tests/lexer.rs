@@ -63,6 +63,10 @@ fn test_lex() {
         ("![alt](https://example.com/foo.jpeg)", vec![Token::Image("https://example.com/foo.jpeg".to_string(), Some("alt".to_string()))]),
         ("![alt]()", vec![Token::Image("".to_string(), Some("alt".to_string()))]),
         ("Some test text [^1]", vec![Token::Plaintext("Some test text [^1]".to_string())]),
+        ("[^1]: First footnote", vec![Token::Footnote("1".to_string(), "First footnote".to_string())]),
+        ("[^HUGE]: Big footnote", vec![Token::Footnote("HUGE".to_string(), "Big footnote".to_string())]),
+        ("[^BORK ED]: Big footnote", vec![Token::Plaintext("[^BORK ED]: Big footnote".to_string())]),
+
     ]);
     tests.extend(vec![
         ("¯\\\\\\_(ツ)\\_/¯", vec![Token::Plaintext("¯\\_(ツ)_/¯".to_string())]),

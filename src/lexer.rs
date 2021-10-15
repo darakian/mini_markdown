@@ -22,6 +22,7 @@ pub enum Token {
     Detail(String, Vec<Token>),
     Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, Vec<Token>)>>),
     TaskListItem(TaskBox, String),
+    Footnote(String, String),
 }
 
 #[derive(Debug, PartialEq)]
@@ -262,6 +263,15 @@ pub(crate) fn lex_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
         return Err(ParseError{content: "[".to_string()+&title})
     }
     char_iter.next();
+    if title.starts_with("^") && char_iter.peek() == Some(&':') {
+        char_iter.next();
+        let ref_id = title.strip_prefix("^").unwrap_or("");
+        let s = consume_while_case_holds(char_iter, &|c| c != &'\n');
+        if ref_id.contains(char::is_whitespace){
+            return Err(ParseError{content: "[^".to_string()+&ref_id.to_string()+&"]:".to_string()+&s.to_string()})
+        }
+        return Ok(Token::Footnote(ref_id.to_string(), s.trim_start().to_string()));
+    }
     if char_iter.peek() != Some(&'(') {
         return Err(ParseError{content: "[".to_string()+&title+"]"})
     }

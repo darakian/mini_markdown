@@ -128,6 +128,7 @@ pub fn parse(tokens: &Vec<Token>) -> String {
     let mut in_unordered_list = false;
     let mut in_paragraph = false;
     let mut quote_level = 0;
+    let mut references = Vec::new();
     for token in tokens.iter(){
         // Close multi-liners
         match token {
@@ -163,7 +164,26 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                     html.push_str(format!("<p>").as_str());
                     in_paragraph = true;
                 }
-                html.push_str(format!("{}", sanitize_display_text(t)).as_str())
+                
+                // Handle references
+                if t.contains("[^") && t.contains("]") {
+                    let plaintext_tokens = t.split("[^");
+                    let mut s = String::new();
+                    let mut count = 1;
+                    for tok in plaintext_tokens {
+                        if tok.ends_with("]") {
+                            let tok = tok.trim_end_matches(']');
+                            s.push_str(format!(
+                                "<sup id=\"fnref:{reference}\" role=\"doc-noteref\"><a href=\"#fn:{reference}\" class=\"footnote\" rel=\"footnote\">{ref_count}</a></sup>", 
+                                reference = sanitize_display_text(&tok.to_string()), 
+                                ref_count = count).as_str());
+                            count+=1;
+                        } else {s.push_str(tok)}
+                    }
+                    html.push_str(&s);
+                } else {
+                    html.push_str(format!("{}", sanitize_display_text(t)).as_str())
+                }
             },
             Token::Header(l, t, lbl) => {
                 let mut id;
@@ -309,24 +329,42 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                 }
                 html.push_str("\n\t</tbody>\n</table>");
             },
+            Token::Footnote(ref_id, text) => {
+                references.push((ref_id, text));
+            },
             _ => {},
         }
     }
 
     // Close out any open tags
     if in_paragraph {
-        html.push_str(format!("</p>").as_str());
+        html.push_str("</p>\n");
     }
     if in_task_list | in_unordered_list {
-        html.push_str(format!("</ul>").as_str());
+        html.push_str("</ul>\n");
     }
     if in_ordered_list {
-        html.push_str(format!("</ol>").as_str());
+        html.push_str("</ol>\n");
     }
     if quote_level > 0 {
         for _i in (0..quote_level).rev(){
-            html.push_str(format!("</blockquote>").as_str());
+            html.push_str("</blockquote>\n");
         }
+    }
+
+    // Add references
+    if references.len() > 0{
+        html.push_str("<div class=\"footnotes\" role=\"doc-endnotes\">\n");
+        html.push_str("\t<ol>\n");
+        for reference in references.iter(){
+            html.push_str("\t\t<li id=\"fn:1\" role=\"doc-endnote\">");
+            html.push_str(format!("\t\t\t<p>{ref_text}<a href=\"#fnref:{ref_count}\" class=\"reversefootnote\" role=\"doc-backlink\">↩</a></p>", 
+                ref_count=sanitize_display_text(reference.0), 
+                ref_text=sanitize_display_text(reference.1)).as_str());
+            html.push_str("\t\t</li>");
+        }
+        html.push_str("\t</ol>\n");
+        html.push_str("</div>\n");
     }
     html
 }
