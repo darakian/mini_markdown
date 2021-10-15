@@ -62,6 +62,7 @@ fn test_lex() {
     tests.extend(vec![
         ("![alt](https://example.com/foo.jpeg)", vec![Token::Image("https://example.com/foo.jpeg".to_string(), Some("alt".to_string()))]),
         ("![alt]()", vec![Token::Image("".to_string(), Some("alt".to_string()))]),
+        ("Some test text [^1]", vec![Token::Plaintext("Some test text [^1]".to_string())]),
     ]);
     tests.extend(vec![
         ("¯\\\\\\_(ツ)\\_/¯", vec![Token::Plaintext("¯\\_(ツ)_/¯".to_string())]),
@@ -77,6 +78,7 @@ fn test_lex() {
         ("- [x] Checked box", vec![Token::TaskListItem(TaskBox::Checked, "Checked box".to_string())]),
         ("- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "Also a checked box".to_string())]),
         ("- [X]Not a checked box", vec![Token::Plaintext("- [X]Not a checked box".to_string())]),
+        ("- [X] A checked box\n- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "A checked box".to_string()), Token::Newline, Token::TaskListItem(TaskBox::Checked, "Also a checked box".to_string())]),
     ]);
     for test in tests.iter(){
         let tokens = lex(test.0);

@@ -285,13 +285,14 @@ pub(crate) fn lex_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
 pub(crate) fn lex_side_carrot(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
     match char_iter.peek() {
         Some(&'<') => {
+            char_iter.next();
             let s = consume_while_case_holds(char_iter, &|c| c != &'>');
             match char_iter.peek(){
-                Some(&'>') if s != "<details" => {
+                Some(&'>') if s != "details" => {
                     char_iter.next();
                     return Ok(Token::Link(s, None, None))
                 },
-                Some(&'>') if s == "<details" => {
+                Some(&'>') if s == "details" => {
                     char_iter.next();
                     if !char_iter.next_if_eq(&'\n').is_some(){
                         return Err(ParseError{content: s});
