@@ -1,5 +1,5 @@
 use mini_markdown::lex;
-use mini_markdown::lexer::Token;
+use mini_markdown::lexer::{Token, TaskBox};
 
 #[test]
 fn test_lex() {
@@ -68,6 +68,15 @@ fn test_lex() {
         ("\\_test\\_", vec![Token::Plaintext("_test_".to_string())]),
         ("\\*escaping\\_", vec![Token::Plaintext("*escaping_".to_string())]),
         ("\\>controls\\<", vec![Token::Plaintext(">controls<".to_string())])
+    ]);
+    tests.extend(vec![
+        ("---", vec![Token::HorizontalRule]),
+        ("-----", vec![Token::HorizontalRule]),
+        ("--", vec![Token::Plaintext("--".to_string())]),
+        ("- [ ] Unchecked box", vec![Token::TaskListItem(TaskBox::Unchecked, "Unchecked box".to_string())]),
+        ("- [x] Checked box", vec![Token::TaskListItem(TaskBox::Checked, "Checked box".to_string())]),
+        ("- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "Also a checked box".to_string())]),
+        ("- [X]Not a checked box", vec![Token::Plaintext("- [X]Not a checked box".to_string())]),
     ]);
     for test in tests.iter(){
         let tokens = lex(test.0);

@@ -123,6 +123,7 @@ pub fn lex(source: &str) -> Vec<Token>{
 
 pub fn parse(tokens: &Vec<Token>) -> String {
     let mut html = String::new();
+    let mut in_task_list = false;
     let mut in_ordered_list = false;
     let mut in_unordered_list = false;
     let mut in_paragraph = false;
@@ -142,6 +143,16 @@ pub fn parse(tokens: &Vec<Token>) -> String {
         if in_unordered_list {
             match token {
                 Token::OrderedListEntry(_) | Token::UnorderedListEntry(_) => {},
+                Token::Tab | Token::DoubleTab => {},
+                _ => {
+                    in_unordered_list = false;
+                    html.push_str(format!("</ul>").as_str())
+                }
+            }
+        }
+        if in_task_list {
+            match token {
+                Token::TaskListItem(_, _) => {},
                 Token::Tab | Token::DoubleTab => {},
                 _ => {
                     in_unordered_list = false;
@@ -183,6 +194,21 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                     text=sanitize_display_text(t), 
                     id=sanitize_display_text(&id.replace(" ", "-")))
                 .as_str())
+            },
+            Token::TaskListItem(c,t) => {
+                if in_task_list == false {
+                    in_task_list = true;
+                    html.push_str(format!("<ul class=\"contains-task-list\">").as_str())
+                }
+                match c {
+                    TaskBox::Checked => {
+                        html.push_str(format!("<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" checked=\"\">{}</li>", sanitize_display_text(t)).as_str())
+
+                    },
+                    TaskBox::Unchecked => {
+                        html.push_str(format!("<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">{}</li>", sanitize_display_text(t)).as_str())
+                    }
+                }
             },
             Token::UnorderedListEntry(t) => {
                 if in_unordered_list == false {
@@ -307,7 +333,12 @@ pub fn parse(tokens: &Vec<Token>) -> String {
     // Close out any open tags
     if in_paragraph {
         html.push_str(format!("</p>").as_str());
-        // in_paragraph = true;
+    }
+    if in_task_list | in_unordered_list {
+        html.push_str(format!("</ul>").as_str());
+    }
+    if in_ordered_list {
+        html.push_str(format!("</ol>").as_str());
     }
     if quote_level > 0 {
         for _i in (0..quote_level).rev(){

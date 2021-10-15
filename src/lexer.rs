@@ -20,7 +20,14 @@ pub enum Token {
     Image(String, Option<String>), // (Link, title)
     Link(String, Option<String>, Option<String>), //(link, title, hover text)
     Detail(String, Vec<Token>),
-    Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, Vec<Token>)>>)
+    Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, Vec<Token>)>>),
+    TaskListItem(TaskBox, String),
+}
+
+#[derive(Debug, PartialEq)]
+pub enum TaskBox {
+    Checked,
+    Unchecked,
 }
 
 impl Token {
@@ -301,21 +308,22 @@ pub(crate) fn lex_side_carrot(char_iter: &mut std::iter::Peekable<std::str::Char
 }
 
 pub(crate) fn lex_plus_minus(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
-    let c = char_iter.next().unwrap();
-    if char_iter.next_if_eq(&' ').is_some(){
-        let s = consume_while_case_holds(char_iter, &|c| c != &'\n');
-        return Ok(Token::UnorderedListEntry(s))
+    let s = consume_while_case_holds(char_iter, &|c| c == &'-');
+    match s.len() {
+        3.. => { return Ok(Token::HorizontalRule)},
+        2 => {return Ok(Token::Plaintext(s))},
+        1 => {},
+        _ => {return Err(ParseError{content: "negative string length".to_string()})},
     }
-    match c {
-        '-' => {
-            let s = consume_while_case_holds(char_iter, &|c| c == &'-');
-            if s.chars().all(|x| x == '-') && char_iter.peek() == Some(&'\n'){
-                return Ok(Token::HorizontalRule)
-            } else {
-                return Ok(Token::Plaintext("-".to_string()+&s))
-            }
-        },
-        _ => return Ok(Token::Plaintext(c.to_string())),
+    let line = consume_while_case_holds(char_iter, &|c| c != &'\n');
+    if line.starts_with(" [ ] ") {
+        return Ok(Token::TaskListItem(TaskBox::Unchecked,line.strip_prefix(" [ ] ").unwrap_or("").to_string()))
+    } else if line.starts_with(" [x] ") {
+        return Ok(Token::TaskListItem(TaskBox::Checked,line.strip_prefix(" [x] ").unwrap_or("").to_string()))
+    } else if line.starts_with(" [X] ") {
+        return Ok(Token::TaskListItem(TaskBox::Checked,line.strip_prefix(" [X] ").unwrap_or("").to_string()))
+    } else {
+        return Ok(Token::Plaintext(s+&line))
     }
 }
 
