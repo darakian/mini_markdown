@@ -13,7 +13,7 @@ fn test_simple_render() {
         ("##### Heading level 5", "<h5 id=\"heading-level-5\">Heading level 5</h5>\n"),
         ("###### Heading level 6", "<h6 id=\"heading-level-6\">Heading level 6</h6>\n"),
         ("####### Invalid Heading level 7", "<h6 id=\"invalid-heading-level-7\">Invalid Heading level 7</h6>\n"),
-        ("Some text _with italics_ in the same paragraph\n", "<p>Some text <em>with italics</em> in the same paragraph\n</p>"),
+        ("Some text _with italics_ in the same paragraph\n", "<p>Some text <em>with italics</em> in the same paragraph\n</p>\n"),
     ]);
 
     for test in tests.iter(){
@@ -27,12 +27,12 @@ fn test_moderate_render(){
     let mut tests = Vec::new();
     tests.extend(vec![
         ("Text attributes _italic_, \n**bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.",
-        "<p>Text attributes <em>italic</em>, \n<strong>bold</strong>, <code>monospace</code>. Some implementations may use <em>single-asterisks</em> for italic text.</p>"),
+        "<p>Text attributes <em>italic</em>, \n<strong>bold</strong>, <code>monospace</code>. Some implementations may use <em>single-asterisks</em> for italic text.</p>\n"),
         ("Horizontal rule:\n\n---\n\nStrikethrough:\n\n~~strikethrough~~\n\n",
-        "<p>Horizontal rule:\n<hr />\nStrikethrough:\n<strike>strikethrough</strike>\n</p>"
+        "<p>Horizontal rule:\n<hr />\nStrikethrough:\n<strike>strikethrough</strike>\n</p>\n"
         ),
         ("> Outer quote with some text 1.\n> \n>> Inner quote with some other text\n> Outer again",
-        "<blockquote>Outer quote with some text 1.\n\n<blockquote>Inner quote with some other text\n</blockquote>Outer again</blockquote>"
+        "<blockquote>Outer quote with some text 1.\n\n<blockquote>Inner quote with some other text\n</blockquote>Outer again</blockquote>\n"
         ),
         ("```\nCode block 1\n```",
         "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Code block 1\n</code></pre></div></div>"
@@ -44,28 +44,28 @@ fn test_moderate_render(){
         "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Multi\nLine\nCode block\n</code></pre></div></div>"
         ),
         ("> Outer quote with some text.\nNon-quoted text\n> Quote with some other text",
-        "<blockquote>Outer quote with some text.\n</blockquote><p>Non-quoted text\n</p><blockquote>Quote with some other text</blockquote>"
+        "<blockquote>Outer quote with some text.\n</blockquote><p>Non-quoted text\n</p><blockquote>Quote with some other text</blockquote>\n"
         ),
         ("> Outer quote with some text.\nNon-quoted text\nMore non-quoted\n> Quote with some other text",
-        "<blockquote>Outer quote with some text.\n</blockquote><p>Non-quoted text\nMore non-quoted\n</p><blockquote>Quote with some other text</blockquote>"
+        "<blockquote>Outer quote with some text.\n</blockquote><p>Non-quoted text\nMore non-quoted\n</p><blockquote>Quote with some other text</blockquote>\n"
         ),
         ("Don't -> quote",
-        "<p>Don&apos;t -&gt; quote</p>"
+        "<p>Don&apos;t -&gt; quote</p>\n"
         ),
         ("Don't -> quote\n> Do Quote\nDon't quote this either",
-        "<p>Don&apos;t -&gt; quote\n</p><blockquote>Do Quote\n</blockquote><p>Don&apos;t quote this either</p>"
+        "<p>Don&apos;t -&gt; quote\n</p><blockquote>Do Quote\n</blockquote><p>Don&apos;t quote this either</p>\n"
         ),
         ("Testing an inline link [Link title](http://google.com)",
-        "<p>Testing an inline link <a href=\"http://google.com\" referrerpolicy=\"no-referrer\">Link title</a></p>"
+        "<p>Testing an inline link <a href=\"http://google.com\" referrerpolicy=\"no-referrer\">Link title</a></p>\n"
         ),
         ("Testing an inline link to a header id [Link title](#some-header)",
-        "<p>Testing an inline link to a header id <a href=\"#some-header\" referrerpolicy=\"no-referrer\">Link title</a></p>"
+        "<p>Testing an inline link to a header id <a href=\"#some-header\" referrerpolicy=\"no-referrer\">Link title</a></p>\n"
         ),
         ("Testing some details <details>\n<summary markdown=\"span\">Summary text goes here</summary>\nSome text goes here\n</details>",
-        "<p>Testing some details <details>\n<summary>Summary text goes here</summary>\n\n<p>Some text goes here\n</p>\n</details></p>"
+        "<p>Testing some details <details>\n<summary>Summary text goes here</summary>\n\n<p>Some text goes here\n</p>\n\n</details></p>\n"
         ),
         ("Testing some nested details <details>\n<summary markdown=\"span\">Outer summary</summary>\nOuter text<details>\n<summary markdown=\"span\">Inner Summary</summary>\nInner text\n</details>\n</details>",
-        "<p>Testing some nested details <details>\n<summary>Outer summary</summary>\n\n<p>Outer text<details>\n<summary>Inner Summary</summary>\n\n<p>Inner text\n</p>\n</details>\n</p>\n</details></p>"
+        "<p>Testing some nested details <details>\n<summary>Outer summary</summary>\n\n<p>Outer text<details>\n<summary>Inner Summary</summary>\n\n<p>Inner text\n</p>\n\n</details>\n</p>\n\n</details></p>\n"
         ),
     ]);
 
@@ -133,11 +133,11 @@ fn test_tasklists(){
     let mut tests = Vec::new();
     tests.extend(vec![
         ("- [ ] One task",
-        "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One task</li></ul>"),
+        "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One task</li></ul>\n"),
         ("- [x] One other task",
-        "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" checked=\"\">One other task</li></ul>"),
+        "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" checked=\"\">One other task</li></ul>\n"),
         ("- [x] One other task\n- [ ] One task\n- [ ] One last task",
-        "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" checked=\"\">One other task</li>\n<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One task</li>\n<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One last task</li></ul>"),
+        "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" checked=\"\">One other task</li>\n<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One task</li>\n<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One last task</li></ul>\n"),
     ]);
 
     for test in tests.iter(){
@@ -151,9 +151,23 @@ fn test_lists(){
     let mut tests = Vec::new();
     tests.extend(vec![
         ("* One entry",
-        "<ul><li>One entry</li></ul>"),
+        "<ul><li>One entry</li></ul>\n"),
         ("1. One entry",
-        "<ol><li>One entry</li></ol>"),
+        "<ol><li>One entry</li></ol>\n"),
+    ]);
+
+    for test in tests.iter(){
+        let html = render(test.0);
+        assert_eq!(html, test.1);
+    }
+}
+
+#[test]
+fn test_references(){
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        ("Here's some text. And a ref [^1]\n [^1]: Reference text",
+        "<p>Here's some text. And a ref <sup id=\"fnref:1\" role=\"doc-noteref\"><a href=\"#fn:1\" class=\"footnote\" rel=\"footnote\">1</a></sup>\n </p>\n<div class=\"footnotes\" role=\"doc-endnotes\">\n\t<ol>\n\t\t<li id=\"fn:1\" role=\"doc-endnote\">\t\t\t<p>Reference text<a href=\"#fnref:1\" class=\"reversefootnote\" role=\"doc-backlink\">↩</a></p>\t\t</li>\t</ol>\n</div>\n"),
     ]);
 
     for test in tests.iter(){
