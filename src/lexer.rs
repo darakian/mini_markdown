@@ -226,8 +226,11 @@ pub(crate) fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>
 }
 
 pub(crate) fn lex_newlines(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
-    consume_while_case_holds(char_iter, &|c| c == &'\n');
-    return Ok(Token::Newline);
+    let newlines = consume_while_case_holds(char_iter, &|c| c == &'\n');
+    match newlines.len() {
+        0..=1 => return Err(ParseError{content: newlines}),
+        _ => return Ok(Token::Newline)
+    }
 }
 
 pub(crate) fn lex_blockquotes(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
@@ -237,6 +240,7 @@ pub(crate) fn lex_blockquotes(char_iter: &mut std::iter::Peekable<std::str::Char
         _ => {return Err(ParseError{content: right_arrows})}
     }
     let s = consume_while_case_holds(char_iter, &|c| c != &'\n');
+    char_iter.next_if_eq(&'\n');
     Ok(Token::BlockQuote(right_arrows.len() as u8, s))
 }
 
