@@ -60,7 +60,7 @@ pub fn lex(source: &str) -> Vec<Token>{
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            '>' if (tokens.last() == Some(&Token::Newline) || tokens.len() == 0) => {
+            '>' => {
                 let token = lex_blockquotes(&mut char_iter);
                 match token {
                     Ok(t) => {
@@ -130,8 +130,9 @@ pub fn parse(tokens: &Vec<Token>) -> String {
     let mut quote_level = 0;
     let mut references = Vec::new();
     for token in tokens.iter(){
-        // Close multi-liners
+        // Handle multi-liners
         match token {
+            Token::Plaintext(t) if t.trim().is_empty() => {}, //Ignore empty plaintext tokens 
             Token::Tab | Token::DoubleTab => {},
             Token::OrderedListEntry(_) | Token::UnorderedListEntry(_) if in_ordered_list | in_unordered_list => {},
             Token::TaskListItem(_, _)  | Token::Newline if in_task_list => {},
@@ -154,12 +155,21 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                         quote_level-=1;
                     }
             },
+            Token::CodeBlock(_, _) | Token::Newline if in_paragraph => {
+                in_paragraph = false;
+                html.push_str(format!("</p>").as_str())
+            },
+            Token::Plaintext(_) | Token::Italic(_) | Token::Bold(_) | Token::BoldItalic(_) | Token::Strikethrough(_) if !in_paragraph => {
+                in_paragraph = true;
+                html.push_str(format!("<p>").as_str())
+            },
             _ => {}
         }
 
         // Add content
         match token {
             Token::Plaintext(t) => {
+                if t.trim().is_empty() {continue}
                 if !in_paragraph {
                     html.push_str(format!("<p>").as_str());
                     in_paragraph = true;
@@ -171,8 +181,8 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                     let mut s = String::new();
                     let mut count = 1;
                     for tok in plaintext_tokens {
-                        if tok.ends_with("]") {
-                            let tok = tok.trim_end_matches(']');
+                        if tok.trim_end().ends_with("]") {
+                            let tok = tok.trim_end().trim_end_matches(']');
                             s.push_str(format!(
                                 "<sup id=\"fnref:{reference}\" role=\"doc-noteref\"><a href=\"#fn:{reference}\" class=\"footnote\" rel=\"footnote\">{ref_count}</a></sup>", 
                                 reference = sanitize_display_text(&tok.to_string()), 
@@ -182,7 +192,7 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                     }
                     html.push_str(&s);
                 } else {
-                    html.push_str(format!("{}", sanitize_display_text(t)).as_str())
+                    html.push_str(format!("{}", sanitize_display_text(&t.trim_start().to_string())).as_str())
                 }
             },
             Token::Header(l, t, lbl) => {
@@ -320,6 +330,12 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                         for token in elem.1.iter() {
                            match token {
                             Token::Plaintext(s) => row_string.push_str(&sanitize_display_text(&s)),
+                            Token::Italic(t) => {row_string.push_str(format!("<em>{}</em>", sanitize_display_text(t)).as_str())},
+                            Token::Bold(t) => {row_string.push_str(format!("<strong>{}</strong>", sanitize_display_text(t)).as_str())},
+                            Token::BoldItalic(t) => {row_string.push_str(format!("<strong><em>{}</em></strong>", sanitize_display_text(t)).as_str())},
+                            Token::LineBreak => {row_string.push_str("<br>")},
+                            Token::HorizontalRule => {row_string.push_str("<hr />")},
+                            Token::Strikethrough(t) => {row_string.push_str(format!("<strike>{}</strike>", sanitize_display_text(t)).as_str())},
                             _ => row_string.push_str(&parse(&elem.1))
                             } 
                         }
@@ -341,10 +357,10 @@ pub fn parse(tokens: &Vec<Token>) -> String {
         html.push_str("</p>\n");
     }
     if in_task_list | in_unordered_list {
-        html.push_str("</ul>\n");
+        html.push_str("</ul>");
     }
     if in_ordered_list {
-        html.push_str("</ol>\n");
+        html.push_str("</ol>");
     }
     if quote_level > 0 {
         for _i in (0..quote_level).rev(){
