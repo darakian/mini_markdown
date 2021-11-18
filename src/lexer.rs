@@ -267,14 +267,36 @@ pub(crate) fn lex_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
         return Err(ParseError{content: "[".to_string()+&title})
     }
     char_iter.next();
+    // Parse footnotes big and small
     if title.starts_with("^") && char_iter.peek() == Some(&':') {
         char_iter.next();
         let ref_id = title.strip_prefix("^").unwrap_or("");
-        let s = consume_while_case_holds(char_iter, &|c| c != &'\n');
-        if ref_id.contains(char::is_whitespace){
-            return Err(ParseError{content: "[^".to_string()+&ref_id.to_string()+&"]:".to_string()+&s.to_string()})
+        let mut note_text = String::new();
+        loop {
+           note_text.push_str(&consume_while_case_holds(char_iter, &|c| c != &'\n'));
+           char_iter.next();
+           if char_iter.peek() != Some(&' ') && char_iter.peek() != Some(&'\t') {
+            break;
+           }
+           if char_iter.peek() == Some(&'\t') {
+            char_iter.next();
+            note_text.push('\n');
+            continue;
+           }
+           if char_iter.peek() == Some(&' ') {
+            let spaces = consume_while_case_holds(char_iter, &|c| c == &' ');
+            match spaces.len() {
+                2 | 4 => {note_text.push('\n');},
+                _ => {return Err(ParseError{content: "[^".to_string()+&ref_id.to_string()+&"]:".to_string()+&note_text+&spaces})},
+            }
+            continue
+           }
+           break;
         }
-        return Ok(Token::Footnote(ref_id.to_string(), s.trim_start().to_string()));
+        if ref_id.contains(char::is_whitespace){
+            return Err(ParseError{content: "[^".to_string()+&ref_id.to_string()+&"]:".to_string()+&note_text})
+        }
+        return Ok(Token::Footnote(ref_id.to_string(), note_text.trim_start().to_string()));
     }
     if char_iter.peek() != Some(&'(') {
         return Err(ParseError{content: "[".to_string()+&title+"]"})

@@ -104,3 +104,20 @@ fn test_blockquote_lex() {
         assert_eq!(&tokens[..], &test.1[..]);
     }
 }
+
+#[test]
+fn test_footnote_lex() {
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        ("[^1]: Footnote #1", vec![Token::Footnote("1".to_string(), "Footnote #1".to_string())]),
+        ("[^1]: Footnote #1\n  with a second line", vec![Token::Footnote("1".to_string(), "Footnote #1\nwith a second line".to_string())]),
+        ("[^1]: Footnote #1\n\twith a second line", vec![Token::Footnote("1".to_string(), "Footnote #1\nwith a second line".to_string())]),
+        ("[^1]: Footnote #1\n    with a second line", vec![Token::Footnote("1".to_string(), "Footnote #1\nwith a second line".to_string())]),
+        ("[^1]: Footnote #1\n    with a second line\n\tand a third line", vec![Token::Footnote("1".to_string(), "Footnote #1\nwith a second line\nand a third line".to_string())]),
+    ]);
+
+    for test in tests.iter(){
+        let tokens = lex(test.0);
+        assert_eq!(&tokens[..], &test.1[..]);
+    }
+}
