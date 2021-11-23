@@ -396,6 +396,8 @@ pub(crate) fn sanitize_display_text(source: &String) -> String {
         .replace('|', "&mid;")
         .replace('\\', "&backslash;")
         .replace('~', "&tilde;")
+        .replace(')', "&#41;")
+        .replace('(', "&#40;")
 }
 
 pub(crate) fn validate_url(source: &str) -> Result<&str, SanitizationError> {

@@ -121,3 +121,17 @@ fn test_footnote_lex() {
         assert_eq!(&tokens[..], &test.1[..]);
     }
 }
+
+#[test]
+fn test_link_lex(){
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        ("another (See [Sewer Shark](https://en.wikipedia.org/wiki/Sewer_Shark)). Video", 
+        vec![Token::Plaintext("another (See ".to_string()), Token::Link("https://en.wikipedia.org/wiki/Sewer_Shark".to_string(), Some("Sewer Shark".to_string()), None), Token::Plaintext("). Video".to_string())])
+    ]);
+
+    for test in tests.iter(){
+        let tokens = lex(test.0);
+        assert_eq!(&tokens[..], &test.1[..]);
+    }
+}

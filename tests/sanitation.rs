@@ -22,7 +22,7 @@ fn test_image_xss(){
         ("![Alt text](foo.jpeg)", "<img src=\"foo.jpeg\" alt=\"Alt text\" referrerpolicy=\"no-referrer\">"),
         ("![Alt text]()", "<img src=\"data:,\" alt=\"Alt text\">"),
         ("![Alt text](   )", "<img src=\"data:,\" alt=\"Alt text\">"),
-        ("![Alt text](javascript:alert(0))", "<img src=\"data:,\" alt=\"Alt text\">"),
+        ("![Alt text](javascript:alert(0))", "<img src=\"data:,\" alt=\"Alt text\"><p>&#41;</p>\n"),
     ]);
 
     for test in tests.iter(){
@@ -35,7 +35,7 @@ fn test_image_xss(){
 fn test_link_xss() {
     let mut tests = Vec::new();
     tests.extend(vec![
-        ("[text](javascript:alert(0))", "<a href=\"\" referrerpolicy=\"no-referrer\">text</a>"),
+        ("[text](javascript:alert(0))", "<a href=\"\" referrerpolicy=\"no-referrer\">text</a><p>&#41;</p>\n"),
     ]);
 
     for test in tests.iter(){

@@ -306,7 +306,7 @@ pub(crate) fn lex_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
         return Err(ParseError{content: "[".to_string()+&title+&"]".to_string()+&link})
     }
     if char_iter.peek() == Some(&')') {
-        char_iter.skip_while(|c| c != &'\n').next();
+        char_iter.next();
         return Ok(Token::Link(link, Some(title), None));
     }
     if char_iter.peek() == Some(&' ') {
