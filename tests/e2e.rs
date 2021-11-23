@@ -207,6 +207,8 @@ fn test_paragraphs(){
     tests.extend(vec![
         ("Paragraph 1.\n\n```\nBlock text should end a paragraph.\n```\n\nThis is paragraph two.\n\n## Heading\n\nParagraph the third.",
         "<p>Paragraph 1.</p>\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Block text should end a paragraph.\n</code></pre></div></div>\n<p>This is paragraph two.</p>\n<h2 id=\"heading\">Heading</h2>\n\n<p>Paragraph the third.</p>\n"),
+        ("# Post title\nSection text\n# Second section\nGood content",
+        "<h1 id=\"post-title\">Post title</h1>\n<p>Section text\n</p><h1 id=\"second-section\">Second section</h1>\n<p>Good content</p>\n")
     ]);
 
     for test in tests.iter(){

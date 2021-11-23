@@ -155,7 +155,7 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                         quote_level-=1;
                     }
             },
-            Token::CodeBlock(_, _) | Token::Newline if in_paragraph => {
+            Token::CodeBlock(_, _) | Token::Newline | Token::Header(_, _, _) if in_paragraph => {
                 in_paragraph = false;
                 html.push_str(format!("</p>").as_str())
             },
