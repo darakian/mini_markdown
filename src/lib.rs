@@ -238,12 +238,6 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                 html.push_str(format!("<li>{}</li>", sanitize_display_text(t)).as_str())
             },
             Token::Newline => {html.push('\n')},
-            Token::ParagraphBreak => {
-                if in_paragraph {
-                    html.push_str(format!("</p>").as_str());
-                    in_paragraph = false;
-                }
-            },
             Token::Italic(t) => {html.push_str(format!("<em>{}</em>", sanitize_display_text(t)).as_str())},
             Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", sanitize_display_text(t)).as_str())},
             Token::BoldItalic(t) => {html.push_str(format!("<strong><em>{}</em></strong>", sanitize_display_text(t)).as_str())},

@@ -8,7 +8,6 @@ pub enum Token {
     Bold(String),
     BoldItalic(String),
     LineBreak,
-    ParagraphBreak,
     Newline,
     HorizontalRule,
     Tab,
