@@ -218,22 +218,17 @@ fn test_paragraphs(){
     
 }
 
-// use std::fs;
 
 #[test]
-fn test_full_render(){
-    // let tests_dir = fs::read_dir("tests/pages").expect("Error opening test dir");
-    // for entry in tests_dir{
-    //     if !entry.is_ok() {
-    //         continue;
-    //     }
-    //     let e = entry.unwrap();
-    //     if e.path().extension().unwrap() == "md"{
-    //         println!("Testing: {:?}", e.path());
-    //         let markdown = fs::read_to_string(e.path()).expect("Error reading markdown");
-    //         let associated_html: String = e.path().to_str().unwrap().replace(".md", ".html");
-    //         let html = fs::read_to_string(associated_html).expect("Error reading html");
-    //         assert_eq!(render(&markdown), html)
-    //     }
+fn test_links(){
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        (" another (See [Sewer Shark](https://en.wikipedia.org/wiki/Sewer_Shark)). Video playback",
+        " another (See <a href=\"https://en.wikipedia.org/wiki/Sewer_Shark\">Sewer Shark</a>). Video playback")
+    ]);
+
+    // for test in tests.iter(){
+    //     let html = render(test.0);
+    //     assert_eq!(html, test.1);
     // }
 }
