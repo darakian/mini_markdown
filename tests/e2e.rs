@@ -115,12 +115,12 @@ fn test_table_render() {
 fn test_images(){
     let mut tests = Vec::new();
     tests.extend(vec![
-        ("![Alt text](foo.jpeg)", "<img src=\"foo.jpeg\" alt=\"Alt text\" referrerpolicy=\"no-referrer\">"),
-        ("![Alt text]()", "<img src=\"data:,\" alt=\"Alt text\">"),
-        ("![Alt text](   )", "<img src=\"data:,\" alt=\"Alt text\">"),
-        ("![Alt text](https://example.com/my/cool/image.png)", "<img src=\"https://example.com/my/cool/image.png\" alt=\"Alt text\" referrerpolicy=\"no-referrer\">"),
-        ("![Red dot](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==)", "<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==\" alt=\"Red dot\" referrerpolicy=\"no-referrer\">"),
-        ("![Red dot](data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==)", "<img src=\"data:,\" alt=\"Red dot\">"),
+        ("![Alt text](foo.jpeg)", "<p><img src=\"foo.jpeg\" alt=\"Alt text\" referrerpolicy=\"no-referrer\"></p>"),
+        ("![Alt text]()", "<p><img src=\"data:,\" alt=\"Alt text\"></p>"),
+        ("![Alt text](   )", "<p><img src=\"data:,\" alt=\"Alt text\"></p>"),
+        ("![Alt text](https://example.com/my/cool/image.png)", "<p><img src=\"https://example.com/my/cool/image.png\" alt=\"Alt text\" referrerpolicy=\"no-referrer\"></p>"),
+        ("![Red dot](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==)", "<p><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==\" alt=\"Red dot\" referrerpolicy=\"no-referrer\"></p>"),
+        ("![Red dot](data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==)", "<p><img src=\"data:,\" alt=\"Red dot\"></p>"),
 
     ]);
 
