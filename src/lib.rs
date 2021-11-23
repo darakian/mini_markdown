@@ -121,7 +121,7 @@ pub fn lex(source: &str) -> Vec<Token>{
     tokens
 }
 
-pub fn parse(tokens: &Vec<Token>) -> String {
+pub fn parse(tokens: &[Token]) -> String {
     let mut html = String::new();
     let mut in_task_list = false;
     let mut in_ordered_list = false;
