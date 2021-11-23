@@ -127,7 +127,9 @@ fn test_link_lex(){
     let mut tests = Vec::new();
     tests.extend(vec![
         ("another (See [Sewer Shark](https://en.wikipedia.org/wiki/Sewer_Shark)). Video", 
-        vec![Token::Plaintext("another (See ".to_string()), Token::Link("https://en.wikipedia.org/wiki/Sewer_Shark".to_string(), Some("Sewer Shark".to_string()), None), Token::Plaintext("). Video".to_string())])
+        vec![Token::Plaintext("another (See ".to_string()), Token::Link("https://en.wikipedia.org/wiki/Sewer_Shark".to_string(), Some("Sewer Shark".to_string()), None), Token::Plaintext("). Video".to_string())]),
+        ("r [Distant Worlds](https://www.youtube.com/watch?v=yd3KYOei8o4) a",
+        vec![Token::Plaintext("r ".to_string()), Token::Link("https://www.youtube.com/watch?v=yd3KYOei8o4".to_string(), Some("Distant Worlds".to_string()), None), Token::Plaintext(" a".to_string())])
     ]);
 
     for test in tests.iter(){

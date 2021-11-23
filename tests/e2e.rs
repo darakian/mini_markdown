@@ -13,7 +13,7 @@ fn test_simple_render() {
         ("##### Heading level 5", "<h5 id=\"heading-level-5\">Heading level 5</h5>\n"),
         ("###### Heading level 6", "<h6 id=\"heading-level-6\">Heading level 6</h6>\n"),
         ("####### Invalid Heading level 7", "<h6 id=\"invalid-heading-level-7\">Invalid Heading level 7</h6>\n"),
-        ("Some text _with italics_ in the same paragraph\n", "<p>Some text <em>with italics</em>in the same paragraph\n</p>\n"),
+        ("Some text _with italics_ in the same paragraph\n", "<p>Some text <em>with italics</em> in the same paragraph\n</p>\n"),
     ]);
 
     for test in tests.iter(){
@@ -27,7 +27,7 @@ fn test_moderate_render(){
     let mut tests = Vec::new();
     tests.extend(vec![
         ("Text attributes _italic_, \n**bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.",
-        "<p>Text attributes <em>italic</em>, \n<strong>bold</strong>, <code>monospace</code>. Some implementations may use <em>single-asterisks</em>for italic text.</p>\n"),
+        "<p>Text attributes <em>italic</em>, \n<strong>bold</strong>, <code>monospace</code>. Some implementations may use <em>single-asterisks</em> for italic text.</p>\n"),
         ("Horizontal rule:\n\n---\n\nStrikethrough:\n\n~~strikethrough~~\n\n",
         "<p>Horizontal rule:</p>\n<hr />\n<p>Strikethrough:</p>\n<p><strike>strikethrough</strike></p>\n"
         ),
@@ -62,10 +62,10 @@ fn test_moderate_render(){
         "<p>Testing an inline link to a header id <a href=\"#some-header\" referrerpolicy=\"no-referrer\">Link title</a></p>\n"
         ),
         ("Testing some details <details>\n<summary markdown=\"span\">Summary text goes here</summary>\nSome text goes here\n</details>",
-        "<p>Testing some details <details>\n<summary>Summary text goes here</summary>\n<p>Some text goes here\n</p>\n\n</details></p>\n"
+        "<p>Testing some details <details>\n<summary>Summary text goes here</summary>\n<p>\nSome text goes here\n</p>\n\n</details></p>\n"
         ),
         ("Testing some nested details <details>\n<summary markdown=\"span\">Outer summary</summary>\nOuter text<details>\n<summary markdown=\"span\">Inner Summary</summary>\nInner text\n</details>\n</details>",
-        "<p>Testing some nested details <details>\n<summary>Outer summary</summary>\n<p>Outer text<details>\n<summary>Inner Summary</summary>\n<p>Inner text\n</p>\n\n</details></p>\n\n</details></p>\n"
+        "<p>Testing some nested details <details>\n<summary>Outer summary</summary>\n<p>\nOuter text<details>\n<summary>Inner Summary</summary>\n<p>\nInner text\n</p>\n\n</details></p>\n\n</details></p>\n"
         ),
     ]);
 
@@ -208,7 +208,7 @@ fn test_paragraphs(){
         ("Paragraph 1.\n\n```\nBlock text should end a paragraph.\n```\n\nThis is paragraph two.\n\n## Heading\n\nParagraph the third.",
         "<p>Paragraph 1.</p>\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Block text should end a paragraph.\n</code></pre></div></div>\n<p>This is paragraph two.</p>\n<h2 id=\"heading\">Heading</h2>\n\n<p>Paragraph the third.</p>\n"),
         ("# Post title\nSection text\n# Second section\nGood content",
-        "<h1 id=\"post-title\">Post title</h1>\n<p>Section text\n</p><h1 id=\"second-section\">Second section</h1>\n<p>Good content</p>\n")
+        "<h1 id=\"post-title\">Post title</h1>\n<p>\nSection text\n</p><h1 id=\"second-section\">Second section</h1>\n<p>\nGood content</p>\n")
     ]);
 
     for test in tests.iter(){
@@ -218,17 +218,18 @@ fn test_paragraphs(){
     
 }
 
-
 #[test]
 fn test_links(){
     let mut tests = Vec::new();
     tests.extend(vec![
-        (" another (See [Sewer Shark](https://en.wikipedia.org/wiki/Sewer_Shark)). Video playback",
-        " another (See <a href=\"https://en.wikipedia.org/wiki/Sewer_Shark\">Sewer Shark</a>). Video playback")
+        ("another (See [Sewer Shark](https://en.wikipedia.org/wiki/Sewer_Shark)). Video playback",
+        "<p>another &#40;See <a href=\"https://en.wikipedia.org/wiki/Sewer_Shark\" referrerpolicy=\"no-referrer\">Sewer Shark</a>&#41;. Video playback</p>\n"),
+        ("r [Distant Worlds](https://www.youtube.com/watch?v=yd3KYOei8o4) a", 
+        "<p>r <a href=\"https://www.youtube.com/watch?v=yd3KYOei8o4\" referrerpolicy=\"no-referrer\">Distant Worlds</a> a</p>\n",)
     ]);
 
-    // for test in tests.iter(){
-    //     let html = render(test.0);
-    //     assert_eq!(html, test.1);
-    // }
+    for test in tests.iter(){
+        let html = render(test.0);
+        assert_eq!(html, test.1);
+    }
 }
