@@ -287,10 +287,10 @@ pub fn parse(tokens: &[Token]) -> String {
                     _ => "",
                 };
                 match (l, t) {
-                    (l, None) if l.trim() == "" => {html.push_str(format!("<img src=\"data:,\">").as_str())}
-                    (l, Some(t)) if l.trim() == "" => {html.push_str(format!("<img src=\"data:,\" alt=\"{text}\">", text=sanitize_display_text(t)).as_str())}
-                    (l, None) => {html.push_str(format!("<img src=\"{link}\"> referrerpolicy=\"no-referrer\"", link=l).as_str())}
-                    (l, Some(t)) => {html.push_str(format!("<img src=\"{link}\" alt=\"{text}\" referrerpolicy=\"no-referrer\">", link=l, text=sanitize_display_text(t)).as_str())}
+                    (l, None) if l.trim() == "" => {html.push_str(format!("<p><img src=\"data:,\"></p>").as_str())}
+                    (l, Some(t)) if l.trim() == "" => {html.push_str(format!("<p><img src=\"data:,\" alt=\"{text}\"></p>", text=sanitize_display_text(t)).as_str())}
+                    (l, None) => {html.push_str(format!("<p><img src=\"{link}\"> referrerpolicy=\"no-referrer\"></p>", link=l).as_str())}
+                    (l, Some(t)) => {html.push_str(format!("<p><img src=\"{link}\" alt=\"{text}\" referrerpolicy=\"no-referrer\"></p>", link=l, text=sanitize_display_text(t)).as_str())}
                 }
                 
             },

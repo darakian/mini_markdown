@@ -19,10 +19,10 @@ use mini_markdown::render;
 fn test_image_xss(){
     let mut tests = Vec::new();
     tests.extend(vec![
-        ("![Alt text](foo.jpeg)", "<img src=\"foo.jpeg\" alt=\"Alt text\" referrerpolicy=\"no-referrer\">"),
-        ("![Alt text]()", "<img src=\"data:,\" alt=\"Alt text\">"),
-        ("![Alt text](   )", "<img src=\"data:,\" alt=\"Alt text\">"),
-        ("![Alt text](javascript:alert(0))", "<img src=\"data:,\" alt=\"Alt text\"><p>&#41;</p>\n"),
+        ("![Alt text](foo.jpeg)", "<p><img src=\"foo.jpeg\" alt=\"Alt text\" referrerpolicy=\"no-referrer\"></p>"),
+        ("![Alt text]()", "<p><img src=\"data:,\" alt=\"Alt text\"></p>"),
+        ("![Alt text](   )", "<p><img src=\"data:,\" alt=\"Alt text\"></p>"),
+        ("![Alt text](javascript:alert(0))", "<p><img src=\"data:,\" alt=\"Alt text\"></p><p>&#41;</p>\n"),
     ]);
 
     for test in tests.iter(){
