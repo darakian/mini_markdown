@@ -192,7 +192,7 @@ pub fn parse(tokens: &Vec<Token>) -> String {
                     }
                     html.push_str(&s);
                 } else {
-                    html.push_str(format!("{}", sanitize_display_text(&t.trim_start().to_string())).as_str())
+                    html.push_str(format!("{}", sanitize_display_text(&t.to_string())).as_str())
                 }
             },
             Token::Header(l, t, lbl) => {
