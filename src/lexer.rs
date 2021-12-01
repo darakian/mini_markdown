@@ -346,7 +346,7 @@ pub(crate) fn lex_side_carrot(char_iter: &mut std::iter::Peekable<std::str::Char
 pub(crate) fn lex_plus_minus(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
     let s = consume_while_case_holds(char_iter, &|c| c == &'-');
     match s.len() {
-        3.. => { return Ok(Token::HorizontalRule)},
+        3..=usize::MAX => { return Ok(Token::HorizontalRule)},
         2 => {return Ok(Token::Plaintext(s))},
         1 => {},
         _ => {return Err(ParseError{content: "negative string length".to_string()})},
