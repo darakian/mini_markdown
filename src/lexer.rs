@@ -1,3 +1,4 @@
+/// Tokens are the intermediate representation format in the markdown to html conversion
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Plaintext(String),
@@ -24,6 +25,7 @@ pub enum Token {
     Footnote(String, String),
 }
 
+/// Holds the possible states of a taskbox in a task list
 #[derive(Debug, PartialEq)]
 pub enum TaskBox {
     Checked,
@@ -44,6 +46,7 @@ impl Token {
     }
 }
 
+/// Holds the alignment states for the table token
 #[derive(Debug, PartialEq, Clone)]
 pub enum Alignment {
     Left,

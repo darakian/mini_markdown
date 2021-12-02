@@ -1,12 +1,13 @@
 # mini_markdown
-A minimal, usable markdown renderer.
+A dependency free markdown renderer.
 ___
-The design goal of this project is to provide a dependency free markdown to html renderer.
+The design goal of this project is to provide a dependency free, feature complete markdown to html renderer.
+All output is sanitized and any script injection vector is considered a bug.
 
 ## Status
-The basic markdown syntax is currently supported. Extended syntax is ongoing.   
-Testing is also ongoing. Please report bugs as issues should you find any.  
-Any output is considered unstable for the time being.
+Markdown support is now feature complete with testing ongoing.   
+Please report bugs as issues should you find any.  
+All output is considered unstable for the time being.
 
 
 ## Usage
@@ -18,7 +19,7 @@ pub fn render(source: &str) -> String {
 ```
 If all you want is to take markdown and get html `render` is your function. If you want to work with the internal structure the `parse` and `lex` functions are public.
 
-## Currently Supported Syntax
+## Syntax
 ### Headings
 Headings are supported with the `#` syntax only. Up to six levels are supported
 ### Paragraphs
@@ -108,3 +109,32 @@ which renders as
 | Paragraph   | Text        | And more      |
 
 The `:` character will define the alignments as shown.
+
+### Footnotes
+References with text tags are supported for both inline footnotes and multiline big footnotes.  
+For example
+```
+Here's a simple footnote,[^1] and here's a longer one.[^bignote]
+[^1]: This is the first footnote.
+
+[^bignote]: Here's one with multiple paragraphs and code.
+
+    Indent paragraphs to include them in the footnote.
+
+    `{ my code }`
+
+    Add as many paragraphs as you like.
+
+```
+renders as  
+
+Here's a simple footnote,[^1] and here's a longer one.[^bignote]
+[^1]: This is the first footnote.
+
+[^bignote]: Here's one with multiple paragraphs and code.
+
+    Indent paragraphs to include them in the footnote.
+
+    `{ my code }`
+
+    Add as many paragraphs as you like.

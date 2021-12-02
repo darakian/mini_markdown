@@ -6,6 +6,7 @@ pub(crate) struct SanitizationError{
     pub(crate) content: String,
 }
 
+/// Convert source markdown to an ordered vector of tokens
 pub fn lex(source: &str) -> Vec<Token>{
     let mut char_iter = source.chars().peekable();
     let mut tokens = Vec::new();
@@ -121,6 +122,7 @@ pub fn lex(source: &str) -> Vec<Token>{
     tokens
 }
 
+/// Parse tokens to produce safe html output
 pub fn parse(tokens: &[Token]) -> String {
     let mut html = String::new();
     let mut in_task_list = false;
@@ -379,10 +381,13 @@ pub fn parse(tokens: &[Token]) -> String {
     html
 }
 
+/// Render HTML from a source markdown string
+/// Output is sanitized to prevent script injection
 pub fn render(source: &str) -> String {
     parse(&lex(source))
 }
 
+/// Replace potentially unsafe characters with html entities
 pub(crate) fn sanitize_display_text(source: &String) -> String {
     source.replace('&', "&amp;")
         .replace('<', "&lt;")
@@ -400,6 +405,7 @@ pub(crate) fn sanitize_display_text(source: &String) -> String {
         .replace('(', "&#40;")
 }
 
+/// Basic url schema validation
 pub(crate) fn validate_url(source: &str) -> Result<&str, SanitizationError> {
     if source.contains("\"") || !source.is_ascii() || source.contains(char::is_whitespace) { // https://www.rfc-editor.org/rfc/rfc3986#section-2
         return Err(SanitizationError{content: "Unsupported characters".to_string()})
