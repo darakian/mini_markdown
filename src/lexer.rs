@@ -253,7 +253,7 @@ pub(crate) fn lex_images(char_iter: &mut std::iter::Peekable<std::str::Chars>) -
     char_iter.next();
     let link_result = lex_links(char_iter);
     match link_result {
-        Err(e) => return Err(e),
+        Err(e) => return Err(ParseError{content: "!".to_owned()+&e.content}),
         Ok(Token::Link(link, title, _)) => return Ok(Token::Image(link, title)),
         _ => return Err(ParseError{content: "Non link token returned from lex_links".to_string()})
     }

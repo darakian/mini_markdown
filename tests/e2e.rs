@@ -14,6 +14,8 @@ fn test_simple_render() {
         ("###### Heading level 6", "<h6 id=\"heading-level-6\">Heading level 6</h6>\n"),
         ("####### Invalid Heading level 7", "<h6 id=\"invalid-heading-level-7\">Invalid Heading level 7</h6>\n"),
         ("Some text _with italics_ in the same paragraph\n", "<p>Some text <em>with italics</em> in the same paragraph\n</p>\n"),
+        ("Some text! With exclamations!", "<p>Some text! With exclamations!</p>\n"),
+
     ]);
 
     for test in tests.iter(){
