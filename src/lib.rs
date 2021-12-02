@@ -194,7 +194,7 @@ pub fn parse(tokens: &[Token]) -> String {
                     }
                     html.push_str(&s);
                 } else {
-                    html.push_str(format!("{}", sanitize_display_text(&t.to_string())).as_str())
+                    html.push_str(format!("{}", sanitize_display_text(&t.trim_start_matches('\n').to_string())).as_str())
                 }
             },
             Token::Header(l, t, lbl) => {
