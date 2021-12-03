@@ -227,7 +227,9 @@ fn test_links(){
         ("another (See [Sewer Shark](https://en.wikipedia.org/wiki/Sewer_Shark)). Video playback",
         "<p>another &#40;See <a href=\"https://en.wikipedia.org/wiki/Sewer_Shark\" referrerpolicy=\"no-referrer\">Sewer Shark</a>&#41;. Video playback</p>\n"),
         ("r [Distant Worlds](https://www.youtube.com/watch?v=yd3KYOei8o4) a", 
-        "<p>r <a href=\"https://www.youtube.com/watch?v=yd3KYOei8o4\" referrerpolicy=\"no-referrer\">Distant Worlds</a> a</p>\n",)
+        "<p>r <a href=\"https://www.youtube.com/watch?v=yd3KYOei8o4\" referrerpolicy=\"no-referrer\">Distant Worlds</a> a</p>\n"),
+        ("Foo\n```\nbattle\nenemy1\n```\nSome text [ddh](https://g.com/d/ddh/t/m)\n\nMore text following",
+         "<p>Foo\n</p><div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>battle\nenemy1\n</code></pre></div></div><p>Some text <a href=\"https://g.com/d/ddh/t/m\" referrerpolicy=\"no-referrer\">ddh</a></p>\n<p>More text following</p>\n"),
     ]);
 
     for test in tests.iter(){
