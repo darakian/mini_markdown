@@ -64,10 +64,10 @@ fn test_moderate_render(){
         "<p>Testing an inline link to a header id <a href=\"#some-header\" referrerpolicy=\"no-referrer\">Link title</a></p>\n"
         ),
         ("Testing some details <details>\n<summary markdown=\"span\">Summary text goes here</summary>\nSome text goes here\n</details>",
-        "<p>Testing some details <details>\n<summary>Summary text goes here</summary>\n<p>\nSome text goes here\n</p>\n\n</details></p>\n"
+        "<p>Testing some details <details>\n<summary>Summary text goes here</summary>\n<p>Some text goes here\n</p>\n\n</details></p>\n"
         ),
         ("Testing some nested details <details>\n<summary markdown=\"span\">Outer summary</summary>\nOuter text<details>\n<summary markdown=\"span\">Inner Summary</summary>\nInner text\n</details>\n</details>",
-        "<p>Testing some nested details <details>\n<summary>Outer summary</summary>\n<p>\nOuter text<details>\n<summary>Inner Summary</summary>\n<p>\nInner text\n</p>\n\n</details></p>\n\n</details></p>\n"
+        "<p>Testing some nested details <details>\n<summary>Outer summary</summary>\n<p>Outer text<details>\n<summary>Inner Summary</summary>\n<p>Inner text\n</p>\n\n</details></p>\n\n</details></p>\n"
         ),
     ]);
 
@@ -210,7 +210,7 @@ fn test_paragraphs(){
         ("Paragraph 1.\n\n```\nBlock text should end a paragraph.\n```\n\nThis is paragraph two.\n\n## Heading\n\nParagraph the third.",
         "<p>Paragraph 1.</p>\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Block text should end a paragraph.\n</code></pre></div></div>\n<p>This is paragraph two.</p>\n<h2 id=\"heading\">Heading</h2>\n\n<p>Paragraph the third.</p>\n"),
         ("# Post title\nSection text\n# Second section\nGood content",
-        "<h1 id=\"post-title\">Post title</h1>\n<p>\nSection text\n</p><h1 id=\"second-section\">Second section</h1>\n<p>\nGood content</p>\n")
+        "<h1 id=\"post-title\">Post title</h1>\n<p>Section text\n</p><h1 id=\"second-section\">Second section</h1>\n<p>Good content</p>\n")
     ]);
 
     for test in tests.iter(){
