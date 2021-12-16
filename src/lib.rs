@@ -246,8 +246,6 @@ pub fn parse(tokens: &[Token]) -> String {
             Token::LineBreak => {html.push_str("<br>")},
             Token::HorizontalRule => {html.push_str("<hr />")},
             Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", sanitize_display_text(t)).as_str())},
-            // Token::Tab => {},
-            // Token::DoubleTab => {},
             Token::Code(t) => {html.push_str(format!("<code>{}</code>", sanitize_display_text(t)).as_str())},
             Token::CodeBlock(t, lang) => {
                 html.push_str(format!(
@@ -313,7 +311,7 @@ pub fn parse(tokens: &[Token]) -> String {
                 html.push_str(format!("<details>\n<summary>{sum}</summary>\n{in_html}\n</details>", sum=sanitize_display_text(summary), in_html=inner_html).as_str());
             },
             Token::Table(headings, rows) => {
-                //Assert headings.len() == rows.width()
+                if  headings.len() != rows[0].len() {continue}
                 html.push_str("<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n");
                 for h in headings.into_iter() {
                     html.push_str(format!("\t\t<th style=\"text-align: {align}\">{heading}</th>", heading=sanitize_display_text(&h.1), align=h.0).as_str());
