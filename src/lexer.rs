@@ -1,27 +1,49 @@
 /// Tokens are the intermediate representation format in the markdown to html conversion
 #[derive(Debug, PartialEq)]
 pub enum Token {
+    /// String: Body of unstructured text
     Plaintext(String),
+    /// u8: Header level (1..=6). String: Header text. Option<String>: html label
     Header(u8, String, Option<String>),
+    /// String: Text for list entry
     UnorderedListEntry(String),
+    /// String: Text for list entry
     OrderedListEntry(String),
+    /// String: Text to be italicized
     Italic(String),
+    /// String: Text to be bolded
     Bold(String),
+    /// String: Text to be bolded and italicized
     BoldItalic(String),
+    /// Corresponds to a </br> html tag
     LineBreak,
+    /// Corresponds to a newline character
     Newline,
+    /// Corresponds to a <hr /> html tag
     HorizontalRule,
+    /// Used for control flow. Not directly rendered
     Tab,
+    /// Used for control flow. Not directly rendered
     DoubleTab,
+    /// String: Text to be struck through
     Strikethrough(String),
+    /// String: Text to be placed within an inline code tag. eg. <code>String</code>
     Code(String),
+    /// First String: Text to be placed within a multi-line code tag. Second String: Language
     CodeBlock(String, String),
+    /// u8: Block quote level. String: Block quote text
     BlockQuote(u8, String),
-    Image(String, Option<String>), // (Link, title)
-    Link(String, Option<String>, Option<String>), //(link, title, hover text)
+    /// String: Link. Option<String>: Title for link.
+    Image(String, Option<String>),
+    /// String: Link. First Option<String>: Title for link. Second Option<String>: Hover text
+    Link(String, Option<String>, Option<String>),
+    /// String: Summary. Vec<Token>: Tokens to be rendered in the collapsable section
     Detail(String, Vec<Token>),
+    /// Tuple of Vec<(Alignment, String)>: Which defines the table header and Vec<Vec<(Alignment, Vec<Token>)>> which defines the rows
     Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, Vec<Token>)>>),
+    /// TaskBox: Boolean state of the checked or unchecked box. String: List item text
     TaskListItem(TaskBox, String),
+    /// First String: Reference id. Second String: Reference text
     Footnote(String, String),
 }
 
