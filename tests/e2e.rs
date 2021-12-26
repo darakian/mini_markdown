@@ -237,3 +237,22 @@ fn test_links(){
         assert_eq!(html, test.1);
     }
 }
+
+#[test]
+fn test_details(){
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        ("<details>\n<summary>Summary</summary>\n\n```\nFoo\n```\n</details>",
+         "<details>\n<summary>Summary</summary>\n\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Foo\n</code></pre></div></div>\n</details>"),
+         ("<details>\n<summary>Summary but with spaces</summary>\n\n```\nFoo\n```\n</details>",
+         "<details>\n<summary>Summary but with spaces</summary>\n\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Foo\n</code></pre></div></div>\n</details>"),
+        ("Here's some lead text\n <details>\n<summary>Summary</summary>\n\n```\nFoo\n```\n</details>",
+         "<p>Here&apos;s some lead text\n </p>\n<details>\n<summary>Summary</summary>\n\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Foo\n</code></pre></div></div>\n</details>")
+    ]);
+
+    for test in tests.iter(){
+        let html = render(test.0);
+        assert_eq!(html, test.1);
+    }
+    
+}
