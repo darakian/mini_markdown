@@ -256,7 +256,7 @@ pub fn parse(tokens: &[Token]) -> String {
             },
             Token::BlockQuote(l, t) => {
                 if in_paragraph {
-                    html.push_str(format!("</p>").as_str());
+                    html.push_str("</p>");
                     in_paragraph = false;
                 }
                 match quote_level {
@@ -307,6 +307,10 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
             },
             Token::Detail(summary, inner_tokens) => {
+                if in_paragraph {
+                    html.push_str("</p>\n");
+                    in_paragraph = false;
+                }
                 let inner_html = parse(inner_tokens);
                 html.push_str(format!("<details>\n<summary>{sum}</summary>\n{in_html}\n</details>", sum=sanitize_display_text(summary), in_html=inner_html).as_str());
             },

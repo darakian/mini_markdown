@@ -428,20 +428,11 @@ fn parse_details(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result
     if !summary_line.starts_with("<summary") || !summary_line.ends_with("</summary>") {
         return Err(ParseError{content: summary_line});
     }
-    summary_line = summary_line.strip_prefix("<summary").unwrap_or("").to_string();
+    summary_line = summary_line.strip_prefix("<summary>").unwrap_or("").to_string();
     summary_line = summary_line.strip_suffix("</summary>").unwrap_or("").to_string();
-    match summary_line.chars().nth(0){
-        Some('>') => {summary_line.clear()},
-        Some(' ') => {
-            if !summary_line.starts_with(" markdown=\"span\">"){
-                return Err(ParseError{content:format!("{}{}{}","<summary" ,summary_line, "</summary>")})
-            }
-            summary_line = summary_line.strip_prefix(" markdown=\"span\">").unwrap_or("").to_string();
-        },
-        Some(c) => {
-            return Err(ParseError{content:format!("{}{}{}{}","<summary", c,summary_line, "</summary>")})
-        },
-        None => return Err(ParseError{content:format!("{}{}{}","<summary" ,summary_line, "</summary>")})
+    match summary_line.len() {
+        0 => {return Err(ParseError{content:format!("{}","<summary></summary>")})},
+        _ => {},
     }
     let mut remaining_text = consume_until_tail_is(char_iter, "</details>");
     if remaining_text.contains("<details>") {

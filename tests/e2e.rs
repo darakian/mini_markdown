@@ -63,18 +63,18 @@ fn test_moderate_render(){
         ("Testing an inline link to a header id [Link title](#some-header)",
         "<p>Testing an inline link to a header id <a href=\"#some-header\" referrerpolicy=\"no-referrer\">Link title</a></p>\n"
         ),
-        ("Testing some details <details>\n<summary markdown=\"span\">Summary text goes here</summary>\nSome text goes here\n</details>",
-        "<p>Testing some details <details>\n<summary>Summary text goes here</summary>\n<p>Some text goes here\n</p>\n\n</details></p>\n"
+        ("Testing some details\n<details>\n<summary>Summary text goes here</summary>\nSome text goes here\n</details>",
+        "<p>Testing some details\n</p>\n<details>\n<summary>Summary text goes here</summary>\n<p>Some text goes here\n</p>\n\n</details>"
         ),
-        ("Testing some nested details <details>\n<summary markdown=\"span\">Outer summary</summary>\nOuter text<details>\n<summary markdown=\"span\">Inner Summary</summary>\nInner text\n</details>\n</details>",
-        "<p>Testing some nested details <details>\n<summary>Outer summary</summary>\n<p>Outer text<details>\n<summary>Inner Summary</summary>\n<p>Inner text\n</p>\n\n</details></p>\n\n</details></p>\n"
+        ("Testing some nested details <details>\n<summary>Outer summary</summary>\nOuter text<details>\n<summary>Inner Summary</summary>\nInner text\n</details>\n</details>",
+        "<p>Testing some nested details </p>\n<details>\n<summary>Outer summary</summary>\n<p>Outer text</p>\n<details>\n<summary>Inner Summary</summary>\n<p>Inner text\n</p>\n\n</details>\n</details>"
         ),
     ]);
 
     for test in tests.iter(){
         let html = render(test.0);
         if html != test.1 {
-            println!("Test failing\n{:?}\n{:?}", html, test.1);
+            println!("Test failing:\nGot:{:?}\nExpected:{:?}", html, test.1);
             println!("{:?}", lex(test.0));
             for (c1, c2) in test.1.chars().zip(html.chars()) {
                 if c1 != c2 {
@@ -236,4 +236,23 @@ fn test_links(){
         let html = render(test.0);
         assert_eq!(html, test.1);
     }
+}
+
+#[test]
+fn test_details(){
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        ("<details>\n<summary>Summary</summary>\n\n```\nFoo\n```\n</details>",
+         "<details>\n<summary>Summary</summary>\n\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Foo\n</code></pre></div></div>\n</details>"),
+         ("<details>\n<summary>Summary but with spaces</summary>\n\n```\nFoo\n```\n</details>",
+         "<details>\n<summary>Summary but with spaces</summary>\n\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Foo\n</code></pre></div></div>\n</details>"),
+        ("Here's some lead text\n <details>\n<summary>Summary</summary>\n\n```\nFoo\n```\n</details>",
+         "<p>Here&apos;s some lead text\n </p>\n<details>\n<summary>Summary</summary>\n\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Foo\n</code></pre></div></div>\n</details>")
+    ]);
+
+    for test in tests.iter(){
+        let html = render(test.0);
+        assert_eq!(html, test.1);
+    }
+    
 }
