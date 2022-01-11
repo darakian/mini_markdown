@@ -354,6 +354,7 @@ pub(crate) fn lex_side_carrot(char_iter: &mut std::iter::Peekable<std::str::Char
                 },
                 Some(&'>') if s == "details" => {
                     char_iter.next();
+                    char_iter.next_if_eq(&'\r');
                     if !char_iter.next_if_eq(&'\n').is_some(){
                         return Err(ParseError{content: s});
                     }
@@ -425,6 +426,9 @@ pub(crate) fn lex_tilde(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
 
 fn parse_details(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError>{
     let mut summary_line = consume_while_case_holds(char_iter, &|c| c != &'\n');
+    if summary_line.ends_with("\r") {
+        summary_line = summary_line.strip_suffix("\r").unwrap_or("").to_string();
+    }
     if !summary_line.starts_with("<summary") || !summary_line.ends_with("</summary>") {
         return Err(ParseError{content: summary_line});
     }

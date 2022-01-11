@@ -246,6 +246,8 @@ fn test_details(){
          "<details>\n<summary>Summary</summary>\n\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Foo\n</code></pre></div></div>\n</details>"),
          ("<details>\n<summary>Summary but with spaces</summary>\n\n```\nFoo\n```\n</details>",
          "<details>\n<summary>Summary but with spaces</summary>\n\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Foo\n</code></pre></div></div>\n</details>"),
+         ("<details>\r\n<summary>testing rn</summary>\r\ninner test\r\n</details>",
+         "<details>\n<summary>testing rn</summary>\n<p>inner test\r\n</p>\n\n</details>"),
         ("Here's some lead text\n <details>\n<summary>Summary</summary>\n\n```\nFoo\n```\n</details>",
          "<p>Here&apos;s some lead text\n </p>\n<details>\n<summary>Summary</summary>\n\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Foo\n</code></pre></div></div>\n</details>")
     ]);
