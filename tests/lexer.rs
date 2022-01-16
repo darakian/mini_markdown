@@ -80,7 +80,7 @@ fn test_lex() {
         ("- [ ] Unchecked box", vec![Token::TaskListItem(TaskBox::Unchecked, "Unchecked box".to_string())]),
         ("- [x] Checked box", vec![Token::TaskListItem(TaskBox::Checked, "Checked box".to_string())]),
         ("- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "Also a checked box".to_string())]),
-        ("- [X]Not a checked box", vec![Token::Plaintext("- [X]Not a checked box".to_string())]),
+        ("- [X]Not a checked box", vec![Token::UnorderedListEntry("[X]Not a checked box".to_string())]),
         ("- [X] A checked box\n- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "A checked box".to_string()), Token::Plaintext("\n".to_string()), Token::TaskListItem(TaskBox::Checked, "Also a checked box".to_string())]),
     ]);
     for test in tests.iter(){
