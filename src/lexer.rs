@@ -384,6 +384,8 @@ pub(crate) fn lex_plus_minus(char_iter: &mut std::iter::Peekable<std::str::Chars
         return Ok(Token::TaskListItem(TaskBox::Checked,line.strip_prefix(" [x] ").unwrap_or("").to_string()))
     } else if line.starts_with(" [X] ") {
         return Ok(Token::TaskListItem(TaskBox::Checked,line.strip_prefix(" [X] ").unwrap_or("").to_string()))
+    } else if line.starts_with(" "){
+        return Ok(Token::UnorderedListEntry(line.strip_prefix(" ").unwrap_or("").to_string()))
     } else {
         return Ok(Token::Plaintext(s+&line))
     }

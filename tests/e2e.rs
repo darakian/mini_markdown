@@ -162,6 +162,8 @@ fn test_lists(){
         "<ul><li>an item</li><li>another item</li><li>a third item</li></ul>"),
         (" * an item\n * another item\n * a third item",
         "<ul><li>an item</li><li>another item</li><li>a third item</li></ul>"),
+        ("lead text\n\n- entry 1\n- entry 2\n- entry 3\n- entry 4\n\nMore text",
+        "<p>lead text</p>\n<ul><li>entry 1</li><li>entry 2</li><li>entry 3</li><li>entry 4</li></ul>\n<p>More text</p>\n"),
     ]);
 
     for test in tests.iter(){
