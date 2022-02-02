@@ -1,6 +1,6 @@
 /// Tokens are the intermediate representation format in the markdown to html conversion
 #[derive(Debug, PartialEq)]
-pub enum Token {
+pub enum Token<'a> {
     /// String: Body of unstructured text
     Plaintext(String),
     /// u8: Header level (1..=6). String: Header text. Option<String>: html label
@@ -38,9 +38,9 @@ pub enum Token {
     /// String: Link. First Option<String>: Title for link. Second Option<String>: Hover text
     Link(String, Option<String>, Option<String>),
     /// String: Summary. Vec<Token>: Tokens to be rendered in the collapsable section
-    Detail(String, Vec<Token>),
+    Detail(String, Vec<Token<'a>>),
     /// Tuple of Vec<(Alignment, String)>: Which defines the table header and Vec<Vec<(Alignment, Vec<Token>)>> which defines the rows
-    Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, Vec<Token>)>>),
+    Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, Vec<Token<'a>>)>>),
     /// TaskBox: Boolean state of the checked or unchecked box. String: List item text
     TaskListItem(TaskBox, String),
     /// First String: Reference id. Second String: Reference text
@@ -54,7 +54,7 @@ pub enum TaskBox {
     Unchecked,
 }
 
-impl Token {
+impl <'a> Token<'a> {
     fn is_usable_in_table(&self) -> bool {
         match self {
             Token::Code(_) => true,
@@ -134,7 +134,7 @@ fn consume_until_tail_is(char_iter: &mut std::iter::Peekable<std::str::Chars>, t
     s
 }
 
-pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+pub(crate) fn lex_heading<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError> {
     let hashes = consume_while_case_holds(char_iter, &|c| c == &'#');
     if char_iter.next_if_eq(&' ').is_none(){
         return Err(ParseError{content: hashes});
@@ -151,7 +151,7 @@ pub(crate) fn lex_heading(char_iter: &mut std::iter::Peekable<std::str::Chars>) 
     return Ok(Token::Header(level, line, None));
 }
 
-pub(crate) fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError> {
     let asterunds = consume_while_case_holds(char_iter, &|c| c == &'*' || c == &'_');
     if asterunds.len() == 1 && char_iter.next_if_eq(&' ').is_some(){
         let s = consume_while_case_holds(char_iter, &|c| c != &'\n');
@@ -199,7 +199,7 @@ pub(crate) fn lex_asterisk_underscore(char_iter: &mut std::iter::Peekable<std::s
     }
 }
 
-pub(crate) fn lex_spaces(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError>{
+pub(crate) fn lex_spaces<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError>{
     let spaces = consume_while_case_holds(char_iter, &|c| c == &' ');
     // Case 1: space in text => return char
     if spaces.len() == 1 {
@@ -218,7 +218,7 @@ pub(crate) fn lex_spaces(char_iter: &mut std::iter::Peekable<std::str::Chars>) -
     Err(ParseError{content: spaces})
 }
 
-pub(crate) fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+pub(crate) fn lex_backticks<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError> {
     let leading_ticks = consume_while_case_holds(char_iter, &|c| c == &'`');
     let mut lang = "plaintext".to_string();
     if leading_ticks.len() != 1 && leading_ticks.len() != 3{
@@ -249,7 +249,7 @@ pub(crate) fn lex_backticks(char_iter: &mut std::iter::Peekable<std::str::Chars>
     }
 }
 
-pub(crate) fn lex_newlines(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+pub(crate) fn lex_newlines<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError> {
     let newlines = consume_while_case_holds(char_iter, &|c| c == &'\n');
     match newlines.len() {
         0..=1 => return Err(ParseError{content: newlines}),
@@ -257,7 +257,7 @@ pub(crate) fn lex_newlines(char_iter: &mut std::iter::Peekable<std::str::Chars>)
     }
 }
 
-pub(crate) fn lex_blockquotes(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+pub(crate) fn lex_blockquotes<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError> {
     let right_arrows = consume_while_case_holds(char_iter, &|c| c == &'>');
     match char_iter.peek() {
         Some(&' ') => {char_iter.next();},
@@ -268,7 +268,7 @@ pub(crate) fn lex_blockquotes(char_iter: &mut std::iter::Peekable<std::str::Char
     Ok(Token::BlockQuote(right_arrows.len() as u8, s))
 }
 
-pub(crate) fn lex_images(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+pub(crate) fn lex_images<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError> {
     if char_iter.peek() != Some(&'!'){
         return Err(ParseError{content: "".to_string()})
     }
@@ -281,7 +281,7 @@ pub(crate) fn lex_images(char_iter: &mut std::iter::Peekable<std::str::Chars>) -
     }
 }
 
-pub(crate) fn lex_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+pub(crate) fn lex_links<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError> {
     if char_iter.peek() != Some(&'[') {
         return Err(ParseError{content: "".to_string()})
     }
@@ -342,7 +342,7 @@ pub(crate) fn lex_links(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
     Err(ParseError{content: "".to_string()})
 }
 
-pub(crate) fn lex_side_carrot(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+pub(crate) fn lex_side_carrot<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError> {
     match char_iter.peek() {
         Some(&'<') => {
             char_iter.next();
@@ -369,7 +369,7 @@ pub(crate) fn lex_side_carrot(char_iter: &mut std::iter::Peekable<std::str::Char
     }
 }
 
-pub(crate) fn lex_plus_minus(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+pub(crate) fn lex_plus_minus<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError> {
     let s = consume_while_case_holds(char_iter, &|c| c == &'-');
     match s.len() {
         3..=usize::MAX => { return Ok(Token::HorizontalRule)},
@@ -391,7 +391,7 @@ pub(crate) fn lex_plus_minus(char_iter: &mut std::iter::Peekable<std::str::Chars
     }
 }
 
-pub(crate) fn lex_numbers(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+pub(crate) fn lex_numbers<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError> {
     let c = char_iter.next().unwrap();
     match char_iter.peek() {
         Some('.') => {
@@ -407,7 +407,7 @@ pub(crate) fn lex_numbers(char_iter: &mut std::iter::Peekable<std::str::Chars>) 
     }
 }
 
-pub(crate) fn lex_tilde(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+pub(crate) fn lex_tilde<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError> {
     let mut lead_tildes = char_iter.next().unwrap().to_string();
     if char_iter.peek() != Some(&'~') {
         return Err(ParseError{content: lead_tildes})
@@ -426,7 +426,7 @@ pub(crate) fn lex_tilde(char_iter: &mut std::iter::Peekable<std::str::Chars>) ->
     }
 }
 
-fn parse_details(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError>{
+fn parse_details<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError>{
     let mut summary_line = consume_while_case_holds(char_iter, &|c| c != &'\n');
     if summary_line.ends_with("\r") {
         summary_line = summary_line.strip_suffix("\r").unwrap_or("").to_string();
@@ -454,7 +454,7 @@ fn parse_details(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result
     Ok(Token::Detail(summary_line, inner_tokens))
 }
 
-pub(crate) fn lex_pipes(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token, ParseError> {
+pub(crate) fn lex_pipes<'a>(char_iter: &mut std::iter::Peekable<std::str::Chars>) -> Result<Token<'a>, ParseError> {
     let mut lines = Vec::new();
     while char_iter.next_if_eq(&'|') == Some('|') {
         lines.push(consume_while_case_holds(char_iter, &|c| c != &'\n'));
