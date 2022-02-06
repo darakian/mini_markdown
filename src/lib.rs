@@ -7,7 +7,7 @@ pub(crate) struct SanitizationError{
 }
 
 /// Convert source markdown to an ordered vector of tokens
-pub fn lex(source: &str) -> Vec<Token>{
+pub fn lex<'source>(source: &'source str) -> Vec<Token>{
     let mut char_iter = source.chars().peekable();
     let mut tokens = Vec::new();
     while char_iter.peek().is_some(){
