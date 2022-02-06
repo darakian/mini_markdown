@@ -1,4 +1,5 @@
 pub mod lexer;
+pub mod iter;
 use crate::lexer::*;
 
 #[derive(Debug)]
