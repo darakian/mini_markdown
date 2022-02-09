@@ -18,9 +18,9 @@ impl <'a> Iterator for MiniIter<'a> {
             },
             None => {
                 match self.char_index_iter.next(){
-                    Some(t) => {  
+                    Some(t) => {
                         self.index = t.0;
-                        self.the_str.get(t.0..=t.0)},
+                        self.the_str.get(t.0..=(t.0+t.1.len_utf8()-1))},
                     None => None,
                 }                
             },

@@ -17,4 +17,14 @@ fn iter_test(){
     assert_eq!(Some("jkfsgbkfgbdklfdsbh gkhsdfbg <details>"), other_text_iter.consume_until_tail_is("<details>"));
     assert_eq!(Some(" and more chars") ,other_text_iter.consume_until_end());
     assert_eq!(None, other_text_iter.peek());
+
+    let slashes = "¯\\\\\\\\\\¯";
+    let mut slash_iter = MiniIter::new(&slashes);
+    assert_eq!(Some("¯"), slash_iter.peek());
+    assert_eq!(Some("¯"), slash_iter.next());
+    assert_eq!(Some("\\"), slash_iter.peek());
+    assert_eq!(Some("\\\\\\\\\\"), slash_iter.consume_while_case_holds(&|c| c == "\\"));
+    assert_eq!(Some("¯"), slash_iter.peek());
+    assert_eq!(Some("¯"), slash_iter.next());
+    assert_eq!(None, slash_iter.next());
 }
