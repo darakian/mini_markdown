@@ -76,4 +76,12 @@ impl <'a> MiniIter<'a> {
         }
         self.the_str.get(start_index..self.index)
     }
+
+    pub fn get_index(&self) -> usize{
+        self.index
+    }
+
+    pub fn get_substring_from(&self, start: usize) -> Option<&'a str> {
+        self.the_str.get(start..self.index)
+    }
 }

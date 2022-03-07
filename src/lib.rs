@@ -112,12 +112,12 @@ pub fn lex(source: &str) -> Vec<Token>{
                 char_iter.next();
                 if char_iter.peek().is_some(){
                     let c = char_iter.next().unwrap();
-                    push_str(&mut tokens, c.to_string());
+                    push_str(&mut tokens, c);
                 }
             }
             _ => {
                 let c = char_iter.next().unwrap();
-                push_str(&mut tokens, c.to_string());
+                push_str(&mut tokens, c);
             },
         }
     }
