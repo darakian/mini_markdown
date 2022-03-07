@@ -68,12 +68,6 @@ fn test_lex() {
 
     ]);
     tests.extend(vec![
-        ("¯\\\\\\_(ツ)\\_/¯", vec![Token::Plaintext("¯\\_(ツ)_/¯".to_string())]),
-        ("\\_test\\_", vec![Token::Plaintext("_test_".to_string())]),
-        ("\\*escaping\\_", vec![Token::Plaintext("*escaping_".to_string())]),
-        ("\\>controls\\<", vec![Token::Plaintext(">controls<".to_string())])
-    ]);
-    tests.extend(vec![
         ("---", vec![Token::HorizontalRule]),
         ("-----", vec![Token::HorizontalRule]),
         ("--", vec![Token::Plaintext("--".to_string())]),
@@ -82,6 +76,21 @@ fn test_lex() {
         ("- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "Also a checked box".to_string())]),
         ("- [X]Not a checked box", vec![Token::UnorderedListEntry("[X]Not a checked box".to_string())]),
         ("- [X] A checked box\n- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "A checked box".to_string()), Token::Plaintext("\n".to_string()), Token::TaskListItem(TaskBox::Checked, "Also a checked box".to_string())]),
+    ]);
+    for test in tests.iter(){
+        let tokens = lex(test.0);
+        assert_eq!(&tokens[..], &test.1[..]);
+    }
+}
+
+#[test]
+fn test_lex_plaintext() {
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        ("¯\\\\\\_(ツ)\\_/¯", vec![Token::Plaintext("¯\\_(ツ)_/¯".to_string())]),
+        ("\\_test\\_", vec![Token::Plaintext("_test_".to_string())]),
+        ("\\*escaping\\_", vec![Token::Plaintext("*escaping_".to_string())]),
+        ("\\>controls\\<", vec![Token::Plaintext(">controls<".to_string())])
     ]);
     for test in tests.iter(){
         let tokens = lex(test.0);

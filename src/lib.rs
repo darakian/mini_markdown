@@ -1,5 +1,7 @@
 pub mod lexer;
+pub mod iter;
 use crate::lexer::*;
+use crate::iter::MiniIter;
 
 #[derive(Debug)]
 pub(crate) struct SanitizationError{
@@ -7,61 +9,61 @@ pub(crate) struct SanitizationError{
 }
 
 /// Convert source markdown to an ordered vector of tokens
-pub fn lex<'source>(source: &'source str) -> Vec<Token>{
-    let mut char_iter = source.chars().peekable();
+pub fn lex(source: &str) -> Vec<Token>{
+    let mut char_iter = MiniIter::new(source);
     let mut tokens = Vec::new();
     while char_iter.peek().is_some(){
         match char_iter.peek().unwrap(){
-            '#' => {
+            "#" => {
                 let token = lex_heading(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            '*' | '_' => {
+            "*" | "_" => {
                 let token = lex_asterisk_underscore(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            '~' => {
+            "~" => {
                 let token = lex_tilde(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            '-' | '+' => {
+            "-" | "+" => {
                 let token = lex_plus_minus(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            ' ' => {
+            " " => {
                 let token = lex_spaces(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            '`' => {
+            "`" => {
                 let token = lex_backticks(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            '\n' => {
+            "\n" => {
                 let token = lex_newlines(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            '>' => {
+            ">" => {
                 let token = lex_blockquotes(&mut char_iter);
                 match token {
                     Ok(t) => {
@@ -70,52 +72,52 @@ pub fn lex<'source>(source: &'source str) -> Vec<Token>{
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            '!' => {
+            "!" => {
                 let token = lex_images(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            '[' => {
+            "[" => {
                 let token = lex_links(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            '<' => {
+            "<" => {
                 let token = lex_side_carrot(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            '|' => {
+            "|" => {
                 let token = lex_pipes(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '0' => {
+            "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0" => {
                 let token = lex_numbers(&mut char_iter);
                 match token {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             }
-            // Parse '\' to escape a markdown control character
-            '\\' => {
+            // Parse "\" to escape a markdown control character
+            "\\" => {
                 char_iter.next();
                 if char_iter.peek().is_some(){
                     let c = char_iter.next().unwrap();
-                    push_char(&mut tokens, c);
+                    push_str(&mut tokens, c.to_string());
                 }
             }
             _ => {
                 let c = char_iter.next().unwrap();
-                push_char(&mut tokens, c);
+                push_str(&mut tokens, c.to_string());
             },
         }
     }
