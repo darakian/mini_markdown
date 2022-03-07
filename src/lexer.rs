@@ -107,10 +107,6 @@ pub(crate) fn push_str(t: &mut Vec<Token>, s: String) {
     }
 }
 
-fn consume_until_tail_is(char_iter: &mut MiniIter, tail: &str) -> String{
-    char_iter.consume_until_tail_is(tail).unwrap().to_string()
-}
-
 pub(crate) fn lex_heading(char_iter: &mut MiniIter) -> Result<Token, ParseError> {
     let hashes = char_iter.consume_while_case_holds(&|c| c == "#").unwrap_or("");
     if char_iter.next_if_eq(&" ").is_none(){
@@ -417,12 +413,12 @@ fn parse_details(char_iter: &mut MiniIter) -> Result<Token, ParseError>{
         0 => {return Err(ParseError{content:format!("{}","<summary></summary>")})},
         _ => {},
     }
-    let mut remaining_text = consume_until_tail_is(char_iter, "</details>");
+    let mut remaining_text = char_iter.consume_until_tail_is("</details>").unwrap_or("").to_string();
     if remaining_text.contains("<details>") {
         let mut opens = remaining_text.matches("<details>").count();
         let mut closes = remaining_text.matches("</details>").count();
         while opens == closes {
-            remaining_text = remaining_text+&consume_until_tail_is(char_iter, "</details>");
+            remaining_text = remaining_text+char_iter.consume_until_tail_is("</details>").unwrap_or("");
             opens = remaining_text.matches("<details>").count();
             closes = remaining_text.matches("</details>").count();
         }
