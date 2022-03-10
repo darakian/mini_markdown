@@ -2,7 +2,7 @@ use crate::MiniIter;
 
 /// Tokens are the intermediate representation format in the markdown to html conversion
 #[derive(Debug, PartialEq)]
-pub enum Token {
+pub enum Token <'a>{
     /// String: Body of unstructured text
     Plaintext(String),
     /// u8: Header level (1..=6). String: Header text. Option<String>: html label
@@ -40,9 +40,9 @@ pub enum Token {
     /// String: Link. First Option<String>: Title for link. Second Option<String>: Hover text
     Link(String, Option<String>, Option<String>),
     /// String: Summary. Vec<Token>: Tokens to be rendered in the collapsable section
-    Detail(String, Vec<Token>),
+    Detail(String, Vec<Token<'a>>),
     /// Tuple of Vec<(Alignment, String)>: Which defines the table header and Vec<Vec<(Alignment, Vec<Token>)>> which defines the rows
-    Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, Vec<Token>)>>),
+    Table(Vec<(Alignment, &'a str)>, Vec<Vec<(Alignment, Vec<Token<'a>>)>>),
     /// TaskBox: Boolean state of the checked or unchecked box. String: List item text
     TaskListItem(TaskBox, String),
     /// First String: Reference id. Second String: Reference text
@@ -56,7 +56,7 @@ pub enum TaskBox {
     Unchecked,
 }
 
-impl Token {
+impl Token <'_> {
     fn is_usable_in_table(&self) -> bool {
         match self {
             Token::Code(_) => true,
@@ -107,7 +107,7 @@ pub(crate) fn push_str<'a>(t: &mut Vec<Token>, s: &'a str) {
     }
 }
 
-pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let hashes = char_iter.consume_while_case_holds(&|c| c == "#").unwrap_or("");
     if char_iter.next_if_eq(&" ").is_none(){
         return Err(ParseError{content: hashes});
@@ -124,7 +124,7 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
     return Ok(Token::Header(level, line, None));
 }
 
-pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let asterunds = char_iter.consume_while_case_holds(&|c| c == "*" || c == "_").unwrap_or("");
     if asterunds.len() == 1 && char_iter.next_if_eq(&" ").is_some(){
@@ -173,7 +173,7 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
     }
 }
 
-pub(crate) fn lex_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>>{
+pub(crate) fn lex_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>>{
     let spaces = char_iter.consume_while_case_holds(&|c| c == " ").unwrap_or("");
     // Case 1: space in text => return char
     if spaces.len() == 1 {
@@ -192,7 +192,7 @@ pub(crate) fn lex_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Pars
     Err(ParseError{content: spaces})
 }
 
-pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let leading_ticks = char_iter.consume_while_case_holds(&|c| c == "`").unwrap_or("");
     let mut lang = "plaintext";
@@ -224,7 +224,7 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, P
     }
 }
 
-pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let newlines = char_iter.consume_while_case_holds(&|c| c == "\n").unwrap_or("");
     match newlines.len() {
         0..=1 => return Err(ParseError{content: newlines}),
@@ -232,7 +232,7 @@ pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Pa
     }
 }
 
-pub(crate) fn lex_blockquotes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_blockquotes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let right_arrows = char_iter.consume_while_case_holds(&|c| c == ">").unwrap_or("");
     match char_iter.peek() {
         Some(" ") => {char_iter.next();},
@@ -243,7 +243,7 @@ pub(crate) fn lex_blockquotes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token,
     Ok(Token::BlockQuote(right_arrows.len() as u8, s.to_string()))
 }
 
-pub(crate) fn lex_images<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_images<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
     if char_iter.peek() != Some(&"!"){
         return Err(ParseError{content: ""})
@@ -257,7 +257,7 @@ pub(crate) fn lex_images<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Pars
     }
 }
 
-pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
     if char_iter.peek() != Some(&"[") {
         return Err(ParseError{content: ""})
@@ -319,7 +319,7 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Parse
     Err(ParseError{content: ""})
 }
 
-pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     match char_iter.peek() {
         Some("<") => {
             char_iter.next();
@@ -368,7 +368,7 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, 
     }
 }
 
-pub(crate) fn lex_numbers<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_numbers<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let c = char_iter.next().unwrap();
     match char_iter.peek() {
@@ -385,7 +385,7 @@ pub(crate) fn lex_numbers<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
     }
 }
 
-pub(crate) fn lex_tilde<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_tilde<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let lead_tildes = match char_iter.consume_while_case_holds(&|s| s == "~"){
         Some(s) => s,
@@ -406,7 +406,7 @@ pub(crate) fn lex_tilde<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Parse
     }
 }
 
-fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>>{
+fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>>{
     let mut summary_line = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
     if summary_line.ends_with("\r") {
         summary_line = summary_line.strip_suffix("\r").unwrap_or("");
@@ -434,11 +434,13 @@ fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'
     Ok(Token::Detail(summary_line.to_string(), inner_tokens))
 }
 
-pub(crate) fn lex_pipes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_pipes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let mut lines = Vec::new();
     while char_iter.next_if_eq(&"|") == Some("|") {
-        lines.push(char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or(""));
+        let line_start = char_iter.get_index();
+        char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
+        lines.push(char_iter.get_substring_from(line_start).unwrap_or(""));
         char_iter.next();
     }
     if lines.len() < 3 {
@@ -449,13 +451,13 @@ pub(crate) fn lex_pipes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Parse
     }
     let headings: Vec<_> = lines.remove(0).split("|")
         .filter(|&x| x != "")
-        .map(|x| x.trim().to_string())
+        .map(|x| x.trim())
         .collect();
     let alignments: Vec<_> = lines.remove(0).split("|")
         .filter(|&x| x != "")
         .map(|x| 
             {
-            match (x.trim().to_string().starts_with(":"), x.trim().to_string().ends_with(":")) {
+            match (x.trim().starts_with(":"), x.trim().ends_with(":")) {
                 (true, false) => Alignment::Left,
                 (true, true) => Alignment::Center,
                 (false, true) => Alignment::Right,

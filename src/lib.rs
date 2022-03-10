@@ -320,7 +320,7 @@ pub fn parse(tokens: &[Token]) -> String {
                 if  headings.len() != rows[0].len() {continue}
                 html.push_str("<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n");
                 for h in headings.into_iter() {
-                    html.push_str(format!("\t\t<th style=\"text-align: {align}\">{heading}</th>", heading=sanitize_display_text(&h.1), align=h.0).as_str());
+                    html.push_str(format!("\t\t<th style=\"text-align: {align}\">{heading}</th>", heading=sanitize_display_text(h.1), align=h.0).as_str());
                 }
                 html.push_str("\t</tr>\n\t</thead>\n\t<tbody>");
                 for row in rows.iter(){
@@ -392,7 +392,7 @@ pub fn render(source: &str) -> String {
 }
 
 /// Replace potentially unsafe characters with html entities
-pub(crate) fn sanitize_display_text(source: &String) -> String {
+pub(crate) fn sanitize_display_text(source: &str) -> String {
     source.replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
