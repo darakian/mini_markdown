@@ -347,7 +347,7 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token,
 }
 
 pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
-    let s = char_iter.consume_while_case_holds(&|c| c == "-").unwrap_or("");
+    let s = char_iter.consume_while_case_holds(&|c| c == "-" || c == "+").unwrap_or("");
     match s.len() {
         3..=usize::MAX => { return Ok(Token::HorizontalRule)},
         2 => {return Ok(Token::Plaintext(s.to_string()))},

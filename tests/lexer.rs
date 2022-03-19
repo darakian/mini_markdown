@@ -72,6 +72,7 @@ fn test_lex() {
         ("-----", vec![Token::HorizontalRule]),
         ("--", vec![Token::Plaintext("--".to_string())]),
         ("- [ ] Unchecked box", vec![Token::TaskListItem(TaskBox::Unchecked, "Unchecked box".to_string())]),
+        ("+ [ ] Unchecked box", vec![Token::TaskListItem(TaskBox::Unchecked, "Unchecked box".to_string())]),
         ("- [x] Checked box", vec![Token::TaskListItem(TaskBox::Checked, "Checked box".to_string())]),
         ("- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "Also a checked box".to_string())]),
         ("- [X]Not a checked box", vec![Token::UnorderedListEntry("[X]Not a checked box".to_string())]),
