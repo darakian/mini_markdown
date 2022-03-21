@@ -1,7 +1,7 @@
 pub mod lexer;
 pub mod iter;
-use crate::lexer::*;
-use crate::iter::MiniIter;
+use lexer::*;
+use iter::MiniIter;
 
 #[derive(Debug)]
 pub(crate) struct SanitizationError{

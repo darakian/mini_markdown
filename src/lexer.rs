@@ -420,7 +420,7 @@ fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseErr
         0 => {return Err(ParseError{content: "<summary></summary>"})},
         _ => {},
     }
-    let mut remaining_text = char_iter.consume_until_tail_is("</details>").unwrap_or("").to_string();
+    let remaining_text = char_iter.consume_until_tail_is("</details>").unwrap_or("");
     if remaining_text.contains("<details>") {
         let mut opens = remaining_text.matches("<details>").count();
         let mut closes = remaining_text.matches("</details>").count();
@@ -467,9 +467,9 @@ pub(crate) fn lex_pipes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
         .collect();
     let mut rows = Vec::new();
     for l in lines.iter() {
-        let elements: Vec<String> = l.split("|")
+        let elements: Vec<_> = l.split("|")
         .filter(|&x| x != "")
-        .map(|x| x.trim().to_string())
+        .map(|x| x.trim())
         .collect();
         let mut r = Vec::new();
         for e in elements.into_iter() {
