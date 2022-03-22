@@ -335,7 +335,6 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
                     if !char_iter.next_if_eq(&"\n").is_some(){
                         return Err(ParseError{content: s});
                     }
-                    println!(">> {:?}", char_iter.peek());
                     return parse_details(char_iter)
                 },
                 _ => {
@@ -421,9 +420,7 @@ fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseErr
         0 => {return Err(ParseError{content: "<summary></summary>"})},
         _ => {},
     }
-    println!("? {:?}", summary_line);
     let pre_detail_text = char_iter.consume_while_case_holds(&|c| c != "<").unwrap_or("");
-    println!("? {:?}", pre_detail_text);
     let text_marker = char_iter.get_index();
     let mut remaining_text = char_iter.consume_until_tail_is("details>").unwrap_or(""); // Consume until start of end detail tag
     if remaining_text.contains("<details>") {
@@ -440,12 +437,9 @@ fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseErr
         remaining_text = remaining_text.strip_suffix("</details>").unwrap_or("");
     }
     else {return Err(ParseError{content: remaining_text});}
-    println!(">>  {:?}", remaining_text);
     let mut pre_detail_tokens = crate::lex(pre_detail_text);
-    let mut inner_tokens = crate::lex(remaining_text);
-    println!(">>  {:?}", inner_tokens);
+    let mut inner_tokens = crate::lex(remaining_text.strip_suffix("</details>").unwrap_or(""));
     pre_detail_tokens.append(&mut inner_tokens);
-    println!("Returning?? {:?}:{:?}", summary_line, pre_detail_tokens);
     Ok(Token::Detail(summary_line.to_string(), pre_detail_tokens))
 }
 
