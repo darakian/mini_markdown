@@ -91,7 +91,8 @@ fn test_lex_plaintext() {
         ("¯\\\\\\_(ツ)\\_/¯", vec![Token::Plaintext("¯\\_(ツ)_/¯".to_string())]),
         ("\\_test\\_", vec![Token::Plaintext("_test_".to_string())]),
         ("\\*escaping\\_", vec![Token::Plaintext("*escaping_".to_string())]),
-        ("\\>controls\\<", vec![Token::Plaintext(">controls<".to_string())])
+        ("\\>controls\\<", vec![Token::Plaintext(">controls<".to_string())]),
+        ("\nInner text\n", vec![Token::Plaintext("\nInner text\n".to_string())]),
     ]);
     for test in tests.iter(){
         let tokens = lex(test.0);
@@ -124,6 +125,19 @@ fn test_footnote_lex() {
         ("[^1]: Footnote #1\n\twith a second line", vec![Token::Footnote("1".to_string(), "Footnote #1\nwith a second line".to_string())]),
         ("[^1]: Footnote #1\n    with a second line", vec![Token::Footnote("1".to_string(), "Footnote #1\nwith a second line".to_string())]),
         ("[^1]: Footnote #1\n    with a second line\n\tand a third line", vec![Token::Footnote("1".to_string(), "Footnote #1\nwith a second line\nand a third line".to_string())]),
+    ]);
+
+    for test in tests.iter(){
+        let tokens = lex(test.0);
+        assert_eq!(&tokens[..], &test.1[..]);
+    }
+}
+
+#[test]
+fn test_details_lex(){
+    let mut tests = Vec::new();
+    tests.extend(vec![
+        ("<details>\n<summary>sum</summary>\nfoo\n</details>", vec![Token::Detail("sum".to_string(), vec![Token::Plaintext("\nfoo\n".to_string())])]),
     ]);
 
     for test in tests.iter(){

@@ -15,6 +15,7 @@ fn test_simple_render() {
         ("####### Invalid Heading level 7", "<h6 id=\"invalid-heading-level-7\">Invalid Heading level 7</h6>\n"),
         ("Some text _with italics_ in the same paragraph\n", "<p>Some text <em>with italics</em> in the same paragraph\n</p>\n"),
         ("Some text! With exclamations!", "<p>Some text! With exclamations!</p>\n"),
+        ("\nInner text\n", "<p>Inner text\n</p>\n"),
 
     ]);
 
@@ -28,59 +29,56 @@ fn test_simple_render() {
 fn test_moderate_render(){
     let mut tests = Vec::new();
     tests.extend(vec![
-        ("Text attributes _italic_, \n**bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.",
-        "<p>Text attributes <em>italic</em>, \n<strong>bold</strong>, <code>monospace</code>. Some implementations may use <em>single-asterisks</em> for italic text.</p>\n"),
-        ("Horizontal rule:\n\n---\n\nStrikethrough:\n\n~~strikethrough~~\n\n",
-        "<p>Horizontal rule:</p>\n<hr />\n<p>Strikethrough:</p>\n<p><strike>strikethrough</strike></p>\n"
-        ),
-        ("> Outer quote with some text 1.\n> \n>> Inner quote with some other text\n> Outer again",
-        "<blockquote>Outer quote with some text 1.<blockquote>Inner quote with some other text</blockquote>Outer again</blockquote>\n"
-        ),
-        ("```\nCode block 1\n```",
-        "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Code block 1\n</code></pre></div></div>"
-        ),
-        ("```python\nCode block 2\n```",
-        "<div class=\"language-python highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Code block 2\n</code></pre></div></div>"
-        ),
-        ("```\nMulti\nLine\nCode block\n```",
-        "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Multi\nLine\nCode block\n</code></pre></div></div>"
-        ),
-        ("> Outer quote with some text.\nNon-quoted text\n> Quote with some other text",
-        "<blockquote>Outer quote with some text.</blockquote><p>Non-quoted text\n</p><blockquote>Quote with some other text</blockquote>\n"
-        ),
-        ("> Outer quote with some other text.\nNon-quoted text\nMore non-quoted\n> Quote with some other text",
-        "<blockquote>Outer quote with some other text.</blockquote><p>Non-quoted text\nMore non-quoted\n</p><blockquote>Quote with some other text</blockquote>\n"
-        ),
-        ("Don't -> quote",
-        "<p>Don&apos;t -&gt; quote</p>\n"
-        ),
-        ("Don't -> quote\n> Do Quote\nDon't quote this either",
-        "<p>Don&apos;t -&gt; quote\n</p><blockquote>Do Quote</blockquote><p>Don&apos;t quote this either</p>\n"
-        ),
-        ("Testing an inline link [Link title](http://google.com)",
-        "<p>Testing an inline link <a href=\"http://google.com\" referrerpolicy=\"no-referrer\">Link title</a></p>\n"
-        ),
-        ("Testing an inline link to a header id [Link title](#some-header)",
-        "<p>Testing an inline link to a header id <a href=\"#some-header\" referrerpolicy=\"no-referrer\">Link title</a></p>\n"
-        ),
-        ("Testing some details\n<details>\n<summary>Summary text goes here</summary>\nSome text goes here\n</details>",
-        "<p>Testing some details\n</p>\n<details>\n<summary>Summary text goes here</summary>\n<p>Some text goes here\n</p>\n\n</details>"
-        ),
-        ("Testing some nested details <details>\n<summary>Outer summary</summary>\nOuter text<details>\n<summary>Inner Summary</summary>\nInner text\n</details>\n</details>",
-        "<p>Testing some nested details </p>\n<details>\n<summary>Outer summary</summary>\n<p>Outer text</p>\n<details>\n<summary>Inner Summary</summary>\n<p>Inner text\n</p>\n\n</details>\n</details>"
+        // ("Text attributes _italic_, \n**bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.",
+        // "<p>Text attributes <em>italic</em>, \n<strong>bold</strong>, <code>monospace</code>. Some implementations may use <em>single-asterisks</em> for italic text.</p>\n"),
+        // ("Horizontal rule:\n\n---\n\nStrikethrough:\n\n~~strikethrough~~\n\n",
+        // "<p>Horizontal rule:</p>\n<hr />\n<p>Strikethrough:</p>\n<p><strike>strikethrough</strike></p>\n"
+        // ),
+        // ("> Outer quote with some text 1.\n> \n>> Inner quote with some other text\n> Outer again",
+        // "<blockquote>Outer quote with some text 1.<blockquote>Inner quote with some other text</blockquote>Outer again</blockquote>\n"
+        // ),
+        // ("```\nCode block 1\n```",
+        // "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Code block 1\n</code></pre></div></div>"
+        // ),
+        // ("```python\nCode block 2\n```",
+        // "<div class=\"language-python highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Code block 2\n</code></pre></div></div>"
+        // ),
+        // ("```\nMulti\nLine\nCode block\n```",
+        // "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Multi\nLine\nCode block\n</code></pre></div></div>"
+        // ),
+        // ("> Outer quote with some text.\nNon-quoted text\n> Quote with some other text",
+        // "<blockquote>Outer quote with some text.</blockquote><p>Non-quoted text\n</p><blockquote>Quote with some other text</blockquote>\n"
+        // ),
+        // ("> Outer quote with some other text.\nNon-quoted text\nMore non-quoted\n> Quote with some other text",
+        // "<blockquote>Outer quote with some other text.</blockquote><p>Non-quoted text\nMore non-quoted\n</p><blockquote>Quote with some other text</blockquote>\n"
+        // ),
+        // ("Don't -> quote",
+        // "<p>Don&apos;t -&gt; quote</p>\n"
+        // ),
+        // ("Don't -> quote\n> Do Quote\nDon't quote this either",
+        // "<p>Don&apos;t -&gt; quote\n</p><blockquote>Do Quote</blockquote><p>Don&apos;t quote this either</p>\n"
+        // ),
+        // ("Testing an inline link [Link title](http://google.com)",
+        // "<p>Testing an inline link <a href=\"http://google.com\" referrerpolicy=\"no-referrer\">Link title</a></p>\n"
+        // ),
+        // ("Testing an inline link to a header id [Link title](#some-header)",
+        // "<p>Testing an inline link to a header id <a href=\"#some-header\" referrerpolicy=\"no-referrer\">Link title</a></p>\n"
+        // ),
+        // ("Testing some details\n<details>\n<summary>Summary text goes here</summary>\nSome text goes here\n</details>",
+        // "<p>Testing some details\n</p>\n<details>\n<summary>Summary text goes here</summary>\n<p>Some text goes here\n</p>\n\n</details>"
+        // ),
+        // ("Testing some nested details <details>\n<summary>Outer summary</summary>\nOuter text<details>\n<summary>Inner Summary</summary>\nInner text\n</details>\n</details>",
+        // "<p>Testing some nested details </p>\n<details>\n<summary>Outer summary</summary>\n<p>Outer text</p>\n<details>\n<summary>Inner Summary</summary>\n<p>Inner text\n</p>\n\n</details>\n</details>"
+        // ),
+        ("<details>\n<summary>baz</summary>\nbar<details>\n<summary>sum</summary>\nfoo\n</details>\n</details>",
+         "<details>\n<summary>baz</summary>\n<p>bar</p>\n<details>\n<summary>sum</summary>\n<p>foo\n</p>\n\n</details>\n</details>"
         ),
     ]);
 
     for test in tests.iter(){
         let html = render(test.0);
         if html != test.1 {
-            println!("Test failing:\nGot:{:?}\nExpected:{:?}", html, test.1);
             println!("{:?}", lex(test.0));
-            for (c1, c2) in test.1.chars().zip(html.chars()) {
-                if c1 != c2 {
-                    println!("Difference in {:?} {:?}", c1, c2);
-                }
-            }
         }
         assert_eq!(html, test.1);
     }

@@ -12,6 +12,7 @@ pub(crate) struct SanitizationError{
 pub fn lex(source: &str) -> Vec<Token>{
     let mut char_iter = MiniIter::new(source);
     let mut tokens = Vec::new();
+    println!("Lexing: {:?}", source);
     while char_iter.peek().is_some(){
         match char_iter.peek().unwrap(){
             "#" => {
@@ -121,6 +122,7 @@ pub fn lex(source: &str) -> Vec<Token>{
             },
         }
     }
+    // println!("tokens: {:?}", tokens);
     tokens
 }
 

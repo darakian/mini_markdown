@@ -325,16 +325,17 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
             char_iter.next();
             let s = char_iter.consume_while_case_holds(&|c| c != ">").unwrap_or("");
             match char_iter.peek(){
-                Some(">") if s != "details" => {
+                Some(">") if s != "details" && s != "/details" => {
                     char_iter.next();
                     return Ok(Token::Link(s.to_string(), None, None))
                 },
-                Some(">") if s == "details" => {
+                Some(">") if s == "details" || s == "/details"  => {
                     char_iter.next();
                     char_iter.next_if_eq(&"\r");
                     if !char_iter.next_if_eq(&"\n").is_some(){
                         return Err(ParseError{content: s});
                     }
+                    println!(">> {:?}", char_iter.peek());
                     return parse_details(char_iter)
                 },
                 _ => {
@@ -420,18 +421,32 @@ fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseErr
         0 => {return Err(ParseError{content: "<summary></summary>"})},
         _ => {},
     }
-    let remaining_text = char_iter.consume_until_tail_is("</details>").unwrap_or("");
+    println!("? {:?}", summary_line);
+    let pre_detail_text = char_iter.consume_while_case_holds(&|c| c != "<").unwrap_or("");
+    println!("? {:?}", pre_detail_text);
+    let text_marker = char_iter.get_index();
+    let mut remaining_text = char_iter.consume_until_tail_is("details>").unwrap_or(""); // Consume until start of end detail tag
     if remaining_text.contains("<details>") {
         let mut opens = remaining_text.matches("<details>").count();
         let mut closes = remaining_text.matches("</details>").count();
-        while opens == closes {
-            remaining_text = remaining_text+char_iter.consume_until_tail_is("</details>").unwrap_or("");
+        while opens != closes {
+            char_iter.consume_until_tail_is("</details>");
             opens = remaining_text.matches("<details>").count();
             closes = remaining_text.matches("</details>").count();
+            remaining_text = char_iter.get_substring_from(text_marker).unwrap_or("");
         }
+    remaining_text = char_iter.get_substring_from(text_marker).unwrap_or("");
+    } else if remaining_text.contains("</details>") {
+        remaining_text = remaining_text.strip_suffix("</details>").unwrap_or("");
     }
-    let inner_tokens = crate::lex(remaining_text.strip_suffix("</details>").unwrap_or(""));
-    Ok(Token::Detail(summary_line.to_string(), inner_tokens))
+    else {return Err(ParseError{content: remaining_text});}
+    println!(">>  {:?}", remaining_text);
+    let mut pre_detail_tokens = crate::lex(pre_detail_text);
+    let mut inner_tokens = crate::lex(remaining_text);
+    println!(">>  {:?}", inner_tokens);
+    pre_detail_tokens.append(&mut inner_tokens);
+    println!("Returning?? {:?}:{:?}", summary_line, pre_detail_tokens);
+    Ok(Token::Detail(summary_line.to_string(), pre_detail_tokens))
 }
 
 pub(crate) fn lex_pipes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
