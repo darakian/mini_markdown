@@ -91,7 +91,10 @@ fn test_lex_plaintext() {
         ("¯\\\\\\_(ツ)\\_/¯", vec![Token::Plaintext("¯\\_(ツ)_/¯".to_string())]),
         ("\\_test\\_", vec![Token::Plaintext("_test_".to_string())]),
         ("\\*escaping\\_", vec![Token::Plaintext("*escaping_".to_string())]),
-        ("\\>controls\\<", vec![Token::Plaintext(">controls<".to_string())])
+        ("\\>controls\\<", vec![Token::Plaintext(">controls<".to_string())]),
+        ("2017-12-6 20:13:00", vec![Token::Plaintext("2017-12-6 20:13:00".to_string())]),
+        ("\nlayout: post\ntitle:  \"Looking back at consoles and codecs\"\ndate:   2017-12-6 20:13:00 +0100\n", 
+            vec![Token::Plaintext("\nlayout: post\ntitle:  \"Looking back at consoles and codecs\"\ndate:   2017-12-6 20:13:00 +0100\n".to_string())])
     ]);
     for test in tests.iter(){
         let tokens = lex(test.0);
