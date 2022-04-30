@@ -351,7 +351,7 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, 
     let s = char_iter.consume_while_case_holds(&|c| c == "-" || c == "+").unwrap_or("");
     match s.len() {
         3..=usize::MAX => { return Ok(Token::HorizontalRule)},
-        2 => {return Ok(Token::Plaintext(s.to_string()))},
+        2 => {return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})},
         1 => {},
         _ => {return Err(ParseError{content: "string length error"})},
     }
