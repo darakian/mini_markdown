@@ -10,7 +10,7 @@ pub enum Token<'a> {
     /// String: Text for list entry
     UnorderedListEntry(&'a str),
     /// String: Text for list entry
-    OrderedListEntry(String),
+    OrderedListEntry(&'a str),
     /// String: Text to be italicized
     Italic(String),
     /// String: Text to be bolded
@@ -382,7 +382,7 @@ pub(crate) fn lex_numbers<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>,
             }
             char_iter.next();
             let s = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
-            return Ok(Token::OrderedListEntry(s.to_string()))
+            return Ok(Token::OrderedListEntry(s))
         },
         _ => return Err(ParseError{content: c})
     }
