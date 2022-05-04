@@ -34,7 +34,7 @@ pub enum Token<'a> {
     /// First String: Text to be placed within a multi-line code tag. Second String: Language
     CodeBlock(&'a str, &'a str),
     /// u8: Block quote level. String: Block quote text
-    BlockQuote(u8, String),
+    BlockQuote(u8, &'a str),
     /// String: Link. Option<String>: Title for link.
     Image(String, Option<String>),
     /// String: Link. First Option<String>: Title for link. Second Option<String>: Hover text
@@ -242,7 +242,7 @@ pub(crate) fn lex_blockquotes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
     }
     let s = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
     char_iter.next_if_eq(&"\n");
-    Ok(Token::BlockQuote(right_arrows.len() as u8, s.to_string()))
+    Ok(Token::BlockQuote(right_arrows.len() as u8, s))
 }
 
 pub(crate) fn lex_images<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {

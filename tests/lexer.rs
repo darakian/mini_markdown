@@ -106,9 +106,9 @@ fn test_lex_plaintext() {
 fn test_blockquote_lex() {
     let mut tests = Vec::new();
     tests.extend(vec![
-        ("> ", vec![Token::BlockQuote(1, "".to_string())]),
-        ("> \n>> text", vec![Token::BlockQuote(1, "".to_string()), Token::BlockQuote(2, "text".to_string())]),
-        ("> text\n> \n>> more text", vec![Token::BlockQuote(1, "text".to_string()) ,Token::BlockQuote(1, "".to_string()), Token::BlockQuote(2, "more text".to_string())]),
+        ("> ", vec![Token::BlockQuote(1, "")]),
+        ("> \n>> text", vec![Token::BlockQuote(1, ""), Token::BlockQuote(2, "text")]),
+        ("> text\n> \n>> more text", vec![Token::BlockQuote(1, "text") ,Token::BlockQuote(1, ""), Token::BlockQuote(2, "more text")]),
 
     ]);
 
