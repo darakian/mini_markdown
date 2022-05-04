@@ -142,30 +142,30 @@ pub fn parse(tokens: &[Token]) -> String {
             Token::TaskListItem(_, _)  | Token::Newline if in_task_list => {},
             _ if in_ordered_list => {
                 in_ordered_list = false;
-                html.push_str(format!("</ol>").as_str())
+                html.push_str("</ol>")
             },
             _ if in_unordered_list => {
                 in_unordered_list = false;
-                html.push_str(format!("</ul>").as_str())
+                html.push_str("</ul>")
             },
             _ if in_task_list => {
                 in_task_list = false;
-                html.push_str(format!("</ul>").as_str())
+                html.push_str("</ul>")
             },
             Token::BlockQuote(_, _) | Token::Newline if quote_level > 0 => {},
             _ if quote_level > 0 => {
                 for _i in 0..quote_level {
-                        html.push_str(format!("</blockquote>").as_str());
+                        html.push_str("</blockquote>");
                         quote_level-=1;
                     }
             },
             Token::CodeBlock(_, _) | Token::Newline | Token::Header(_, _, _) if in_paragraph => {
                 in_paragraph = false;
-                html.push_str(format!("</p>").as_str())
+                html.push_str("</p>")
             },
             Token::Plaintext(_) | Token::Italic(_) | Token::Bold(_) | Token::BoldItalic(_) | Token::Strikethrough(_) if !in_paragraph => {
                 in_paragraph = true;
-                html.push_str(format!("<p>").as_str())
+                html.push_str("<p>")
             },
             _ => {}
         }
@@ -175,7 +175,7 @@ pub fn parse(tokens: &[Token]) -> String {
             Token::Plaintext(t) => {
                 if t.trim().is_empty() {continue}
                 if !in_paragraph {
-                    html.push_str(format!("<p>").as_str());
+                    html.push_str("<p>");
                     in_paragraph = true;
                 }
                 
@@ -189,33 +189,33 @@ pub fn parse(tokens: &[Token]) -> String {
                             let tok = tok.trim_end().trim_end_matches(']');
                             s.push_str(format!(
                                 "<sup id=\"fnref:{reference}\" role=\"doc-noteref\"><a href=\"#fn:{reference}\" class=\"footnote\" rel=\"footnote\">{ref_count}</a></sup>", 
-                                reference = sanitize_display_text(&tok.to_string()), 
+                                reference = sanitize_display_text(tok), 
                                 ref_count = count).as_str());
                             count+=1;
                         } else {s.push_str(tok)}
                     }
                     html.push_str(&s);
                 } else {
-                    html.push_str(format!("{}", sanitize_display_text(&t.trim_start_matches('\n').to_string())).as_str())
+                    html.push_str(sanitize_display_text(t.trim_start_matches('\n')).as_str())
                 }
             },
             Token::Header(l, t, lbl) => {
                 let mut id;
                 match lbl {
-                    Some(_t) => id = lbl.as_ref().unwrap().to_string(),
+                    Some(_t) => id = lbl.unwrap().to_string(),
                     None => id = t.to_string(),
                 };
                 id.make_ascii_lowercase();
                 html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", 
                     level=l, 
-                    text=sanitize_display_text(&t.to_string()), 
+                    text=sanitize_display_text(t), 
                     id=sanitize_display_text(&id.replace(" ", "-")))
                 .as_str())
             },
             Token::TaskListItem(c,t) => {
                 if in_task_list == false {
                     in_task_list = true;
-                    html.push_str(format!("<ul class=\"contains-task-list\">").as_str())
+                    html.push_str("<ul class=\"contains-task-list\">")
                 }
                 match c {
                     TaskBox::Checked => {
@@ -230,16 +230,16 @@ pub fn parse(tokens: &[Token]) -> String {
             Token::UnorderedListEntry(t) => {
                 if in_unordered_list == false {
                     in_unordered_list = true;
-                    html.push_str(format!("<ul>").as_str())
+                    html.push_str("<ul>")
                 }
-                html.push_str(format!("<li>{}</li>", sanitize_display_text(&t.to_string())).as_str())
+                html.push_str(format!("<li>{}</li>", sanitize_display_text(t)).as_str())
             },
             Token::OrderedListEntry(t) => {
                 if in_ordered_list == false {
                     in_ordered_list = true;
                     html.push_str(format!("<ol>").as_str())
                 }
-                html.push_str(format!("<li>{}</li>", sanitize_display_text(&t.to_string())).as_str())
+                html.push_str(format!("<li>{}</li>", sanitize_display_text(t)).as_str())
             },
             Token::Newline => {html.push('\n')},
             Token::Italic(t) => {html.push_str(format!("<em>{}</em>", sanitize_display_text(t)).as_str())},
@@ -267,14 +267,14 @@ pub fn parse(tokens: &[Token]) -> String {
                         let diff = quote_level - l;
                         quote_level = *l;
                         for _i in 0..diff {
-                            html.push_str(format!("</blockquote>").as_str());
+                            html.push_str("</blockquote>");
                         }
                     },
                     _ if l > &quote_level => {
                         let diff = l - quote_level;
                         quote_level = *l;
                         for _i in 0..diff {
-                            html.push_str(format!("<blockquote>").as_str());
+                            html.push_str("<blockquote>");
                         }
                     },
                     _ => {},
@@ -289,7 +289,7 @@ pub fn parse(tokens: &[Token]) -> String {
                     _ => "",
                 };
                 match (l, t) {
-                    (l, None) if l.trim() == "" => {html.push_str(format!("<p><img src=\"data:,\"></p>").as_str())}
+                    (l, None) if l.trim() == "" => {html.push_str("<p><img src=\"data:,\"></p>")}
                     (l, Some(t)) if l.trim() == "" => {html.push_str(format!("<p><img src=\"data:,\" alt=\"{text}\"></p>", text=sanitize_display_text(t)).as_str())}
                     (l, None) => {html.push_str(format!("<p><img src=\"{link}\"> referrerpolicy=\"no-referrer\"></p>", link=l).as_str())}
                     (l, Some(t)) => {html.push_str(format!("<p><img src=\"{link}\" alt=\"{text}\" referrerpolicy=\"no-referrer\"></p>", link=l, text=sanitize_display_text(t)).as_str())}
