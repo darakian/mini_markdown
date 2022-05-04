@@ -14,13 +14,13 @@ fn test_lex() {
         ("####### Invalid Heading level 7", vec![Token::Header(6, "Invalid Heading level 7", None)]), 
     ]);
     tests.extend(vec![
-        ("# Heading level 1 {#Test label}", vec![Token::Header(1, "Heading level 1", Some("Test label".to_string()))]),
-        ("## Heading level 2 {#Test label}", vec![Token::Header(2, "Heading level 2", Some("Test label".to_string()))]),
-        ("### Heading level 3 {#Test label}", vec![Token::Header(3, "Heading level 3", Some("Test label".to_string()))]),
-        ("#### Heading level 4 {#Test label}", vec![Token::Header(4, "Heading level 4", Some("Test label".to_string()))]),
-        ("##### Heading level 5 {#Test label}", vec![Token::Header(5, "Heading level 5", Some("Test label".to_string()))]),
-        ("###### Heading level 6 {#Test label}", vec![Token::Header(6, "Heading level 6", Some("Test label".to_string()))]),
-        ("####### Invalid Heading level 7 {#Test label}", vec![Token::Header(6, "Invalid Heading level 7", Some("Test label".to_string()))]), 
+        ("# Heading level 1 {#Test label}", vec![Token::Header(1, "Heading level 1", Some("Test label"))]),
+        ("## Heading level 2 {#Test label}", vec![Token::Header(2, "Heading level 2", Some("Test label"))]),
+        ("### Heading level 3 {#Test label}", vec![Token::Header(3, "Heading level 3", Some("Test label"))]),
+        ("#### Heading level 4 {#Test label}", vec![Token::Header(4, "Heading level 4", Some("Test label"))]),
+        ("##### Heading level 5 {#Test label}", vec![Token::Header(5, "Heading level 5", Some("Test label"))]),
+        ("###### Heading level 6 {#Test label}", vec![Token::Header(6, "Heading level 6", Some("Test label"))]),
+        ("####### Invalid Heading level 7 {#Test label}", vec![Token::Header(6, "Invalid Heading level 7", Some("Test label"))]), 
     ]);
     tests.extend(vec![
         ("I just love **bold text**.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold("bold text".to_string()), Token::Plaintext(".".to_string())]),
