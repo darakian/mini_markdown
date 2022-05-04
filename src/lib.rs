@@ -208,7 +208,7 @@ pub fn parse(tokens: &[Token]) -> String {
                 id.make_ascii_lowercase();
                 html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", 
                     level=l, 
-                    text=sanitize_display_text(t), 
+                    text=sanitize_display_text(&t.to_string()), 
                     id=sanitize_display_text(&id.replace(" ", "-")))
                 .as_str())
             },

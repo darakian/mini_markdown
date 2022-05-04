@@ -5,22 +5,22 @@ use mini_markdown::lexer::{Token, TaskBox};
 fn test_lex() {
     let mut tests = Vec::new();
     tests.extend(vec![
-        ("# Heading level 1", vec![Token::Header(1, "Heading level 1".to_string(), None)]),
-        ("## Heading level 2", vec![Token::Header(2, "Heading level 2".to_string(), None)]),
-        ("### Heading level 3", vec![Token::Header(3, "Heading level 3".to_string(), None)]),
-        ("#### Heading level 4", vec![Token::Header(4, "Heading level 4".to_string(), None)]),
-        ("##### Heading level 5", vec![Token::Header(5, "Heading level 5".to_string(), None)]),
-        ("###### Heading level 6", vec![Token::Header(6, "Heading level 6".to_string(), None)]),
-        ("####### Invalid Heading level 7", vec![Token::Header(6, "Invalid Heading level 7".to_string(), None)]), 
+        ("# Heading level 1", vec![Token::Header(1, "Heading level 1", None)]),
+        ("## Heading level 2", vec![Token::Header(2, "Heading level 2", None)]),
+        ("### Heading level 3", vec![Token::Header(3, "Heading level 3", None)]),
+        ("#### Heading level 4", vec![Token::Header(4, "Heading level 4", None)]),
+        ("##### Heading level 5", vec![Token::Header(5, "Heading level 5", None)]),
+        ("###### Heading level 6", vec![Token::Header(6, "Heading level 6", None)]),
+        ("####### Invalid Heading level 7", vec![Token::Header(6, "Invalid Heading level 7", None)]), 
     ]);
     tests.extend(vec![
-        ("# Heading level 1 {#Test label}", vec![Token::Header(1, "Heading level 1".to_string(), Some("Test label".to_string()))]),
-        ("## Heading level 2 {#Test label}", vec![Token::Header(2, "Heading level 2".to_string(), Some("Test label".to_string()))]),
-        ("### Heading level 3 {#Test label}", vec![Token::Header(3, "Heading level 3".to_string(), Some("Test label".to_string()))]),
-        ("#### Heading level 4 {#Test label}", vec![Token::Header(4, "Heading level 4".to_string(), Some("Test label".to_string()))]),
-        ("##### Heading level 5 {#Test label}", vec![Token::Header(5, "Heading level 5".to_string(), Some("Test label".to_string()))]),
-        ("###### Heading level 6 {#Test label}", vec![Token::Header(6, "Heading level 6".to_string(), Some("Test label".to_string()))]),
-        ("####### Invalid Heading level 7 {#Test label}", vec![Token::Header(6, "Invalid Heading level 7".to_string(), Some("Test label".to_string()))]), 
+        ("# Heading level 1 {#Test label}", vec![Token::Header(1, "Heading level 1", Some("Test label".to_string()))]),
+        ("## Heading level 2 {#Test label}", vec![Token::Header(2, "Heading level 2", Some("Test label".to_string()))]),
+        ("### Heading level 3 {#Test label}", vec![Token::Header(3, "Heading level 3", Some("Test label".to_string()))]),
+        ("#### Heading level 4 {#Test label}", vec![Token::Header(4, "Heading level 4", Some("Test label".to_string()))]),
+        ("##### Heading level 5 {#Test label}", vec![Token::Header(5, "Heading level 5", Some("Test label".to_string()))]),
+        ("###### Heading level 6 {#Test label}", vec![Token::Header(6, "Heading level 6", Some("Test label".to_string()))]),
+        ("####### Invalid Heading level 7 {#Test label}", vec![Token::Header(6, "Invalid Heading level 7", Some("Test label".to_string()))]), 
     ]);
     tests.extend(vec![
         ("I just love **bold text**.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold("bold text".to_string()), Token::Plaintext(".".to_string())]),
