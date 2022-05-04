@@ -113,7 +113,6 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>,
         return Err(ParseError{content: hashes});
     }
     let level = std::cmp::min(6, hashes.len() as u8);
-    let start_index = char_iter.get_index();
     let line = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
     if line.contains("{#") && 
         line.contains('}') {
@@ -377,7 +376,7 @@ pub(crate) fn lex_numbers<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>,
     let c = char_iter.next().unwrap();
     match char_iter.peek() {
         Some(".") => {
-            let dot = char_iter.next().unwrap();
+            char_iter.next().unwrap();
             if char_iter.peek() != Some(&" "){
                 return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
             }
