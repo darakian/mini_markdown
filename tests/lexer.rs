@@ -52,7 +52,7 @@ fn test_lex() {
             Token::Plaintext(", \n".to_string()),
             Token::Bold("bold"), 
             Token::Plaintext(", ".to_string()), 
-            Token::Code("monospace".to_string()),
+            Token::Code("monospace"),
             Token::Plaintext(". Some implementations may use ".to_string()),
             Token::Italic("single-asterisks"), 
             Token::Plaintext(" for italic text.".to_string()),

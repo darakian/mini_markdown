@@ -30,9 +30,9 @@ pub enum Token<'a> {
     /// String: Text to be struck through
     Strikethrough(&'a str),
     /// String: Text to be placed within an inline code tag. eg. <code>String</code>
-    Code(String),
+    Code(&'a str),
     /// First String: Text to be placed within a multi-line code tag. Second String: Language
-    CodeBlock(String, String),
+    CodeBlock(&'a str, &'a str),
     /// u8: Block quote level. String: Block quote text
     BlockQuote(u8, String),
     /// String: Link. Option<String>: Title for link.
@@ -207,7 +207,7 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a
         if leading_ticks.len() != trailing_ticks.len() {
             return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")}) 
         } else {
-            return Ok(Token::Code(s.to_string()))
+            return Ok(Token::Code(s))
         }
     }
     // leading_ticks.len() == 3. Check for lang
@@ -222,7 +222,7 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a
     if leading_ticks.len() != trailing_ticks.len() {
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")}) 
     } else {
-        return Ok(Token::CodeBlock(s.to_string(), lang.to_string()))
+        return Ok(Token::CodeBlock(s, lang))
     }
 }
 
