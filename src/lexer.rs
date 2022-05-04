@@ -28,7 +28,7 @@ pub enum Token<'a> {
     /// Used for control flow. Not directly rendered
     DoubleTab,
     /// String: Text to be struck through
-    Strikethrough(String),
+    Strikethrough(&'a str),
     /// String: Text to be placed within an inline code tag. eg. <code>String</code>
     Code(String),
     /// First String: Text to be placed within a multi-line code tag. Second String: Language
@@ -403,7 +403,7 @@ pub(crate) fn lex_tilde<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
                 return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
                 // return Err(ParseError{content: format!("{}{}{}",  lead_tildes, line, tail_tildes)})
             }
-            return Ok(Token::Strikethrough(line.to_string()));
+            return Ok(Token::Strikethrough(line));
         }
         _ => return Err(ParseError{content: lead_tildes}),
     }
