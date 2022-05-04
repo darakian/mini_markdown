@@ -5,17 +5,17 @@ use crate::MiniIter;
 pub enum Token<'a> {
     /// String: Body of unstructured text
     Plaintext(String),
-    /// u8: Header level (1..=6). String: Header text. Option<String>: html label
+    /// u8: Header level (1..=6). str: Header text. Option<str>: html label
     Header(u8, &'a str, Option<&'a str>),
-    /// String: Text for list entry
+    /// str: Text for list entry
     UnorderedListEntry(&'a str),
-    /// String: Text for list entry
+    /// str: Text for list entry
     OrderedListEntry(&'a str),
-    /// String: Text to be italicized
+    /// str: Text to be italicized
     Italic(&'a str),
-    /// String: Text to be bolded
+    /// str: Text to be bolded
     Bold(&'a str),
-    /// String: Text to be bolded and italicized
+    /// str: Text to be bolded and italicized
     BoldItalic(&'a str),
     /// Corresponds to a </br> html tag
     LineBreak,
@@ -27,25 +27,25 @@ pub enum Token<'a> {
     Tab,
     /// Used for control flow. Not directly rendered
     DoubleTab,
-    /// String: Text to be struck through
+    /// str: Text to be struck through
     Strikethrough(&'a str),
-    /// String: Text to be placed within an inline code tag. eg. <code>String</code>
+    /// str: Text to be placed within an inline code tag. eg. <code>str</code>
     Code(&'a str),
-    /// First String: Text to be placed within a multi-line code tag. Second String: Language
+    /// First str: Text to be placed within a multi-line code tag. Second str: Language
     CodeBlock(&'a str, &'a str),
-    /// u8: Block quote level. String: Block quote text
+    /// u8: Block quote level. str: Block quote text
     BlockQuote(u8, &'a str),
-    /// String: Link. Option<String>: Title for link.
+    /// str: Link. Option<str>: Title for link.
     Image(&'a str, Option<&'a str>),
-    /// String: Link. First Option<String>: Title for link. Second Option<String>: Hover text
+    /// str: Link. First Option<str>: Title for link. Second Option<str>: Hover text
     Link(&'a str, Option<&'a str>, Option<&'a str>),
-    /// String: Summary. Vec<Token>: Tokens to be rendered in the collapsable section
+    /// str: Summary. Vec<Token>: Tokens to be rendered in the collapsable section
     Detail(&'a str, Vec<Token<'a>>),
-    /// Tuple of Vec<(Alignment, String)>: Which defines the table header and Vec<Vec<(Alignment, Vec<Token>)>> which defines the rows
+    /// Tuple of Vec<(Alignment, str)>: Which defines the table header and Vec<Vec<(Alignment, Vec<Token>)>> which defines the rows
     Table(Vec<(Alignment, &'a str)>, Vec<Vec<(Alignment, Vec<Token<'a>>)>>),
-    /// TaskBox: Boolean state of the checked or unchecked box. String: List item text
+    /// TaskBox: Boolean state of the checked or unchecked box. str: List item text
     TaskListItem(TaskBox, &'a str),
-    /// First String: Reference id. Second String: Reference text
+    /// First str: Reference id. Second str: Reference text
     Footnote(&'a str, &'a str),
 }
 
