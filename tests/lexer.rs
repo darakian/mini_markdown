@@ -23,20 +23,20 @@ fn test_lex() {
         ("####### Invalid Heading level 7 {#Test label}", vec![Token::Header(6, "Invalid Heading level 7", Some("Test label"))]), 
     ]);
     tests.extend(vec![
-        ("I just love **bold text**.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold("bold text".to_string()), Token::Plaintext(".".to_string())]),
-        ("I just love __bold text__.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold("bold text".to_string()), Token::Plaintext(".".to_string())]),
-        ("I just love *_bold text*_.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold("bold text".to_string()), Token::Plaintext(".".to_string())]),
+        ("I just love **bold text**.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold("bold text"), Token::Plaintext(".".to_string())]),
+        ("I just love __bold text__.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold("bold text"), Token::Plaintext(".".to_string())]),
+        ("I just love *_bold text*_.", vec![Token::Plaintext("I just love ".to_string()), Token::Bold("bold text"), Token::Plaintext(".".to_string())]),
     ]);
     tests.extend(vec![
-        ("I just love *italic text*.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text".to_string()), Token::Plaintext(".".to_string())]),
-        ("I just love _italic text_.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text".to_string()), Token::Plaintext(".".to_string())]),
-        ("I just love *italic text_.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text".to_string()), Token::Plaintext(".".to_string())]),
-        ("I just\n love *italic\n text_.", vec![Token::Plaintext("I just\n love ".to_string()), Token::Italic("italic\n text".to_string()), Token::Plaintext(".".to_string())]),
+        ("I just love *italic text*.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text"), Token::Plaintext(".".to_string())]),
+        ("I just love _italic text_.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text"), Token::Plaintext(".".to_string())]),
+        ("I just love *italic text_.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text"), Token::Plaintext(".".to_string())]),
+        ("I just\n love *italic\n text_.", vec![Token::Plaintext("I just\n love ".to_string()), Token::Italic("italic\n text"), Token::Plaintext(".".to_string())]),
     ]);
     tests.extend(vec![
-        ("I just love ***bold italic text***.", vec![Token::Plaintext("I just love ".to_string()), Token::BoldItalic("bold italic text".to_string()), Token::Plaintext(".".to_string())]),
-        ("I just love ___bold italic text___.", vec![Token::Plaintext("I just love ".to_string()), Token::BoldItalic("bold italic text".to_string()), Token::Plaintext(".".to_string())]),
-        ("I just love _*_bold italic text*_*.", vec![Token::Plaintext("I just love ".to_string()), Token::BoldItalic("bold italic text".to_string()), Token::Plaintext(".".to_string())]),
+        ("I just love ***bold italic text***.", vec![Token::Plaintext("I just love ".to_string()), Token::BoldItalic("bold italic text"), Token::Plaintext(".".to_string())]),
+        ("I just love ___bold italic text___.", vec![Token::Plaintext("I just love ".to_string()), Token::BoldItalic("bold italic text"), Token::Plaintext(".".to_string())]),
+        ("I just love _*_bold italic text*_*.", vec![Token::Plaintext("I just love ".to_string()), Token::BoldItalic("bold italic text"), Token::Plaintext(".".to_string())]),
     ]);
     tests.extend(vec![
         ("* unodered list\n", vec![Token::UnorderedListEntry("unodered list")]),
@@ -44,17 +44,17 @@ fn test_lex() {
         ("* unodered list\n* with two\n* with three\n", vec![Token::UnorderedListEntry("unodered list"), Token::UnorderedListEntry("with two"), Token::UnorderedListEntry("with three")]),
     ]);
     tests.extend(vec![
-        ("Some text _with italics_ in the same paragraph", vec![Token::Plaintext("Some text ".to_string()), Token::Italic("with italics".to_string()), Token::Plaintext(" in the same paragraph".to_string())]),
+        ("Some text _with italics_ in the same paragraph", vec![Token::Plaintext("Some text ".to_string()), Token::Italic("with italics"), Token::Plaintext(" in the same paragraph".to_string())]),
         ("Text attributes _italic_, \n**bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.", 
         vec![
             Token::Plaintext("Text attributes ".to_string()), 
-            Token::Italic("italic".to_string()), 
+            Token::Italic("italic"), 
             Token::Plaintext(", \n".to_string()),
-            Token::Bold("bold".to_string()), 
+            Token::Bold("bold"), 
             Token::Plaintext(", ".to_string()), 
             Token::Code("monospace".to_string()),
             Token::Plaintext(". Some implementations may use ".to_string()),
-            Token::Italic("single-asterisks".to_string()), 
+            Token::Italic("single-asterisks"), 
             Token::Plaintext(" for italic text.".to_string()),
         ])
     ]);

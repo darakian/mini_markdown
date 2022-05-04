@@ -142,7 +142,7 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
             let s = char_iter.consume_while_case_holds(&|c| c != "*" && c != "_").unwrap_or("");
             if char_iter.peek() != Some("*") || char_iter.peek() != Some(&"_"){
                 char_iter.next();
-                return Ok(Token::Italic(s.to_string()))
+                return Ok(Token::Italic(s))
             } else {
                 return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")});
             }
@@ -151,7 +151,7 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
             let s = char_iter.consume_while_case_holds(&|c| c != "*" && c != "_").unwrap_or("");
             let trailing_astunds = char_iter.consume_while_case_holds(&|c| c == "*" || c == "_").unwrap_or("");
             if trailing_astunds.len() == 2 {
-                return Ok(Token::Bold(s.to_string()))
+                return Ok(Token::Bold(s))
             } else {
                 return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")});
             }
@@ -160,7 +160,7 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
             let s = char_iter.consume_while_case_holds(&|c| c != "*" && c != "_").unwrap_or("");
             let trailing_astunds = char_iter.consume_while_case_holds(&|c| c == "*" || c == "_").unwrap_or("");
             if trailing_astunds.len() == 3 {
-                return Ok(Token::BoldItalic(s.to_string()))
+                return Ok(Token::BoldItalic(s))
             } else {
                 return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")});
             }
