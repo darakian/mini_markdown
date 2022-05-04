@@ -239,7 +239,7 @@ pub fn parse(tokens: &[Token]) -> String {
                     in_ordered_list = true;
                     html.push_str(format!("<ol>").as_str())
                 }
-                html.push_str(format!("<li>{}</li>", sanitize_display_text(t)).as_str())
+                html.push_str(format!("<li>{}</li>", sanitize_display_text(&t.to_string())).as_str())
             },
             Token::Newline => {html.push('\n')},
             Token::Italic(t) => {html.push_str(format!("<em>{}</em>", sanitize_display_text(t)).as_str())},
@@ -392,7 +392,7 @@ pub fn render(source: &str) -> String {
 }
 
 /// Replace potentially unsafe characters with html entities
-pub(crate) fn sanitize_display_text(source: &String) -> String {
+pub(crate) fn sanitize_display_text(source: &str) -> String {
     source.replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
