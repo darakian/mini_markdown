@@ -46,7 +46,7 @@ pub enum Token<'a> {
     /// TaskBox: Boolean state of the checked or unchecked box. String: List item text
     TaskListItem(TaskBox, &'a str),
     /// First String: Reference id. Second String: Reference text
-    Footnote(&'a str, String),
+    Footnote(&'a str, &'a str),
 }
 
 /// Holds the possible states of a taskbox in a task list
@@ -275,6 +275,7 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
         char_iter.next();
         let ref_id = title.strip_prefix("^").unwrap_or("");
         let mut note_text = String::new();
+        let note_index = char_iter.get_index();
         loop {
            note_text.push_str(char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or(""));
            char_iter.next();
@@ -299,7 +300,7 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
         if ref_id.contains(char::is_whitespace){
             return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
         }
-        return Ok(Token::Footnote(ref_id, note_text.trim_start().to_string()));
+        return Ok(Token::Footnote(ref_id, char_iter.get_substring_from(note_index).unwrap_or("")));
     }
     if char_iter.peek() != Some(&"(") {
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})

@@ -62,8 +62,8 @@ fn test_lex() {
         ("![alt](https://example.com/foo.jpeg)", vec![Token::Image("https://example.com/foo.jpeg", Some("alt"))]),
         ("![alt]()", vec![Token::Image("", Some("alt"))]),
         ("Some test text [^1]", vec![Token::Plaintext("Some test text [^1]".to_string())]),
-        ("[^1]: First footnote", vec![Token::Footnote("1", "First footnote".to_string())]),
-        ("[^HUGE]: Big footnote", vec![Token::Footnote("HUGE", "Big footnote".to_string())]),
+        ("[^1]: First footnote", vec![Token::Footnote("1", "First footnote")]),
+        ("[^HUGE]: Big footnote", vec![Token::Footnote("HUGE", "Big footnote")]),
         ("[^BORK ED]: Big footnote", vec![Token::Plaintext("[^BORK ED]: Big footnote".to_string())]),
 
     ]);
@@ -122,11 +122,11 @@ fn test_blockquote_lex() {
 fn test_footnote_lex() {
     let mut tests = Vec::new();
     tests.extend(vec![
-        ("[^1]: Footnote #1", vec![Token::Footnote("1", "Footnote #1".to_string())]),
-        ("[^1]: Footnote #1\n  with a second line", vec![Token::Footnote("1", "Footnote #1\nwith a second line".to_string())]),
-        ("[^1]: Footnote #1\n\twith a second line", vec![Token::Footnote("1", "Footnote #1\nwith a second line".to_string())]),
-        ("[^1]: Footnote #1\n    with a second line", vec![Token::Footnote("1", "Footnote #1\nwith a second line".to_string())]),
-        ("[^1]: Footnote #1\n    with a second line\n\tand a third line", vec![Token::Footnote("1", "Footnote #1\nwith a second line\nand a third line".to_string())]),
+        ("[^1]: Footnote #1", vec![Token::Footnote("1", "Footnote #1")]),
+        ("[^1]: Footnote #1\n  with a second line", vec![Token::Footnote("1", "Footnote #1\nwith a second line")]),
+        ("[^1]: Footnote #1\n\twith a second line", vec![Token::Footnote("1", "Footnote #1\nwith a second line")]),
+        ("[^1]: Footnote #1\n    with a second line", vec![Token::Footnote("1", "Footnote #1\nwith a second line")]),
+        ("[^1]: Footnote #1\n    with a second line\n\tand a third line", vec![Token::Footnote("1", "Footnote #1\nwith a second line\nand a third line")]),
     ]);
 
     for test in tests.iter(){
