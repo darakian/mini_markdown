@@ -232,7 +232,7 @@ pub fn parse(tokens: &[Token]) -> String {
                     in_unordered_list = true;
                     html.push_str(format!("<ul>").as_str())
                 }
-                html.push_str(format!("<li>{}</li>", sanitize_display_text(t)).as_str())
+                html.push_str(format!("<li>{}</li>", sanitize_display_text(&t.to_string())).as_str())
             },
             Token::OrderedListEntry(t) => {
                 if in_ordered_list == false {
