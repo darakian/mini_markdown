@@ -39,9 +39,9 @@ fn test_lex() {
         ("I just love _*_bold italic text*_*.", vec![Token::Plaintext("I just love ".to_string()), Token::BoldItalic("bold italic text".to_string()), Token::Plaintext(".".to_string())]),
     ]);
     tests.extend(vec![
-        ("* unodered list\n", vec![Token::UnorderedListEntry("unodered list".to_string())]),
-        ("* unodered list\n* with two\n", vec![Token::UnorderedListEntry("unodered list".to_string()), Token::UnorderedListEntry("with two".to_string())]),
-        ("* unodered list\n* with two\n* with three\n", vec![Token::UnorderedListEntry("unodered list".to_string()), Token::UnorderedListEntry("with two".to_string()), Token::UnorderedListEntry("with three".to_string())]),
+        ("* unodered list\n", vec![Token::UnorderedListEntry("unodered list")]),
+        ("* unodered list\n* with two\n", vec![Token::UnorderedListEntry("unodered list"), Token::UnorderedListEntry("with two")]),
+        ("* unodered list\n* with two\n* with three\n", vec![Token::UnorderedListEntry("unodered list"), Token::UnorderedListEntry("with two"), Token::UnorderedListEntry("with three")]),
     ]);
     tests.extend(vec![
         ("Some text _with italics_ in the same paragraph", vec![Token::Plaintext("Some text ".to_string()), Token::Italic("with italics".to_string()), Token::Plaintext(" in the same paragraph".to_string())]),
@@ -75,7 +75,7 @@ fn test_lex() {
         ("+ [ ] Unchecked box", vec![Token::TaskListItem(TaskBox::Unchecked, "Unchecked box".to_string())]),
         ("- [x] Checked box", vec![Token::TaskListItem(TaskBox::Checked, "Checked box".to_string())]),
         ("- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "Also a checked box".to_string())]),
-        ("- [X]Not a checked box", vec![Token::UnorderedListEntry("[X]Not a checked box".to_string())]),
+        ("- [X]Not a checked box", vec![Token::UnorderedListEntry("[X]Not a checked box")]),
         ("- [X] A checked box\n- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "A checked box".to_string()), Token::Plaintext("\n".to_string()), Token::TaskListItem(TaskBox::Checked, "Also a checked box".to_string())]),
     ]);
     for test in tests.iter(){

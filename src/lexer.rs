@@ -8,7 +8,7 @@ pub enum Token<'a> {
     /// u8: Header level (1..=6). String: Header text. Option<String>: html label
     Header(u8, &'a str, Option<&'a str>),
     /// String: Text for list entry
-    UnorderedListEntry(String),
+    UnorderedListEntry(&'a str),
     /// String: Text for list entry
     OrderedListEntry(String),
     /// String: Text to be italicized
@@ -132,7 +132,7 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
     if asterunds.len() == 1 && char_iter.next_if_eq(&" ").is_some(){
         let s = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
         char_iter.next();
-        return Ok(Token::UnorderedListEntry(s.to_string()))
+        return Ok(Token::UnorderedListEntry(s))
     }
     if asterunds.chars().all(|x| x == '*') && char_iter.peek() == Some(&"\n"){
         return Ok(Token::HorizontalRule)
@@ -365,7 +365,7 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'
     } else if line.starts_with(" [X] ") {
         return Ok(Token::TaskListItem(TaskBox::Checked,line.strip_prefix(" [X] ").unwrap_or("").to_string()))
     } else if line.starts_with(" "){
-        return Ok(Token::UnorderedListEntry(line.strip_prefix(" ").unwrap_or("").to_string()))
+        return Ok(Token::UnorderedListEntry(line.strip_prefix(" ").unwrap_or("")))
     } else {
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
     }
