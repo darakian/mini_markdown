@@ -196,7 +196,7 @@ fn test_references(){
         ("Here's some text. And a ref [^1]\n [^1]: Reference text",
         "<p>Here's some text. And a ref <sup id=\"fnref:1\" role=\"doc-noteref\"><a href=\"#fn:1\" class=\"footnote\" rel=\"footnote\">1</a></sup></p>\n<div class=\"footnotes\" role=\"doc-endnotes\">\n\t<ol>\n\t\t<li id=\"fn:1\" role=\"doc-endnote\">\t\t\t<p>Reference text<a href=\"#fnref:1\" class=\"reversefootnote\" role=\"doc-backlink\">↩</a></p>\t\t</li>\t</ol>\n</div>\n"),
         ("Here's some text. And a ref [^1]\n [^1]: Reference text\n\twith multiple\n    lines\n  to ensure those work",
-        "<p>Here's some text. And a ref <sup id=\"fnref:1\" role=\"doc-noteref\"><a href=\"#fn:1\" class=\"footnote\" rel=\"footnote\">1</a></sup></p>\n<div class=\"footnotes\" role=\"doc-endnotes\">\n\t<ol>\n\t\t<li id=\"fn:1\" role=\"doc-endnote\">\t\t\t<p>Reference text\nwith multiple\nlines\nto ensure those work<a href=\"#fnref:1\" class=\"reversefootnote\" role=\"doc-backlink\">↩</a></p>\t\t</li>\t</ol>\n</div>\n"),
+        "<p>Here's some text. And a ref <sup id=\"fnref:1\" role=\"doc-noteref\"><a href=\"#fn:1\" class=\"footnote\" rel=\"footnote\">1</a></sup></p>\n<div class=\"footnotes\" role=\"doc-endnotes\">\n\t<ol>\n\t\t<li id=\"fn:1\" role=\"doc-endnote\">\t\t\t<p>Reference text\n\twith multiple\n    lines\n  to ensure those work<a href=\"#fnref:1\" class=\"reversefootnote\" role=\"doc-backlink\">↩</a></p>\t\t</li>\t</ol>\n</div>\n"),
     ]);
 
     for test in tests.iter(){

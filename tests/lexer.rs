@@ -123,10 +123,10 @@ fn test_footnote_lex() {
     let mut tests = Vec::new();
     tests.extend(vec![
         ("[^1]: Footnote #1", vec![Token::Footnote("1", "Footnote #1")]),
-        ("[^1]: Footnote #1\n  with a second line", vec![Token::Footnote("1", "Footnote #1\nwith a second line")]),
-        ("[^1]: Footnote #1\n\twith a second line", vec![Token::Footnote("1", "Footnote #1\nwith a second line")]),
-        ("[^1]: Footnote #1\n    with a second line", vec![Token::Footnote("1", "Footnote #1\nwith a second line")]),
-        ("[^1]: Footnote #1\n    with a second line\n\tand a third line", vec![Token::Footnote("1", "Footnote #1\nwith a second line\nand a third line")]),
+        ("[^1]: Footnote #1\n  with a second line", vec![Token::Footnote("1", "Footnote #1\n  with a second line")]),
+        ("[^1]: Footnote #1\n\twith a second line", vec![Token::Footnote("1", "Footnote #1\n\twith a second line")]),
+        ("[^1]: Footnote #1\n    with a second line", vec![Token::Footnote("1", "Footnote #1\n    with a second line")]),
+        ("[^1]: Footnote #1\n    with a second line\n\tand a third line", vec![Token::Footnote("1", "Footnote #1\n    with a second line\n\tand a third line")]),
     ]);
 
     for test in tests.iter(){

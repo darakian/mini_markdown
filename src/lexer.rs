@@ -300,7 +300,7 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
         if ref_id.contains(char::is_whitespace){
             return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
         }
-        return Ok(Token::Footnote(ref_id, char_iter.get_substring_from(note_index).unwrap_or("")));
+        return Ok(Token::Footnote(ref_id, char_iter.get_substring_from(note_index).unwrap_or("").trim()));
     }
     if char_iter.peek() != Some(&"(") {
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
