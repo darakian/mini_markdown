@@ -12,11 +12,11 @@ pub enum Token<'a> {
     /// String: Text for list entry
     OrderedListEntry(&'a str),
     /// String: Text to be italicized
-    Italic(String),
+    Italic(&'a str),
     /// String: Text to be bolded
-    Bold(String),
+    Bold(&'a str),
     /// String: Text to be bolded and italicized
-    BoldItalic(String),
+    BoldItalic(&'a str),
     /// Corresponds to a </br> html tag
     LineBreak,
     /// Corresponds to a newline character

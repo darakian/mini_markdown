@@ -392,7 +392,7 @@ pub fn render(source: &str) -> String {
 }
 
 /// Replace potentially unsafe characters with html entities
-pub(crate) fn sanitize_display_text(source: &String) -> String {
+pub(crate) fn sanitize_display_text(source: &str) -> String {
     source.replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
