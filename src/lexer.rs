@@ -40,7 +40,7 @@ pub enum Token<'a> {
     /// String: Link. First Option<String>: Title for link. Second Option<String>: Hover text
     Link(&'a str, Option<&'a str>, Option<&'a str>),
     /// String: Summary. Vec<Token>: Tokens to be rendered in the collapsable section
-    Detail(String, Vec<Token<'a>>),
+    Detail(&'a str, Vec<Token<'a>>),
     /// Tuple of Vec<(Alignment, String)>: Which defines the table header and Vec<Vec<(Alignment, Vec<Token>)>> which defines the rows
     Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, Vec<Token<'a>>)>>),
     /// TaskBox: Boolean state of the checked or unchecked box. String: List item text
@@ -436,7 +436,7 @@ fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseErr
         }
     }
     let inner_tokens = crate::lex(remaining_text.strip_suffix("</details>").unwrap_or(""));
-    Ok(Token::Detail(summary_line.to_string(), inner_tokens))
+    Ok(Token::Detail(summary_line, inner_tokens))
 }
 
 pub(crate) fn lex_pipes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
