@@ -42,7 +42,7 @@ pub enum Token<'a> {
     /// String: Summary. Vec<Token>: Tokens to be rendered in the collapsable section
     Detail(&'a str, Vec<Token<'a>>),
     /// Tuple of Vec<(Alignment, String)>: Which defines the table header and Vec<Vec<(Alignment, Vec<Token>)>> which defines the rows
-    Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, Vec<Token<'a>>)>>),
+    Table(Vec<(Alignment, &'a str)>, Vec<Vec<(Alignment, Vec<Token<'a>>)>>),
     /// TaskBox: Boolean state of the checked or unchecked box. String: List item text
     TaskListItem(TaskBox, &'a str),
     /// First String: Reference id. Second String: Reference text
@@ -455,13 +455,13 @@ pub(crate) fn lex_pipes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
     }
     let headings: Vec<_> = lines.remove(0).split("|")
         .filter(|&x| x != "")
-        .map(|x| x.trim().to_string())
+        .map(|x| x.trim())
         .collect();
     let alignments: Vec<_> = lines.remove(0).split("|")
         .filter(|&x| x != "")
         .map(|x| 
             {
-            match (x.trim().to_string().starts_with(":"), x.trim().to_string().ends_with(":")) {
+            match (x.trim().starts_with(":"), x.trim().ends_with(":")) {
                 (true, false) => Alignment::Left,
                 (true, true) => Alignment::Center,
                 (false, true) => Alignment::Right,
