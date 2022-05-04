@@ -6,7 +6,7 @@ pub enum Token<'a> {
     /// String: Body of unstructured text
     Plaintext(String),
     /// u8: Header level (1..=6). String: Header text. Option<String>: html label
-    Header(u8, &'a str, Option<String>),
+    Header(u8, &'a str, Option<&'a str>),
     /// String: Text for list entry
     UnorderedListEntry(String),
     /// String: Text for list entry
