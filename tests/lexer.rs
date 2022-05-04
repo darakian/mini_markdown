@@ -71,12 +71,12 @@ fn test_lex() {
         ("---", vec![Token::HorizontalRule]),
         ("-----", vec![Token::HorizontalRule]),
         ("--", vec![Token::Plaintext("--".to_string())]),
-        ("- [ ] Unchecked box", vec![Token::TaskListItem(TaskBox::Unchecked, "Unchecked box".to_string())]),
-        ("+ [ ] Unchecked box", vec![Token::TaskListItem(TaskBox::Unchecked, "Unchecked box".to_string())]),
-        ("- [x] Checked box", vec![Token::TaskListItem(TaskBox::Checked, "Checked box".to_string())]),
-        ("- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "Also a checked box".to_string())]),
+        ("- [ ] Unchecked box", vec![Token::TaskListItem(TaskBox::Unchecked, "Unchecked box")]),
+        ("+ [ ] Unchecked box", vec![Token::TaskListItem(TaskBox::Unchecked, "Unchecked box")]),
+        ("- [x] Checked box", vec![Token::TaskListItem(TaskBox::Checked, "Checked box")]),
+        ("- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "Also a checked box")]),
         ("- [X]Not a checked box", vec![Token::UnorderedListEntry("[X]Not a checked box")]),
-        ("- [X] A checked box\n- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "A checked box".to_string()), Token::Plaintext("\n".to_string()), Token::TaskListItem(TaskBox::Checked, "Also a checked box".to_string())]),
+        ("- [X] A checked box\n- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "A checked box"), Token::Plaintext("\n".to_string()), Token::TaskListItem(TaskBox::Checked, "Also a checked box")]),
     ]);
     for test in tests.iter(){
         let tokens = lex(test.0);

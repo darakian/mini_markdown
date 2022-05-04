@@ -44,7 +44,7 @@ pub enum Token<'a> {
     /// Tuple of Vec<(Alignment, String)>: Which defines the table header and Vec<Vec<(Alignment, Vec<Token>)>> which defines the rows
     Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, Vec<Token<'a>>)>>),
     /// TaskBox: Boolean state of the checked or unchecked box. String: List item text
-    TaskListItem(TaskBox, String),
+    TaskListItem(TaskBox, &'a str),
     /// First String: Reference id. Second String: Reference text
     Footnote(String, String),
 }
@@ -359,11 +359,11 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'
     }
     let line = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
     if line.starts_with(" [ ] ") {
-        return Ok(Token::TaskListItem(TaskBox::Unchecked,line.strip_prefix(" [ ] ").unwrap_or("").to_string()))
+        return Ok(Token::TaskListItem(TaskBox::Unchecked,line.strip_prefix(" [ ] ").unwrap_or("")))
     } else if line.starts_with(" [x] ") {
-        return Ok(Token::TaskListItem(TaskBox::Checked,line.strip_prefix(" [x] ").unwrap_or("").to_string()))
+        return Ok(Token::TaskListItem(TaskBox::Checked,line.strip_prefix(" [x] ").unwrap_or("")))
     } else if line.starts_with(" [X] ") {
-        return Ok(Token::TaskListItem(TaskBox::Checked,line.strip_prefix(" [X] ").unwrap_or("").to_string()))
+        return Ok(Token::TaskListItem(TaskBox::Checked,line.strip_prefix(" [X] ").unwrap_or("")))
     } else if line.starts_with(" "){
         return Ok(Token::UnorderedListEntry(line.strip_prefix(" ").unwrap_or("")))
     } else {
