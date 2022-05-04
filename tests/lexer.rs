@@ -59,8 +59,8 @@ fn test_lex() {
         ])
     ]);
     tests.extend(vec![
-        ("![alt](https://example.com/foo.jpeg)", vec![Token::Image("https://example.com/foo.jpeg".to_string(), Some("alt".to_string()))]),
-        ("![alt]()", vec![Token::Image("".to_string(), Some("alt".to_string()))]),
+        ("![alt](https://example.com/foo.jpeg)", vec![Token::Image("https://example.com/foo.jpeg", Some("alt"))]),
+        ("![alt]()", vec![Token::Image("", Some("alt"))]),
         ("Some test text [^1]", vec![Token::Plaintext("Some test text [^1]".to_string())]),
         ("[^1]: First footnote", vec![Token::Footnote("1".to_string(), "First footnote".to_string())]),
         ("[^HUGE]: Big footnote", vec![Token::Footnote("HUGE".to_string(), "Big footnote".to_string())]),
@@ -140,9 +140,9 @@ fn test_link_lex(){
     let mut tests = Vec::new();
     tests.extend(vec![
         ("another (See [Sewer Shark](https://en.wikipedia.org/wiki/Sewer_Shark)). Video", 
-        vec![Token::Plaintext("another (See ".to_string()), Token::Link("https://en.wikipedia.org/wiki/Sewer_Shark".to_string(), Some("Sewer Shark".to_string()), None), Token::Plaintext("). Video".to_string())]),
+        vec![Token::Plaintext("another (See ".to_string()), Token::Link("https://en.wikipedia.org/wiki/Sewer_Shark", Some("Sewer Shark"), None), Token::Plaintext("). Video".to_string())]),
         ("r [Distant Worlds](https://www.youtube.com/watch?v=yd3KYOei8o4) a",
-        vec![Token::Plaintext("r ".to_string()), Token::Link("https://www.youtube.com/watch?v=yd3KYOei8o4".to_string(), Some("Distant Worlds".to_string()), None), Token::Plaintext(" a".to_string())])
+        vec![Token::Plaintext("r ".to_string()), Token::Link("https://www.youtube.com/watch?v=yd3KYOei8o4", Some("Distant Worlds"), None), Token::Plaintext(" a".to_string())])
     ]);
 
     for test in tests.iter(){

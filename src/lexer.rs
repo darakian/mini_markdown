@@ -36,9 +36,9 @@ pub enum Token<'a> {
     /// u8: Block quote level. String: Block quote text
     BlockQuote(u8, &'a str),
     /// String: Link. Option<String>: Title for link.
-    Image(String, Option<String>),
+    Image(&'a str, Option<&'a str>),
     /// String: Link. First Option<String>: Title for link. Second Option<String>: Hover text
-    Link(String, Option<String>, Option<String>),
+    Link(&'a str, Option<&'a str>, Option<&'a str>),
     /// String: Summary. Vec<Token>: Tokens to be rendered in the collapsable section
     Detail(String, Vec<Token<'a>>),
     /// Tuple of Vec<(Alignment, String)>: Which defines the table header and Vec<Vec<(Alignment, Vec<Token>)>> which defines the rows
@@ -311,12 +311,12 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
     }
     if char_iter.peek() == Some(&")") {
         char_iter.next();
-        return Ok(Token::Link(link.to_string(), Some(title.to_string()), None));
+        return Ok(Token::Link(link, Some(title), None));
     }
     if char_iter.peek() == Some(&" ") {
         let hover = char_iter.consume_while_case_holds(&|c| c != ")").unwrap_or("");
         char_iter.skip_while(|c| c != &"\n").next();
-        return Ok(Token::Link(link.to_string(), Some(title.to_string()), Some(hover.to_string())));
+        return Ok(Token::Link(link, Some(title), Some(hover)));
     }
     Err(ParseError{content: ""})
 }
@@ -329,7 +329,7 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
             match char_iter.peek(){
                 Some(">") if s != "details" => {
                     char_iter.next();
-                    return Ok(Token::Link(s.to_string(), None, None))
+                    return Ok(Token::Link(s, None, None))
                 },
                 Some(">") if s == "details" => {
                     char_iter.next();
