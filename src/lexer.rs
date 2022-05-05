@@ -97,13 +97,10 @@ pub(crate) struct ParseError<'a>{
 
 pub(crate) fn push_str<'a>(t: &mut Vec<Token>, s: &'a str) {
     match t.last_mut() {
-        Some(markdown_token) => {
-            match markdown_token {
-                Token::Plaintext(plaintext_token) => plaintext_token.push_str(s),
-                _ => t.push(Token::Plaintext(s.to_string())),
-            }
+        Some(Token::Plaintext(token)) => {
+            token.push_str(s)
         }
-        None => t.push(Token::Plaintext(s.to_string())),
+        _ => t.push(Token::Plaintext(s.to_string())),
     }
 }
 
