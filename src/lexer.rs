@@ -381,14 +381,11 @@ pub(crate) fn lex_tilde<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
 fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>>{
     let mut summary_line = char_iter.consume_while_case_holds(&|c| c != "\n" && c != "\r").unwrap_or("");
     char_iter.next_if_eq("\r");
-    if !summary_line.starts_with("<summary>") || !summary_line.ends_with("</summary>") {
+    if (!summary_line.starts_with("<summary>") || !summary_line.ends_with("</summary>")) && !summary_line.len() >= 20 {
         return Err(ParseError{content: summary_line});
     }
     summary_line = summary_line.strip_prefix("<summary>").unwrap()
                     .strip_suffix("</summary>").unwrap_or("");
-    if summary_line.len() == 0 {
-        return Err(ParseError{content: "<summary></summary>"})
-    }
     let remaining_text_index = char_iter.get_index();
     let mut remaining_text = char_iter.consume_until_tail_is("</details>").unwrap_or("");
     if remaining_text.contains("<details>") {
