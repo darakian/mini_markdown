@@ -111,7 +111,7 @@ pub fn lex(source: &str) -> Vec<Token>{
 
 /// Parse tokens to produce safe html output
 pub fn parse(tokens: &[Token]) -> String {
-    let mut html = String::new();
+    let mut html = String::with_capacity(tokens.len()*100);
     let mut in_task_list = false;
     let mut in_ordered_list = false;
     let mut in_unordered_list = false;
