@@ -114,9 +114,9 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>,
     if line.contains("{#") && 
         line.contains('}') {
             let (heading, _title) = line.split_once("{").unwrap_or(("",""));
-            let line = line.strip_prefix(&heading).unwrap_or("");
-            let line = line.strip_prefix("{#").unwrap_or("");
-            let line = line.strip_suffix("}").unwrap_or("");
+            let line = line.strip_prefix(&heading).unwrap()
+                            .strip_prefix("{#").unwrap()
+                            .strip_suffix("}").unwrap();
             return Ok(Token::Header(level, heading.trim(), Some(line)));
         }
     return Ok(Token::Header(level, line, None));
