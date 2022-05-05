@@ -374,9 +374,8 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'
 pub(crate) fn lex_numbers<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let c = char_iter.next().unwrap();
-    match char_iter.peek() {
+    match char_iter.next_if_eq(".") {
         Some(".") => {
-            char_iter.next().unwrap();
             if char_iter.peek() != Some(&" "){
                 return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
             }
@@ -390,7 +389,7 @@ pub(crate) fn lex_numbers<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>,
 
 pub(crate) fn lex_tilde<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
-    let lead_tildes = match char_iter.consume_while_case_holds(&|s| s == "~"){
+    let lead_tildes = match char_iter.consume_while_case_holds(&|s| s == "~") {
         Some(s) => s,
         None => return Err(ParseError{content: "Failure to parse ~"}),
     };
@@ -401,7 +400,6 @@ pub(crate) fn lex_tilde<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
             let tail_tildes = char_iter.consume_while_case_holds(&|s| s == "~").unwrap_or("");
             if lead_tildes.len() != tail_tildes.len() {
                 return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
-                // return Err(ParseError{content: format!("{}{}{}",  lead_tildes, line, tail_tildes)})
             }
             return Ok(Token::Strikethrough(line));
         }
