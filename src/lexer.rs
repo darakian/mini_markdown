@@ -181,7 +181,7 @@ pub(crate) fn lex_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, 
         return Err(ParseError{content: spaces})
     }
     // Case 2: two or more spaces followed by \n => line break
-    if char_iter.peek() == Some(&"\n"){
+    if char_iter.next_if_eq("\n").is_some() {
         return Ok(Token::LineBreak);
     }
     // Case 3: Tokenize for parser
@@ -210,10 +210,8 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a
         }
     }
     // leading_ticks.len() == 3. Check for lang
-    if char_iter.peek() != Some(&"\n") {
+    if char_iter.next_if_eq("\n") != Some(&"\n") {
         lang = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
-        char_iter.next();
-    } else {
         char_iter.next();
     }
     let s = char_iter.consume_while_case_holds(&|c| c != "`").unwrap_or("");
@@ -235,8 +233,8 @@ pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>
 
 pub(crate) fn lex_blockquotes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let right_arrows = char_iter.consume_while_case_holds(&|c| c == ">").unwrap_or("");
-    match char_iter.peek() {
-        Some(" ") => {char_iter.next();},
+    match char_iter.next_if_eq(" ") {
+        Some(" ") => {},
         _ => {return Err(ParseError{content: right_arrows})}
     }
     let s = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
@@ -246,10 +244,9 @@ pub(crate) fn lex_blockquotes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
 
 pub(crate) fn lex_images<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
-    if char_iter.peek() != Some(&"!"){
+    if char_iter.next_if_eq("!") != Some(&"!"){
         return Err(ParseError{content: ""})
     }
-    char_iter.next();
     let link_result = lex_links(char_iter);
     match link_result {
         Err(_e) => return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")}),
@@ -260,18 +257,15 @@ pub(crate) fn lex_images<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, 
 
 pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
-    if char_iter.peek() != Some(&"[") {
+    if char_iter.next_if_eq("[") != Some(&"[") {
         return Err(ParseError{content: ""})
     }
-    char_iter.next();
     let title = char_iter.consume_while_case_holds(&|c| c != "]").unwrap_or("");
-    if char_iter.peek() != Some(&"]") {
+    if char_iter.next_if_eq("]") != Some(&"]") {
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
     }
-    char_iter.next();
     // Parse footnotes big and small
-    if title.starts_with("^") && char_iter.peek() == Some(&":") {
-        char_iter.next();
+    if title.starts_with("^") && char_iter.next_if_eq(":") == Some(&":") {
         let ref_id = title.strip_prefix("^").unwrap_or("");
         let mut note_text = String::new();
         let note_index = char_iter.get_index();
@@ -281,8 +275,7 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
            if char_iter.peek() != Some(&" ") && char_iter.peek() != Some(&"\t") {
             break;
            }
-           if char_iter.peek() == Some(&"\t") {
-            char_iter.next();
+           if char_iter.next_if_eq("\t") == Some(&"\t") {
             note_text.push('\n');
             continue;
            }
@@ -309,8 +302,7 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
     if char_iter.peek() != Some(&")") && char_iter.peek() != Some(&" ") {
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
     }
-    if char_iter.peek() == Some(&")") {
-        char_iter.next();
+    if char_iter.next_if_eq(")") == Some(&")") {
         return Ok(Token::Link(link, Some(title), None));
     }
     if char_iter.peek() == Some(&" ") {
@@ -322,17 +314,14 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
 }
 
 pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
-    match char_iter.peek() {
+    match char_iter.next_if_eq("<") {
         Some("<") => {
-            char_iter.next();
             let s = char_iter.consume_while_case_holds(&|c| c != ">").unwrap_or("");
-            match char_iter.peek(){
+            match char_iter.next_if_eq(">"){
                 Some(">") if s != "details" => {
-                    char_iter.next();
                     return Ok(Token::Link(s, None, None))
                 },
                 Some(">") if s == "details" => {
-                    char_iter.next();
                     char_iter.next_if_eq(&"\r");
                     if !char_iter.next_if_eq(&"\n").is_some(){
                         return Err(ParseError{content: s});
@@ -376,10 +365,9 @@ pub(crate) fn lex_numbers<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>,
     let c = char_iter.next().unwrap();
     match char_iter.next_if_eq(".") {
         Some(".") => {
-            if char_iter.peek() != Some(&" "){
+            if char_iter.next_if_eq(" ") != Some(&" "){
                 return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
             }
-            char_iter.next();
             let s = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
             return Ok(Token::OrderedListEntry(s))
         },
