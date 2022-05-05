@@ -15,57 +15,49 @@ pub fn lex(source: &str) -> Vec<Token>{
     while char_iter.peek().is_some(){
         match char_iter.peek().unwrap(){
             "#" => {
-                let token = lex_heading(&mut char_iter);
-                match token {
+                match lex_heading(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
             "*" | "_" => {
-                let token = lex_asterisk_underscore(&mut char_iter);
-                match token {
+                match lex_asterisk_underscore(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
             "~" => {
-                let token = lex_tilde(&mut char_iter);
-                match token {
+                match lex_tilde(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
             "-" | "+" => {
-                let token = lex_plus_minus(&mut char_iter);
-                match token {
+                match lex_plus_minus(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
             " " => {
-                let token = lex_spaces(&mut char_iter);
-                match token {
+                match lex_spaces(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
             "`" => {
-                let token = lex_backticks(&mut char_iter);
-                match token {
+                match lex_backticks(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
             "\n" => {
-                let token = lex_newlines(&mut char_iter);
-                match token {
+                match lex_newlines(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
             ">" => {
-                let token = lex_blockquotes(&mut char_iter);
-                match token {
+                match lex_blockquotes(&mut char_iter) {
                     Ok(t) => {
                         tokens.push(t);
                         },
@@ -73,36 +65,31 @@ pub fn lex(source: &str) -> Vec<Token>{
                 }
             },
             "!" => {
-                let token = lex_images(&mut char_iter);
-                match token {
+                match lex_images(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
             "[" => {
-                let token = lex_links(&mut char_iter);
-                match token {
+                match lex_links(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
             "<" => {
-                let token = lex_side_carrot(&mut char_iter);
-                match token {
+                match lex_side_carrot(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
             "|" => {
-                let token = lex_pipes(&mut char_iter);
-                match token {
+                match lex_pipes(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
             "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0" => {
-                let token = lex_numbers(&mut char_iter);
-                match token {
+                match lex_numbers(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
@@ -111,13 +98,11 @@ pub fn lex(source: &str) -> Vec<Token>{
             "\\" => {
                 char_iter.next();
                 if char_iter.peek().is_some(){
-                    let c = char_iter.next().unwrap();
-                    push_str(&mut tokens, c);
+                    push_str(&mut tokens, char_iter.next().unwrap());
                 }
             }
             _ => {
-                let c = char_iter.next().unwrap();
-                push_str(&mut tokens, c);
+                push_str(&mut tokens, char_iter.next().unwrap());
             },
         }
     }
