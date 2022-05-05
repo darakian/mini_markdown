@@ -292,10 +292,9 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
         }
         return Ok(Token::Footnote(ref_id, char_iter.get_substring_from(note_index).unwrap_or("").trim()));
     }
-    if char_iter.peek() != Some(&"(") {
+    if char_iter.next_if_eq("(") != Some(&"(") {
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
     }
-    char_iter.next();
     let link = char_iter.consume_while_case_holds(&|c| c != ")" && c != " ").unwrap_or("");
     if char_iter.peek() != Some(&")") && char_iter.peek() != Some(&" ") {
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
