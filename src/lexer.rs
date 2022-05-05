@@ -221,10 +221,10 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a
 }
 
 pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
-    let newlines = char_iter.consume_while_case_holds(&|c| c == "\n").unwrap_or("");
-    match newlines.len() {
-        0..=1 => return Err(ParseError{content: newlines}),
-        _ => return Ok(Token::Newline)
+    match char_iter.consume_while_case_holds(&|c| c == "\n") {
+        Some(s) if s.len() > 1 => return Ok(Token::Newline),
+        Some(s) if s.len() <= 1 => return Err(ParseError{content: s}),
+        _ => return Err(ParseError{content: ""}),
     }
 }
 
