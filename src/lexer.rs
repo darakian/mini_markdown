@@ -267,22 +267,20 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
     // Parse footnotes big and small
     if title.starts_with("^") && char_iter.next_if_eq(":") == Some(&":") {
         let ref_id = title.strip_prefix("^").unwrap_or("");
-        let mut note_text = String::new();
         let note_index = char_iter.get_index();
         loop {
-           note_text.push_str(char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or(""));
+           char_iter.consume_while_case_holds(&|c| c != "\n");
            char_iter.next();
            if char_iter.peek() != Some(&" ") && char_iter.peek() != Some(&"\t") {
             break;
            }
            if char_iter.next_if_eq("\t") == Some(&"\t") {
-            note_text.push('\n');
             continue;
            }
            if char_iter.peek() == Some(&" ") {
             let spaces = char_iter.consume_while_case_holds(&|c| c == " ").unwrap_or("");
             match spaces.len() {
-                2 | 4 => {note_text.push('\n');},
+                2 | 4 => {},
                 _ => {return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})},
             }
             continue
