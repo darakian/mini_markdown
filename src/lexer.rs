@@ -311,20 +311,16 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
     match char_iter.next_if_eq("<") {
         Some("<") => {
             let s = char_iter.consume_while_case_holds(&|c| c != ">").unwrap_or("");
-            match char_iter.next_if_eq(">"){
-                Some(">") if s != "details" => {
-                    return Ok(Token::Link(s, None, None))
-                },
-                Some(">") if s == "details" => {
+            match (s, char_iter.next_if_eq(">")) {
+                ("details", Some(">")) => {
                     char_iter.next_if_eq(&"\r");
                     if !char_iter.next_if_eq(&"\n").is_some(){
                         return Err(ParseError{content: s});
                     }
                     return parse_details(char_iter)
                 },
-                _ => {
-                    return Err(ParseError{content: s});
-                }
+                (_, Some(">")) => return Ok(Token::Link(s, None, None)),
+                (_, _) => return Err(ParseError{content: s}),
             }
         }
         _ => return Err(ParseError{content: ""})
