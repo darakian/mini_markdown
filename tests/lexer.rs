@@ -31,7 +31,7 @@ fn test_lex() {
         ("I just love *italic text*.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text"), Token::Plaintext(".".to_string())]),
         ("I just love _italic text_.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text"), Token::Plaintext(".".to_string())]),
         ("I just love *italic text_.", vec![Token::Plaintext("I just love ".to_string()), Token::Italic("italic text"), Token::Plaintext(".".to_string())]),
-        ("I just\n love *italic\n text_.", vec![Token::Plaintext("I just\n love ".to_string()), Token::Italic("italic\n text"), Token::Plaintext(".".to_string())]),
+        ("I just\n love *italic text_.", vec![Token::Plaintext("I just".to_string()), Token::Newline, Token::Plaintext(" love ".to_string()), Token::Italic("italic text"), Token::Plaintext(".".to_string())]),
     ]);
     tests.extend(vec![
         ("I just love ***bold italic text***.", vec![Token::Plaintext("I just love ".to_string()), Token::BoldItalic("bold italic text"), Token::Plaintext(".".to_string())]),
@@ -49,7 +49,8 @@ fn test_lex() {
         vec![
             Token::Plaintext("Text attributes ".to_string()), 
             Token::Italic("italic"), 
-            Token::Plaintext(", \n".to_string()),
+            Token::Plaintext(", ".to_string()),
+            Token::Newline,
             Token::Bold("bold"), 
             Token::Plaintext(", ".to_string()), 
             Token::Code("monospace"),
@@ -76,7 +77,7 @@ fn test_lex() {
         ("- [x] Checked box", vec![Token::TaskListItem(TaskBox::Checked, "Checked box")]),
         ("- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "Also a checked box")]),
         ("- [X]Not a checked box", vec![Token::UnorderedListEntry("[X]Not a checked box")]),
-        ("- [X] A checked box\n- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "A checked box"), Token::Plaintext("\n".to_string()), Token::TaskListItem(TaskBox::Checked, "Also a checked box")]),
+        ("- [X] A checked box\n- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "A checked box"), Token::Newline, Token::TaskListItem(TaskBox::Checked, "Also a checked box")]),
     ]);
     for test in tests.iter(){
         let tokens = lex(test.0);
@@ -94,7 +95,13 @@ fn test_lex_plaintext() {
         ("\\>controls\\<", vec![Token::Plaintext(">controls<".to_string())]),
         ("2017-12-6 20:13:00", vec![Token::Plaintext("2017-12-6 20:13:00".to_string())]),
         ("\nlayout: post\ntitle:  \"Looking back at consoles and codecs\"\ndate:   2017-12-6 20:13:00 +0100\n", 
-            vec![Token::Plaintext("\nlayout: post\ntitle:  \"Looking back at consoles and codecs\"\ndate:   2017-12-6 20:13:00 +0100\n".to_string())])
+            vec![Token::Newline, 
+                Token::Plaintext("layout: post".to_string()), 
+                Token::Newline, 
+                Token::Plaintext("title:  \"Looking back at consoles and codecs\"".to_string()), 
+                Token::Newline, 
+                Token::Plaintext("date:   2017-12-6 20:13:00 +0100".to_string()), 
+                Token::Newline])
     ]);
     for test in tests.iter(){
         let tokens = lex(test.0);

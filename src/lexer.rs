@@ -198,7 +198,7 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a
         return Err(ParseError{content: leading_ticks})
     }
     if leading_ticks.len() == 1 {
-        let s = char_iter.consume_while_case_holds(&|c| c != "`").unwrap_or("");
+        let s = char_iter.consume_while_case_holds(&|c| c != "`" && c!= "\n").unwrap_or("");
         let trailing_ticks = char_iter.consume_while_case_holds(&|c| c == "`").unwrap_or("");
         if leading_ticks.len() != trailing_ticks.len() {
             return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")}) 
@@ -222,8 +222,8 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a
 
 pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     match char_iter.consume_while_case_holds(&|c| c == "\n") {
-        Some(s) if s.len() > 1 => return Ok(Token::Newline),
-        Some(s) if s.len() <= 1 => return Err(ParseError{content: s}),
+        Some(s) if s.len() >= 1 => return Ok(Token::Newline),
+        Some(s) if s.len() < 1 => return Err(ParseError{content: s}),
         _ => return Err(ParseError{content: ""}),
     }
 }

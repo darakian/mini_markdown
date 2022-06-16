@@ -1,5 +1,6 @@
 use mini_markdown::render;
-use mini_markdown::lex;
+use mini_markdown::{lex, parse};
+use mini_markdown::lexer::Token;
 
 
 #[test]
@@ -13,7 +14,7 @@ fn test_simple_render() {
         ("##### Heading level 5", "<h5 id=\"heading-level-5\">Heading level 5</h5>\n"),
         ("###### Heading level 6", "<h6 id=\"heading-level-6\">Heading level 6</h6>\n"),
         ("####### Invalid Heading level 7", "<h6 id=\"invalid-heading-level-7\">Invalid Heading level 7</h6>\n"),
-        ("Some text _with italics_ in the same paragraph\n", "<p>Some text <em>with italics</em> in the same paragraph\n</p>\n"),
+        ("Some text _with italics_ in the same paragraph\n", "<p>Some text <em>with italics</em> in the same paragraph</p>\n"),
         ("Some text! With exclamations!", "<p>Some text! With exclamations!</p>\n"),
 
     ]);
@@ -29,7 +30,7 @@ fn test_moderate_render(){
     let mut tests = Vec::new();
     tests.extend(vec![
         ("Text attributes _italic_, \n**bold**, `monospace`. Some implementations may use *single-asterisks* for italic text.",
-        "<p>Text attributes <em>italic</em>, \n<strong>bold</strong>, <code>monospace</code>. Some implementations may use <em>single-asterisks</em> for italic text.</p>\n"),
+        "<p>Text attributes <em>italic</em>, </p>\n<p><strong>bold</strong>, <code>monospace</code>. Some implementations may use <em>single-asterisks</em> for italic text.</p>\n"),
         ("Horizontal rule:\n\n---\n\nStrikethrough:\n\n~~strikethrough~~\n\n",
         "<p>Horizontal rule:</p>\n<hr />\n<p>Strikethrough:</p>\n<p><strike>strikethrough</strike></p>\n"
         ),
@@ -46,16 +47,16 @@ fn test_moderate_render(){
         "<pre><code>Multi\nLine\nCode block\n</code></pre>"
         ),
         ("> Outer quote with some text.\nNon-quoted text\n> Quote with some other text",
-        "<blockquote>Outer quote with some text.</blockquote><p>Non-quoted text\n</p><blockquote>Quote with some other text</blockquote>\n"
+        "<blockquote>Outer quote with some text.</blockquote><p>Non-quoted text</p>\n<blockquote>Quote with some other text</blockquote>\n"
         ),
         ("> Outer quote with some other text.\nNon-quoted text\nMore non-quoted\n> Quote with some other text",
-        "<blockquote>Outer quote with some other text.</blockquote><p>Non-quoted text\nMore non-quoted\n</p><blockquote>Quote with some other text</blockquote>\n"
+        "<blockquote>Outer quote with some other text.</blockquote><p>Non-quoted text</p>\n<p>More non-quoted</p>\n<blockquote>Quote with some other text</blockquote>\n"
         ),
         ("Don't -> quote",
         "<p>Don&apos;t -&gt; quote</p>\n"
         ),
         ("Don't -> quote\n> Do Quote\nDon't quote this either",
-        "<p>Don&apos;t -&gt; quote\n</p><blockquote>Do Quote</blockquote><p>Don&apos;t quote this either</p>\n"
+        "<p>Don&apos;t -&gt; quote</p>\n<blockquote>Do Quote</blockquote><p>Don&apos;t quote this either</p>\n"
         ),
         ("Testing an inline link [Link title](http://google.com)",
         "<p>Testing an inline link <a href=\"http://google.com\" referrerpolicy=\"no-referrer\">Link title</a></p>\n"
@@ -64,23 +65,17 @@ fn test_moderate_render(){
         "<p>Testing an inline link to a header id <a href=\"#some-header\" referrerpolicy=\"no-referrer\">Link title</a></p>\n"
         ),
         ("Testing some details\n<details>\n<summary>Summary text goes here</summary>\nSome text goes here\n</details>",
-        "<p>Testing some details\n</p>\n<details>\n<summary>Summary text goes here</summary>\n<p>Some text goes here\n</p>\n\n</details>"
+        "<p>Testing some details</p>\n<details>\n<summary>Summary text goes here</summary>\n\n<p>Some text goes here</p>\n\n</details>"
         ),
         ("Testing some nested details <details>\n<summary>Outer summary</summary>\nOuter text<details>\n<summary>Inner Summary</summary>\nInner text\n</details>\n</details>",
-        "<p>Testing some nested details </p>\n<details>\n<summary>Outer summary</summary>\n<p>Outer text</p>\n<details>\n<summary>Inner Summary</summary>\n<p>Inner text\n</p>\n\n</details>\n</details>"
+        "<p>Testing some nested details </p>\n<details>\n<summary>Outer summary</summary>\n\n<p>Outer text</p>\n<details>\n<summary>Inner Summary</summary>\n\n<p>Inner text</p>\n\n</details>\n\n</details>"
         ),
     ]);
 
     for test in tests.iter(){
         let html = render(test.0);
         if html != test.1 {
-            println!("Test failing:\nGot:{:?}\nExpected:{:?}", html, test.1);
-            println!("{:?}", lex(test.0));
-            for (c1, c2) in test.1.chars().zip(html.chars()) {
-                if c1 != c2 {
-                    println!("Difference in {:?} {:?}", c1, c2);
-                }
-            }
+            println!("?? {:?}", lex(test.0));
         }
         assert_eq!(html, test.1);
     }
@@ -93,9 +88,9 @@ fn test_table_render() {
         ("| Syntax      | Description | Test Text     |\n| :---        |    :----:   |          ---: |\n| Body      | Text       | Here's this   |\n| Paragraph   | Text        | And more      |", 
         "<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n\t\t<th style=\"text-align: left\">Syntax</th>\t\t<th style=\"text-align: center\">Description</th>\t\t<th style=\"text-align: right\">Test Text</th>\t</tr>\n\t</thead>\n\t<tbody>\n\t<tr>\n\t\t<td style=\"text-align: left\">Body</td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">Here&apos;s this</td>\n\t</tr>\n\t<tr>\n\t\t<td style=\"text-align: left\">Paragraph</td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">And more</td>\n\t</tr>\n\t</tbody>\n</table>"),
         ("| Syntax2      | Description | Test Text     |\n| :---        |    :----:   |          ---: |\n| *Body*      | **Text**       | ***Here's this***   |\n| `Paragraph`   | Text        | And more      |", 
-        "<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n\t\t<th style=\"text-align: left\">Syntax2</th>\t\t<th style=\"text-align: center\">Description</th>\t\t<th style=\"text-align: right\">Test Text</th>\t</tr>\n\t</thead>\n\t<tbody>\n\t<tr>\n\t\t<td style=\"text-align: left\"><em>Body</em></td>\n\t\t<td style=\"text-align: center\"><strong>Text</strong></td>\n\t\t<td style=\"text-align: right\"><strong><em>Here&apos;s this</em></strong></td>\n\t</tr>\n\t<tr>\n\t\t<td style=\"text-align: left\"><code>Paragraph</code></td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">And more</td>\n\t</tr>\n\t</tbody>\n</table>"),
+        "<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n\t\t<th style=\"text-align: left\">Syntax2</th>\t\t<th style=\"text-align: center\">Description</th>\t\t<th style=\"text-align: right\">Test Text</th>\t</tr>\n\t</thead>\n\t<tbody>\n\t<tr>\n\t\t<td style=\"text-align: left\"><em>Body</em></td>\n\t\t<td style=\"text-align: center\"><strong>Text</strong></td>\n\t\t<td style=\"text-align: right\"><strong><em>Here&apos;s this</em></strong></td>\n\t</tr>\n\t<tr>\n\t\t<td style=\"text-align: left\"><p><code>Paragraph</code></p>\n</td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">And more</td>\n\t</tr>\n\t</tbody>\n</table>"),
         ("| Syntax3      | Description | Test Text     |\n| :---        |    :----:   |          ---: |\n| *Body*      | **Text**       | ***Here's this***   |\n| `Paragraph <script=foo.js>test</script>`   | Text        | And more      |", 
-        "<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n\t\t<th style=\"text-align: left\">Syntax3</th>\t\t<th style=\"text-align: center\">Description</th>\t\t<th style=\"text-align: right\">Test Text</th>\t</tr>\n\t</thead>\n\t<tbody>\n\t<tr>\n\t\t<td style=\"text-align: left\"><em>Body</em></td>\n\t\t<td style=\"text-align: center\"><strong>Text</strong></td>\n\t\t<td style=\"text-align: right\"><strong><em>Here&apos;s this</em></strong></td>\n\t</tr>\n\t<tr>\n\t\t<td style=\"text-align: left\"><code>Paragraph &lt;script=foo.js&gt;test&lt;/script&gt;</code></td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">And more</td>\n\t</tr>\n\t</tbody>\n</table>"),
+        "<table class=\"table table-bordered\">\n\t<thead>\n\t<tr>\n\t\t<th style=\"text-align: left\">Syntax3</th>\t\t<th style=\"text-align: center\">Description</th>\t\t<th style=\"text-align: right\">Test Text</th>\t</tr>\n\t</thead>\n\t<tbody>\n\t<tr>\n\t\t<td style=\"text-align: left\"><em>Body</em></td>\n\t\t<td style=\"text-align: center\"><strong>Text</strong></td>\n\t\t<td style=\"text-align: right\"><strong><em>Here&apos;s this</em></strong></td>\n\t</tr>\n\t<tr>\n\t\t<td style=\"text-align: left\"><p><code>Paragraph &lt;script=foo.js&gt;test&lt;/script&gt;</code></p>\n</td>\n\t\t<td style=\"text-align: center\">Text</td>\n\t\t<td style=\"text-align: right\">And more</td>\n\t</tr>\n\t</tbody>\n</table>"),
     ]);
 
     for test in tests.iter(){
@@ -141,7 +136,7 @@ fn test_tasklists(){
         ("- [x] One other task",
         "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" checked=\"\">One other task</li></ul>"),
         ("- [x] One other task\n- [ ] One task\n- [ ] One last task",
-        "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" checked=\"\">One other task</li><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One task</li><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One last task</li></ul>"),
+        "<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" checked=\"\">One other task</li>\n<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One task</li>\n<li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\">One last task</li></ul>"),
     ]);
 
     for test in tests.iter(){
@@ -163,7 +158,7 @@ fn test_lists(){
         (" * an item\n * another item\n * a third item",
         "<ul><li>an item</li><li>another item</li><li>a third item</li></ul>"),
         ("lead text\n\n- entry 1\n- entry 2\n- entry 3\n- entry 4\n\nMore text",
-        "<p>lead text</p>\n<ul><li>entry 1</li><li>entry 2</li><li>entry 3</li><li>entry 4</li></ul>\n<p>More text</p>\n"),
+        "<p>lead text</p>\n<ul><li>entry 1</li>\n<li>entry 2</li>\n<li>entry 3</li>\n<li>entry 4</li>\n</ul>\n<p>More text</p>\n"),
     ]);
 
     for test in tests.iter(){
@@ -212,7 +207,7 @@ fn test_paragraphs(){
         ("Paragraph 1.\n\n```\nBlock text should end a paragraph.\n```\n\nThis is paragraph two.\n\n## Heading\n\nParagraph the third.",
         "<p>Paragraph 1.</p>\n<pre><code>Block text should end a paragraph.\n</code></pre>\n<p>This is paragraph two.</p>\n<h2 id=\"heading\">Heading</h2>\n\n<p>Paragraph the third.</p>\n"),
         ("# Post title\nSection text\n# Second section\nGood content",
-        "<h1 id=\"post-title\">Post title</h1>\n<p>Section text\n</p><h1 id=\"second-section\">Second section</h1>\n<p>Good content</p>\n")
+        "<h1 id=\"post-title\">Post title</h1>\n\n<p>Section text</p>\n<h1 id=\"second-section\">Second section</h1>\n\n<p>Good content</p>\n")
     ]);
 
     for test in tests.iter(){
@@ -231,7 +226,7 @@ fn test_links(){
         ("r [Distant Worlds](https://www.youtube.com/watch?v=yd3KYOei8o4) a", 
         "<p>r <a href=\"https://www.youtube.com/watch?v=yd3KYOei8o4\" referrerpolicy=\"no-referrer\">Distant Worlds</a> a</p>\n"),
         ("Foo\n```\nbattle\nenemy1\n```\nSome text [ddh](https://g.com/d/ddh/t/m)\n\nMore text following",
-         "<p>Foo\n</p><pre><code>battle\nenemy1\n</code></pre><p>Some text <a href=\"https://g.com/d/ddh/t/m\" referrerpolicy=\"no-referrer\">ddh</a></p>\n<p>More text following</p>\n"),
+         "<p>Foo</p>\n<pre><code>battle\nenemy1\n</code></pre>\n<p>Some text <a href=\"https://g.com/d/ddh/t/m\" referrerpolicy=\"no-referrer\">ddh</a></p>\n<p>More text following</p>\n"),
     ]);
 
     for test in tests.iter(){
@@ -245,13 +240,13 @@ fn test_details(){
     let mut tests = Vec::new();
     tests.extend(vec![
         ("<details>\n<summary>Summary</summary>\n\n```\nFoo\n```\n</details>",
-         "<details>\n<summary>Summary</summary>\n\n<pre><code>Foo\n</code></pre>\n</details>"),
+         "<details>\n<summary>Summary</summary>\n\n<pre><code>Foo\n</code></pre>\n\n</details>"),
          ("<details>\n<summary>Summary but with spaces</summary>\n\n```\nFoo\n```\n</details>",
-         "<details>\n<summary>Summary but with spaces</summary>\n\n<pre><code>Foo\n</code></pre>\n</details>"),
-         ("<details>\r\n<summary>testing rn</summary>\r\ninner test\r\n</details>",
-         "<details>\n<summary>testing rn</summary>\n<p>inner test\r\n</p>\n\n</details>"),
+         "<details>\n<summary>Summary but with spaces</summary>\n\n<pre><code>Foo\n</code></pre>\n\n</details>"),
+         ("<details>\r\n<summary>testing right now</summary>\r\ninner test\r\n</details>",
+         "<details>\n<summary>testing right now</summary>\n\n<p>inner test\r</p>\n\n</details>"),
         ("Here's some lead text\n <details>\n<summary>Summary</summary>\n\n```\nFoo\n```\n</details>",
-         "<p>Here&apos;s some lead text\n </p>\n<details>\n<summary>Summary</summary>\n\n<pre><code>Foo\n</code></pre>\n</details>")
+         "<p>Here&apos;s some lead text</p>\n<details>\n<summary>Summary</summary>\n\n<pre><code>Foo\n</code></pre>\n\n</details>")
     ]);
 
     for test in tests.iter(){
