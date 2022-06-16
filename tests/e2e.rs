@@ -37,13 +37,13 @@ fn test_moderate_render(){
         "<blockquote>Outer quote with some text 1.<blockquote>Inner quote with some other text</blockquote>Outer again</blockquote>\n"
         ),
         ("```\nCode block 1\n```",
-        "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Code block 1\n</code></pre></div></div>"
+        "<pre><code>Code block 1\n</code></pre>"
         ),
         ("```python\nCode block 2\n```",
-        "<div class=\"language-python highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Code block 2\n</code></pre></div></div>"
+        "<pre><div class=\"language-python highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Code block 2\n</code></div></div></pre>"
         ),
         ("```\nMulti\nLine\nCode block\n```",
-        "<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Multi\nLine\nCode block\n</code></pre></div></div>"
+        "<pre><code>Multi\nLine\nCode block\n</code></pre>"
         ),
         ("> Outer quote with some text.\nNon-quoted text\n> Quote with some other text",
         "<blockquote>Outer quote with some text.</blockquote><p>Non-quoted text\n</p><blockquote>Quote with some other text</blockquote>\n"
@@ -210,7 +210,7 @@ fn test_paragraphs(){
     let mut tests = Vec::new();
     tests.extend(vec![
         ("Paragraph 1.\n\n```\nBlock text should end a paragraph.\n```\n\nThis is paragraph two.\n\n## Heading\n\nParagraph the third.",
-        "<p>Paragraph 1.</p>\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Block text should end a paragraph.\n</code></pre></div></div>\n<p>This is paragraph two.</p>\n<h2 id=\"heading\">Heading</h2>\n\n<p>Paragraph the third.</p>\n"),
+        "<p>Paragraph 1.</p>\n<pre><code>Block text should end a paragraph.\n</code></pre>\n<p>This is paragraph two.</p>\n<h2 id=\"heading\">Heading</h2>\n\n<p>Paragraph the third.</p>\n"),
         ("# Post title\nSection text\n# Second section\nGood content",
         "<h1 id=\"post-title\">Post title</h1>\n<p>Section text\n</p><h1 id=\"second-section\">Second section</h1>\n<p>Good content</p>\n")
     ]);
@@ -231,7 +231,7 @@ fn test_links(){
         ("r [Distant Worlds](https://www.youtube.com/watch?v=yd3KYOei8o4) a", 
         "<p>r <a href=\"https://www.youtube.com/watch?v=yd3KYOei8o4\" referrerpolicy=\"no-referrer\">Distant Worlds</a> a</p>\n"),
         ("Foo\n```\nbattle\nenemy1\n```\nSome text [ddh](https://g.com/d/ddh/t/m)\n\nMore text following",
-         "<p>Foo\n</p><div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>battle\nenemy1\n</code></pre></div></div><p>Some text <a href=\"https://g.com/d/ddh/t/m\" referrerpolicy=\"no-referrer\">ddh</a></p>\n<p>More text following</p>\n"),
+         "<p>Foo\n</p><pre><code>battle\nenemy1\n</code></pre><p>Some text <a href=\"https://g.com/d/ddh/t/m\" referrerpolicy=\"no-referrer\">ddh</a></p>\n<p>More text following</p>\n"),
     ]);
 
     for test in tests.iter(){
@@ -245,13 +245,13 @@ fn test_details(){
     let mut tests = Vec::new();
     tests.extend(vec![
         ("<details>\n<summary>Summary</summary>\n\n```\nFoo\n```\n</details>",
-         "<details>\n<summary>Summary</summary>\n\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Foo\n</code></pre></div></div>\n</details>"),
+         "<details>\n<summary>Summary</summary>\n\n<pre><code>Foo\n</code></pre>\n</details>"),
          ("<details>\n<summary>Summary but with spaces</summary>\n\n```\nFoo\n```\n</details>",
-         "<details>\n<summary>Summary but with spaces</summary>\n\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Foo\n</code></pre></div></div>\n</details>"),
+         "<details>\n<summary>Summary but with spaces</summary>\n\n<pre><code>Foo\n</code></pre>\n</details>"),
          ("<details>\r\n<summary>testing rn</summary>\r\ninner test\r\n</details>",
          "<details>\n<summary>testing rn</summary>\n<p>inner test\r\n</p>\n\n</details>"),
         ("Here's some lead text\n <details>\n<summary>Summary</summary>\n\n```\nFoo\n```\n</details>",
-         "<p>Here&apos;s some lead text\n </p>\n<details>\n<summary>Summary</summary>\n\n<div class=\"language-plaintext highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>Foo\n</code></pre></div></div>\n</details>")
+         "<p>Here&apos;s some lead text\n </p>\n<details>\n<summary>Summary</summary>\n\n<pre><code>Foo\n</code></pre>\n</details>")
     ]);
 
     for test in tests.iter(){
