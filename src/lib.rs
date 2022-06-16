@@ -129,32 +129,42 @@ pub fn parse(tokens: &[Token]) -> String {
         match token {
             Token::Plaintext(t) if t.trim().is_empty() => {}, //Ignore empty plaintext tokens 
             Token::Tab | Token::DoubleTab => {},
-            Token::OrderedListEntry(_) | Token::UnorderedListEntry(_) if in_ordered_list | in_unordered_list => {},
+            Token::OrderedListEntry(_) | Token::UnorderedListEntry(_) | Token::Newline if in_ordered_list | in_unordered_list => {},
             Token::TaskListItem(_, _)  | Token::Newline if in_task_list => {},
             _ if in_ordered_list => {
                 in_ordered_list = false;
-                html.push_str("</ol>")
+                html.push_str("</ol>\n");
+                if !in_paragraph {
+                    in_paragraph = true;
+                    html.push_str("<p>") 
+                }
             },
             _ if in_unordered_list => {
                 in_unordered_list = false;
-                html.push_str("</ul>")
+                html.push_str("</ul>\n");
+                if !in_paragraph {
+                    in_paragraph = true;
+                    html.push_str("<p>") 
+                }
             },
             _ if in_task_list => {
                 in_task_list = false;
-                html.push_str("</ul>")
+                html.push_str("</ul>\n");
+                if !in_paragraph {
+                    in_paragraph = true;
+                    html.push_str("<p>") 
+                }
             },
             Token::BlockQuote(_, _) | Token::Newline if quote_level > 0 => {},
-            _ if quote_level > 0 => {
-                for _i in 0..quote_level {
-                        html.push_str("</blockquote>");
-                        quote_level-=1;
-                    }
-            },
             Token::CodeBlock(_, _) | Token::Newline | Token::Header(_, _, _) if in_paragraph => {
                 in_paragraph = false;
                 html.push_str("</p>")
             },
-            Token::Plaintext(_) | Token::Italic(_) | Token::Bold(_) | Token::BoldItalic(_) | Token::Strikethrough(_) if !in_paragraph => {
+            Token::Plaintext(_) | Token::Italic(_) | Token::Bold(_) | Token::BoldItalic(_) | Token::Strikethrough(_) | Token::Code(_) if !in_paragraph => {
+                for _i in 0..quote_level {
+                        html.push_str("</blockquote>");
+                        quote_level-=1;
+                }
                 in_paragraph = true;
                 html.push_str("<p>")
             },
@@ -165,10 +175,6 @@ pub fn parse(tokens: &[Token]) -> String {
         match token {
             Token::Plaintext(t) => {
                 if t.trim().is_empty() {continue}
-                if !in_paragraph {
-                    html.push_str("<p>");
-                    in_paragraph = true;
-                }
                 
                 // Handle references
                 if t.contains("[^") && t.contains("]") {
@@ -241,7 +247,8 @@ pub fn parse(tokens: &[Token]) -> String {
             Token::LineBreak => {html.push_str("<br>")},
             Token::HorizontalRule => {html.push_str("<hr />")},
             Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", sanitize_display_text(t)).as_str())},
-            Token::Code(t) => {html.push_str(format!("<code>{}</code>", sanitize_display_text(t)).as_str())},
+            Token::Code(t) => {
+                html.push_str(format!("<code>{}</code>", sanitize_display_text(t)).as_str())},
             Token::CodeBlock(t, lang) => {
                 html.push_str("<pre>");
                 match *lang {
