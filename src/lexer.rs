@@ -193,31 +193,36 @@ pub(crate) fn lex_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, 
 pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let leading_ticks = char_iter.consume_while_case_holds(&|c| c == "`").unwrap_or("");
-    let mut lang = "plaintext";
-    if leading_ticks.len() != 1 && leading_ticks.len() != 3{
-        return Err(ParseError{content: leading_ticks})
-    }
-    if leading_ticks.len() == 1 {
-        let s = char_iter.consume_while_case_holds(&|c| c != "`" && c!= "\n").unwrap_or("");
+    let mut lang = "";
+    if leading_ticks.len() == 3 {
+        if char_iter.next_if_eq("\n") != Some(&"\n") {
+            lang = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
+            char_iter.next();
+        }
+        let s = char_iter.consume_while_case_holds(&|c| c != "`").unwrap_or("");
         let trailing_ticks = char_iter.consume_while_case_holds(&|c| c == "`").unwrap_or("");
         if leading_ticks.len() != trailing_ticks.len() {
             return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")}) 
         } else {
-            return Ok(Token::Code(s))
+            return Ok(Token::CodeBlock(s, lang))
         }
     }
-    // leading_ticks.len() == 3. Check for lang
-    if char_iter.next_if_eq("\n") != Some(&"\n") {
-        lang = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
-        char_iter.next();
-    }
-    let s = char_iter.consume_while_case_holds(&|c| c != "`").unwrap_or("");
-    let trailing_ticks = char_iter.consume_while_case_holds(&|c| c == "`").unwrap_or("");
-    if leading_ticks.len() != trailing_ticks.len() {
+
+    // let s = char_iter.consume_while_case_holds(&|c| c != "`" && c!= "\n").unwrap_or("");
+    let tail = &(0..leading_ticks.len() as u64).map(|_| "`").collect::<String>();
+    let s = char_iter.consume_until_tail_is(tail).unwrap_or("");
+    if !s.ends_with(tail) {
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")}) 
     } else {
-        return Ok(Token::CodeBlock(s, lang))
+        let s = s.trim_end_matches(tail);
+        if s.starts_with(' ') && s.ends_with(' ') {
+            return Ok(Token::Code(s.trim_start_matches(' ').trim_end_matches(' ')))
+        }
+        return Ok(Token::Code(s))
     }
+
+    // leading_ticks.len() == 3. Check for lang
+
 }
 
 pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
