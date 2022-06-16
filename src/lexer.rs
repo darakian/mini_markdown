@@ -228,6 +228,14 @@ pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>
     }
 }
 
+pub(crate) fn lex_tabs<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+    match char_iter.consume_while_case_holds(&|c| c == "\t") {
+        Some(s) if s.len() > 1 => return Ok(Token::DoubleTab),
+        Some(s) if s.len() == 1 => return Ok(Token::Tab),
+        _ => return Err(ParseError{content: ""}),
+    }
+}
+
 pub(crate) fn lex_blockquotes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let right_arrows = char_iter.consume_while_case_holds(&|c| c == ">").unwrap_or("");
     match char_iter.next_if_eq(" ") {

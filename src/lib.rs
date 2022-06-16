@@ -56,6 +56,12 @@ pub fn lex(source: &str) -> Vec<Token>{
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
+            "\t" => {
+                match lex_tabs(&mut char_iter) {
+                    Ok(t) => tokens.push(t),
+                    Err(e) => push_str(&mut tokens, e.content),
+                }
+            },
             ">" => {
                 match lex_blockquotes(&mut char_iter) {
                     Ok(t) => {
@@ -227,6 +233,8 @@ pub fn parse(tokens: &[Token]) -> String {
                 html.push_str(format!("<li>{}</li>", sanitize_display_text(t)).as_str())
             },
             Token::Newline => {html.push('\n')},
+            Token::Tab => {html.push('\t')},
+            Token::DoubleTab => {html.push_str("\t\t")},
             Token::Italic(t) => {html.push_str(format!("<em>{}</em>", sanitize_display_text(t)).as_str())},
             Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", sanitize_display_text(t)).as_str())},
             Token::BoldItalic(t) => {html.push_str(format!("<strong><em>{}</em></strong>", sanitize_display_text(t)).as_str())},
