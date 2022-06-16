@@ -215,8 +215,9 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")}) 
     } else {
         let s = s.trim_end_matches(tail);
-        if s.starts_with(' ') && s.ends_with(' ') {
-            return Ok(Token::Code(s.trim_start_matches(' ').trim_end_matches(' ')))
+        if (s.starts_with([' ', '\n', '\r']) || s.starts_with("\r\n"))
+            && (s.ends_with([' ', '\n', '\r']) || s.ends_with("\r\n")) {
+            return Ok(Token::Code(&s[1..s.len()-1]))
         }
         return Ok(Token::Code(s))
     }
