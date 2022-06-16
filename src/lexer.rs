@@ -208,7 +208,6 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a
         }
     }
 
-    // let s = char_iter.consume_while_case_holds(&|c| c != "`" && c!= "\n").unwrap_or("");
     let tail = &(0..leading_ticks.len() as u64).map(|_| "`").collect::<String>();
     let s = char_iter.consume_until_tail_is(tail).unwrap_or("");
     if !s.ends_with(tail) {
@@ -216,14 +215,13 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a
     } else {
         let s = s.trim_end_matches(tail);
         if (s.starts_with([' ', '\n', '\r']) || s.starts_with("\r\n"))
-            && (s.ends_with([' ', '\n', '\r']) || s.ends_with("\r\n")) {
+            && (s.ends_with([' ', '\n', '\r']) || s.ends_with("\r\n")) 
+            && s.len() > 2{
+            println!(">> {:?}", s);    
             return Ok(Token::Code(&s[1..s.len()-1]))
         }
         return Ok(Token::Code(s))
     }
-
-    // leading_ticks.len() == 3. Check for lang
-
 }
 
 pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
