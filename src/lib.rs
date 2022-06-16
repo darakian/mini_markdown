@@ -267,7 +267,7 @@ pub fn parse(tokens: &[Token]) -> String {
                         sanitize_display_text(t)
                         ).as_str()),
                 };
-                html.push_str("</pre>");
+                html.push_str("</pre>\n");
             },
             Token::BlockQuote(l, t) => {
                 if in_paragraph {

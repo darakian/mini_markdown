@@ -235,10 +235,20 @@ pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>
 
 pub(crate) fn lex_tabs<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     match char_iter.consume_while_case_holds(&|c| c == "\t") {
-        Some(s) if s.len() > 1 => return Ok(Token::DoubleTab),
-        Some(s) if s.len() == 1 => return Ok(Token::Tab),
-        _ => return Err(ParseError{content: ""}),
+        None => return Err(ParseError{content: ""}),
+        Some(_s)  => {},
     }
+    let start_index = char_iter.get_index();
+    let line = char_iter.consume_until_tail_is("\n").unwrap_or("");
+    if char_iter.peek() == Some("\t") {
+        match lex_tabs(char_iter) {
+            Ok(Token::CodeBlock(_content, _lang)) => {
+                return Ok(Token::CodeBlock(char_iter.get_substring_from(start_index).unwrap_or(""),""))},
+            Ok(_) => return Err(ParseError{content: ""}), 
+            Err(e) => return Err(e),
+        }
+    }
+    return Ok(Token::CodeBlock(line, ""))
 }
 
 pub(crate) fn lex_blockquotes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
