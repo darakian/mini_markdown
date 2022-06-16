@@ -106,11 +106,12 @@ pub(crate) fn push_str<'a>(t: &mut Vec<Token>, s: &'a str) {
 
 pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let hashes = char_iter.consume_while_case_holds(&|c| c == "#").unwrap_or("");
-    if char_iter.next_if_eq(&" ").is_none(){
+    if char_iter.next_if_eq(&" ").is_none() && char_iter.next_if_eq(&"\t").is_none() {
         return Err(ParseError{content: hashes});
     }
     let level = std::cmp::min(6, hashes.len() as u8);
     let line = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
+    char_iter.next_if_eq(&"\n");
     if line.contains("{#") && 
         line.contains('}') {
             let (heading, _title) = line.split_once("{").unwrap_or(("",""));
@@ -208,21 +209,20 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a
         }
     }
 
-    // let s = char_iter.consume_while_case_holds(&|c| c != "`" && c!= "\n").unwrap_or("");
     let tail = &(0..leading_ticks.len() as u64).map(|_| "`").collect::<String>();
     let s = char_iter.consume_until_tail_is(tail).unwrap_or("");
     if !s.ends_with(tail) {
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")}) 
     } else {
         let s = s.trim_end_matches(tail);
-        if s.starts_with(' ') && s.ends_with(' ') {
-            return Ok(Token::Code(s.trim_start_matches(' ').trim_end_matches(' ')))
+        if (s.starts_with([' ', '\n', '\r']) || s.starts_with("\r\n"))
+            && (s.ends_with([' ', '\n', '\r']) || s.ends_with("\r\n")) 
+            && s.len() > 2{
+            println!(">> {:?}", s);    
+            return Ok(Token::Code(&s[1..s.len()-1]))
         }
         return Ok(Token::Code(s))
     }
-
-    // leading_ticks.len() == 3. Check for lang
-
 }
 
 pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {

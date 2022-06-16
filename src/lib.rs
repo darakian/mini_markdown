@@ -175,6 +175,7 @@ pub fn parse(tokens: &[Token]) -> String {
         match token {
             Token::Plaintext(t) => {
                 if t.trim().is_empty() {continue}
+                let t = t.trim_end_matches("\n").trim_end_matches("\r\n").trim_end_matches("\r");
                 
                 // Handle references
                 if t.contains("[^") && t.contains("]") {
@@ -197,17 +198,21 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
             },
             Token::Header(l, t, lbl) => {
-                let mut id;
                 match lbl {
-                    Some(_t) => id = lbl.unwrap().to_string(),
-                    None => id = t.to_string(),
+                    Some(id) => {
+                        let mut id = id.replace(" ", "-");
+                        id.make_ascii_lowercase();
+                        html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", 
+                        level=l, 
+                        text=sanitize_display_text(t), 
+                        id=sanitize_display_text(&id)).as_str())
+                    }
+                    None => {
+                        html.push_str(format!("<h{level}>{text}</h{level}>\n", 
+                            level=l, 
+                            text=sanitize_display_text(t)).as_str())
+                    },
                 };
-                id.make_ascii_lowercase();
-                html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", 
-                    level=l, 
-                    text=sanitize_display_text(t), 
-                    id=sanitize_display_text(&id.replace(" ", "-")))
-                .as_str())
             },
             Token::TaskListItem(c,t) => {
                 if in_task_list == false {
@@ -248,7 +253,10 @@ pub fn parse(tokens: &[Token]) -> String {
             Token::HorizontalRule => {html.push_str("<hr />")},
             Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", sanitize_display_text(t)).as_str())},
             Token::Code(t) => {
-                html.push_str(format!("<code>{}</code>", sanitize_display_text(t)).as_str())},
+                let t = t.replace("\n", " ")
+                    .replace("\r", " ")
+                    .replace("\r\n", " ");
+                html.push_str(format!("<code>{}</code>", sanitize_display_text(&t)).as_str())},
             Token::CodeBlock(t, lang) => {
                 html.push_str("<pre>");
                 match *lang {
@@ -407,7 +415,6 @@ pub(crate) fn sanitize_display_text(source: &str) -> String {
         .replace('{', "&lbrace;")
         .replace('}', "&rbrace;")
         .replace('|', "&mid;")
-        .replace('\\', "&backslash;")
         .replace('~', "&tilde;")
         .replace(')', "&#41;")
         .replace('(', "&#40;")
