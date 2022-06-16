@@ -111,6 +111,7 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>,
     }
     let level = std::cmp::min(6, hashes.len() as u8);
     let line = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
+    char_iter.next_if_eq(&"\n");
     if line.contains("{#") && 
         line.contains('}') {
             let (heading, _title) = line.split_once("{").unwrap_or(("",""));
