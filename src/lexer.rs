@@ -239,7 +239,7 @@ pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
     let whitespace = char_iter.consume_while_case_holds(&|c| c == "\t" || c == " ");
     match whitespace {
         None => return Err(ParseError{content: ""}),
-        Some(s) if (s.len() == 1 || s.len() == 2 || s.len() == 3) && !s.contains("\t")  => return Err(ParseError{content: s}),
+        Some(s) if (1..=3).contains(s.len()) && !s.contains("\t")  => return Err(ParseError{content: s}),
         Some(s) if s.len() >= 2 && 
                 !s.contains("\t") && 
                 char_iter.peek() == Some("\n")  => return Ok(Token::LineBreak),
