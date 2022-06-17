@@ -38,8 +38,8 @@ pub fn lex(source: &str) -> Vec<Token>{
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            " " => {
-                match lex_spaces(&mut char_iter) {
+            " " | "\t" => {
+                match lex_tabs_spaces(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
@@ -52,12 +52,6 @@ pub fn lex(source: &str) -> Vec<Token>{
             },
             "\n" => {
                 match lex_newlines(&mut char_iter) {
-                    Ok(t) => tokens.push(t),
-                    Err(e) => push_str(&mut tokens, e.content),
-                }
-            },
-            "\t" => {
-                match lex_tabs(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
@@ -258,13 +252,14 @@ pub fn parse(tokens: &[Token]) -> String {
                     .replace("\r\n", " ");
                 html.push_str(format!("<code>{}</code>", sanitize_display_text(&t)).as_str())},
             Token::CodeBlock(t, lang) => {
+                let t = t.replace("\n\t", "\n");
                 html.push_str("<pre>");
                 match *lang {
-                    "" => html.push_str(format!("<code>{}</code>", sanitize_display_text(t)).as_str()),
+                    "" => html.push_str(format!("<code>{}</code>", sanitize_display_text(&t)).as_str()),
                     _ => html.push_str(format!(
                         "<div class=\"language-{} highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>{}</code></div></div>",
                         sanitize_display_text(lang), 
-                        sanitize_display_text(t)
+                        sanitize_display_text(&t)
                         ).as_str()),
                 };
                 html.push_str("</pre>\n");

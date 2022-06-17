@@ -172,24 +172,6 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
     }
 }
 
-pub(crate) fn lex_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>>{
-    let spaces = char_iter.consume_while_case_holds(&|c| c == " ").unwrap_or("");
-    // Case 1: space in text => return char
-    if spaces.len() == 1 {
-        return Err(ParseError{content: spaces})
-    }
-    // Case 2: two or more spaces followed by \n => line break
-    if char_iter.next_if_eq("\n").is_some() {
-        return Ok(Token::LineBreak);
-    }
-    // Case 3: Tokenize for parser
-    match spaces.len(){
-        4 => return Ok(Token::Tab),
-        8 => return Ok(Token::DoubleTab),
-        _ => {}
-    }
-    Err(ParseError{content: spaces})
-}
 
 pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
@@ -233,15 +215,42 @@ pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>
     }
 }
 
-pub(crate) fn lex_tabs<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
-    match char_iter.consume_while_case_holds(&|c| c == "\t") {
+// pub(crate) fn lex_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>>{
+//     let spaces = char_iter.consume_while_case_holds(&|c| c == " ").unwrap_or("");
+//     // Case 1: space in text => return char
+//     if spaces.len() == 1 {
+//         return Err(ParseError{content: spaces})
+//     }
+//     // Case 2: two or more spaces followed by \n => line break
+//     if char_iter.next_if_eq("\n").is_some() {
+//         return Ok(Token::LineBreak);
+//     }
+//     // Case 3: Tokenize for parser
+//     match spaces.len(){
+//         >=4 => return Ok(
+//             // Do the tab parse as 4 spaces == tab
+//             ),
+//         _ => {}
+//     }
+//     Err(ParseError{content: spaces})
+// }
+
+pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+    let whitespace = char_iter.consume_while_case_holds(&|c| c == "\t" || c == " ");
+    match whitespace {
         None => return Err(ParseError{content: ""}),
-        Some(_s)  => {},
+        Some(s) if s.len() == 1 && s.contains(" ")  => {return Err(ParseError{content: s})},
+        Some(s) if s.len() >= 2 && 
+                s.contains(" ") && 
+                !s.contains("\t") && 
+                char_iter.peek() == Some("\n")  => {return Ok(Token::LineBreak);},
+        Some(_s) => {}
     }
+    let whitespace = whitespace.unwrap_or("");
     let start_index = char_iter.get_index();
     let line = char_iter.consume_until_tail_is("\n").unwrap_or("");
     if char_iter.peek() == Some("\t") {
-        match lex_tabs(char_iter) {
+        match lex_tabs_spaces(char_iter) {
             Ok(Token::CodeBlock(_content, _lang)) => {
                 return Ok(Token::CodeBlock(char_iter.get_substring_from(start_index).unwrap_or(""),""))},
             Ok(_) => return Err(ParseError{content: ""}), 
