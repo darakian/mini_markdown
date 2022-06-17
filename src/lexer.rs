@@ -239,12 +239,11 @@ pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
     let whitespace = char_iter.consume_while_case_holds(&|c| c == "\t" || c == " ");
     match whitespace {
         None => return Err(ParseError{content: ""}),
-        Some(s) if s.len() == 1 && s.contains(" ")  => {return Err(ParseError{content: s})},
+        Some(s) if (s.len() == 1 || s.len() == 2 || s.len() == 3) && !s.contains("\t")  => return Err(ParseError{content: s}),
         Some(s) if s.len() >= 2 && 
-                s.contains(" ") && 
                 !s.contains("\t") && 
-                char_iter.peek() == Some("\n")  => {return Ok(Token::LineBreak);},
-        Some(_s) => {}
+                char_iter.peek() == Some("\n")  => return Ok(Token::LineBreak),
+        Some(_s) => {},
     }
     let whitespace = whitespace.unwrap_or("");
     let start_index = char_iter.get_index();
