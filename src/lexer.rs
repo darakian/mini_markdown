@@ -261,9 +261,8 @@ pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
 
 pub(crate) fn lex_blockquotes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let right_arrows = char_iter.consume_while_case_holds(&|c| c == ">").unwrap_or("");
-    match char_iter.next_if_eq(" ") {
-        Some(" ") => {},
-        _ => {return Err(ParseError{content: right_arrows})}
+    if char_iter.peek() != Some(" ") && char_iter.peek() != Some("\t") {
+        return Err(ParseError{content: right_arrows})
     }
     let s = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
     char_iter.next_if_eq(&"\n");
