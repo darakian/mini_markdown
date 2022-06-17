@@ -252,7 +252,7 @@ pub fn parse(tokens: &[Token]) -> String {
                     .replace("\r\n", " ");
                 html.push_str(format!("<code>{}</code>", sanitize_display_text(&t)).as_str())},
             Token::CodeBlock(t, lang) => {
-                let t = t.replace("\n\t", "\n");
+                let t = t.replace("\n\t", "\n").replace("\n    ", "\n");
                 html.push_str("<pre>");
                 match *lang {
                     "" => html.push_str(format!("<code>{}</code>", sanitize_display_text(&t)).as_str()),

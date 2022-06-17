@@ -249,12 +249,12 @@ pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
     let whitespace = whitespace.unwrap_or("");
     let start_index = char_iter.get_index();
     let line = char_iter.consume_until_tail_is("\n").unwrap_or("");
-    if char_iter.peek() == Some("\t") {
+    if char_iter.peek() == Some("\t") || char_iter.peek() ==  Some(" ") {
         match lex_tabs_spaces(char_iter) {
             Ok(Token::CodeBlock(_content, _lang)) => {
                 return Ok(Token::CodeBlock(char_iter.get_substring_from(start_index).unwrap_or(""),""))},
-            Ok(_) => return Err(ParseError{content: ""}), 
             Err(e) => return Err(e),
+            Ok(_) => return Err(ParseError{content: ""}), 
         }
     }
     return Ok(Token::CodeBlock(line, ""))
