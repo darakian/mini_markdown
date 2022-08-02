@@ -2,21 +2,21 @@ use crate::MiniIter;
 
 /// Tokens are the intermediate representation format in the markdown to html conversion
 #[derive(Debug, PartialEq)]
-pub enum Token<'a> {
+pub enum Token {
     /// String: Body of unstructured text
     Plaintext(String),
     /// u8: Header level (1..=6). str: Header text. Option<str>: html label
-    Header(u8, &'a str, Option<&'a str>),
+    Header(u8, String, Option<String>),
     /// str: Text for list entry
-    UnorderedListEntry(&'a str),
+    UnorderedListEntry(String),
     /// str: Text for list entry
-    OrderedListEntry(&'a str),
+    OrderedListEntry(String),
     /// str: Text to be italicized
-    Italic(&'a str),
+    Italic(String),
     /// str: Text to be bolded
-    Bold(&'a str),
+    Bold(String),
     /// str: Text to be bolded and italicized
-    BoldItalic(&'a str),
+    BoldItalic(String),
     /// Corresponds to a </br> html tag
     LineBreak,
     /// Corresponds to a newline character
@@ -28,25 +28,25 @@ pub enum Token<'a> {
     /// Used for control flow. Not directly rendered
     DoubleTab,
     /// str: Text to be struck through
-    Strikethrough(&'a str),
+    Strikethrough(String),
     /// str: Text to be placed within an inline code tag. eg. <code>str</code>
-    Code(&'a str),
+    Code(String),
     /// First str: Text to be placed within a multi-line code tag. Second str: Language
-    CodeBlock(&'a str, &'a str),
+    CodeBlock(String, String),
     /// u8: Block quote level. str: Block quote text
-    BlockQuote(u8, &'a str),
+    BlockQuote(u8, String),
     /// str: Link. Option<str>: Title for link.
-    Image(&'a str, Option<&'a str>),
+    Image(String, Option<String>),
     /// str: Link. First Option<str>: Title for link. Second Option<str>: Hover text
-    Link(&'a str, Option<&'a str>, Option<&'a str>),
+    Link(String, Option<String>, Option<String>),
     /// str: Summary. Vec<Token>: Tokens to be rendered in the collapsable section
-    Detail(&'a str, Vec<Token<'a>>),
+    Detail(String, Vec<Token>),
     /// Tuple of Vec<(Alignment, str)>: Which defines the table header and Vec<Vec<(Alignment, Vec<Token>)>> which defines the rows
-    Table(Vec<(Alignment, &'a str)>, Vec<Vec<(Alignment, Vec<Token<'a>>)>>),
+    Table(Vec<(Alignment, String)>, Vec<Vec<(Alignment, Vec<Token>)>>),
     /// TaskBox: Boolean state of the checked or unchecked box. str: List item text
-    TaskListItem(TaskBox, &'a str),
+    TaskListItem(TaskBox, String),
     /// First str: Reference id. Second str: Reference text
-    Footnote(&'a str, &'a str),
+    Footnote(String, String),
 }
 
 /// Holds the possible states of a taskbox in a task list
@@ -56,7 +56,7 @@ pub enum TaskBox {
     Unchecked,
 }
 
-impl <'a> Token<'a> {
+impl Token{
     fn is_usable_in_table(&self) -> bool {
         match self {
             Token::Code(_) => true,
@@ -104,7 +104,7 @@ pub(crate) fn push_str<'a>(t: &mut Vec<Token>, s: &'a str) {
     }
 }
 
-pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     let hashes = char_iter.consume_while_case_holds(&|c| c == "#").unwrap_or("");
     if char_iter.next_if_eq(&" ").is_none(){
         return Err(ParseError{content: hashes});
@@ -117,18 +117,18 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>,
             let line = line.strip_prefix(&heading).unwrap()
                             .strip_prefix("{#").unwrap()
                             .strip_suffix("}").unwrap();
-            return Ok(Token::Header(level, heading.trim(), Some(line)));
+            return Ok(Token::Header(level, heading.trim().to_string(), Some(line.to_string())));
         }
-    return Ok(Token::Header(level, line, None));
+    return Ok(Token::Header(level, line.to_string(), None));
 }
 
-pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let asterunds = char_iter.consume_while_case_holds(&|c| c == "*" || c == "_").unwrap_or("");
     if asterunds.len() == 1 && char_iter.next_if_eq(&" ").is_some(){
         let s = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
         char_iter.next();
-        return Ok(Token::UnorderedListEntry(s))
+        return Ok(Token::UnorderedListEntry(s.to_string()))
     }
     if asterunds.chars().all(|x| x == '*') && char_iter.peek() == Some(&"\n"){
         return Ok(Token::HorizontalRule)
@@ -138,7 +138,7 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
             let s = char_iter.consume_while_case_holds(&|c| c != "*" && c != "_").unwrap_or("");
             if char_iter.peek() != Some("*") || char_iter.peek() != Some(&"_"){
                 char_iter.next();
-                return Ok(Token::Italic(s))
+                return Ok(Token::Italic(s.to_string()))
             } else {
                 return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")});
             }
@@ -147,7 +147,7 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
             let s = char_iter.consume_while_case_holds(&|c| c != "*" && c != "_").unwrap_or("");
             let trailing_astunds = char_iter.consume_while_case_holds(&|c| c == "*" || c == "_").unwrap_or("");
             if trailing_astunds.len() == 2 {
-                return Ok(Token::Bold(s))
+                return Ok(Token::Bold(s.to_string()))
             } else {
                 return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")});
             }
@@ -156,7 +156,7 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
             let s = char_iter.consume_while_case_holds(&|c| c != "*" && c != "_").unwrap_or("");
             let trailing_astunds = char_iter.consume_while_case_holds(&|c| c == "*" || c == "_").unwrap_or("");
             if trailing_astunds.len() == 3 {
-                return Ok(Token::BoldItalic(s))
+                return Ok(Token::BoldItalic(s.to_string()))
             } else {
                 return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")});
             }
@@ -171,7 +171,7 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
     }
 }
 
-pub(crate) fn lex_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>>{
+pub(crate) fn lex_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>>{
     let spaces = char_iter.consume_while_case_holds(&|c| c == " ").unwrap_or("");
     // Case 1: space in text => return char
     if spaces.len() == 1 {
@@ -190,7 +190,7 @@ pub(crate) fn lex_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, 
     Err(ParseError{content: spaces})
 }
 
-pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let leading_ticks = char_iter.consume_while_case_holds(&|c| c == "`").unwrap_or("");
     let mut lang = "";
@@ -204,7 +204,7 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a
         if leading_ticks.len() != trailing_ticks.len() {
             return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")}) 
         } else {
-            return Ok(Token::CodeBlock(s, lang))
+            return Ok(Token::CodeBlock(s.to_string(), lang.to_string()))
         }
     }
 
@@ -216,16 +216,16 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a
     } else {
         let s = s.trim_end_matches(tail);
         if s.starts_with(' ') && s.ends_with(' ') {
-            return Ok(Token::Code(s.trim_start_matches(' ').trim_end_matches(' ')))
+            return Ok(Token::Code(s.trim_start_matches(' ').trim_end_matches(' ').to_string()))
         }
-        return Ok(Token::Code(s))
+        return Ok(Token::Code(s.to_string()))
     }
 
     // leading_ticks.len() == 3. Check for lang
 
 }
 
-pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     match char_iter.consume_while_case_holds(&|c| c == "\n") {
         Some(s) if s.len() >= 1 => return Ok(Token::Newline),
         Some(s) if s.len() < 1 => return Err(ParseError{content: s}),
@@ -233,7 +233,7 @@ pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>
     }
 }
 
-pub(crate) fn lex_tabs<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+pub(crate) fn lex_tabs<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     match char_iter.consume_while_case_holds(&|c| c == "\t") {
         Some(s) if s.len() > 1 => return Ok(Token::DoubleTab),
         Some(s) if s.len() == 1 => return Ok(Token::Tab),
@@ -241,7 +241,7 @@ pub(crate) fn lex_tabs<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, Pa
     }
 }
 
-pub(crate) fn lex_blockquotes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+pub(crate) fn lex_blockquotes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     let right_arrows = char_iter.consume_while_case_holds(&|c| c == ">").unwrap_or("");
     match char_iter.next_if_eq(" ") {
         Some(" ") => {},
@@ -249,10 +249,10 @@ pub(crate) fn lex_blockquotes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
     }
     let s = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
     char_iter.next_if_eq(&"\n");
-    Ok(Token::BlockQuote(right_arrows.len() as u8, s))
+    Ok(Token::BlockQuote(right_arrows.len() as u8, s.to_string()))
 }
 
-pub(crate) fn lex_images<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+pub(crate) fn lex_images<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     let start_index = char_iter.get_index();
     if char_iter.next_if_eq("!") != Some(&"!"){
         return Err(ParseError{content: ""})
@@ -265,7 +265,7 @@ pub(crate) fn lex_images<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, 
     }
 }
 
-pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     let start_index = char_iter.get_index();
     if char_iter.next_if_eq("[") != Some(&"[") {
         return Err(ParseError{content: ""})
@@ -300,7 +300,7 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
         if ref_id.contains(char::is_whitespace){
             return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
         }
-        return Ok(Token::Footnote(ref_id, char_iter.get_substring_from(note_index).unwrap_or("").trim()));
+        return Ok(Token::Footnote(ref_id.to_string(), char_iter.get_substring_from(note_index).unwrap_or("").trim().to_string()));
     }
     if char_iter.next_if_eq("(") != Some(&"(") {
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
@@ -310,17 +310,17 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
     }
     if char_iter.next_if_eq(")") == Some(&")") {
-        return Ok(Token::Link(link, Some(title), None));
+        return Ok(Token::Link(link.to_string(), Some(title.to_string()), None));
     }
     if char_iter.peek() == Some(&" ") {
         let hover = char_iter.consume_while_case_holds(&|c| c != ")").unwrap_or("");
         char_iter.skip_while(|c| c != &"\n").next();
-        return Ok(Token::Link(link, Some(title), Some(hover)));
+        return Ok(Token::Link(link.to_string(), Some(title.to_string()), Some(hover.to_string())));
     }
     Err(ParseError{content: ""})
 }
 
-pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     match char_iter.next_if_eq("<") {
         Some("<") => {
             let s = char_iter.consume_while_case_holds(&|c| c != ">").unwrap_or("");
@@ -332,7 +332,7 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
                     }
                     return parse_details(char_iter)
                 },
-                (_, Some(">")) => return Ok(Token::Link(s, None, None)),
+                (_, Some(">")) => return Ok(Token::Link(s.to_string(), None, None)),
                 (_, _) => return Err(ParseError{content: s}),
             }
         }
@@ -340,7 +340,7 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
     }
 }
 
-pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let s = char_iter.consume_while_case_holds(&|c| c == "-" || c == "+").unwrap_or("");
     match s.len() {
@@ -350,13 +350,13 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'
         _ => {return Err(ParseError{content: "string length error"})},
     }
     let line = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
-    if line.starts_with(" [ ] "){return Ok(Token::TaskListItem(TaskBox::Unchecked, &line[5..]))}
-    else if line.starts_with(" [x] ") || line.starts_with(" [X] "){return Ok(Token::TaskListItem(TaskBox::Checked, &line[5..]))}
-    else if line.starts_with(" "){return Ok(Token::UnorderedListEntry(&line[1..]))}
+    if line.starts_with(" [ ] "){return Ok(Token::TaskListItem(TaskBox::Unchecked, line[5..].to_string()))}
+    else if line.starts_with(" [x] ") || line.starts_with(" [X] "){return Ok(Token::TaskListItem(TaskBox::Checked, line[5..].to_string()))}
+    else if line.starts_with(" "){return Ok(Token::UnorderedListEntry(line[1..].to_string()))}
     else {return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})}
 }
 
-pub(crate) fn lex_numbers<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+pub(crate) fn lex_numbers<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let c = char_iter.next().unwrap();
     match char_iter.next_if_eq(".") {
@@ -365,13 +365,13 @@ pub(crate) fn lex_numbers<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>,
                 return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
             }
             let s = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
-            return Ok(Token::OrderedListEntry(s))
+            return Ok(Token::OrderedListEntry(s.to_string()))
         },
         _ => return Err(ParseError{content: c})
     }
 }
 
-pub(crate) fn lex_tilde<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+pub(crate) fn lex_tilde<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let lead_tildes = match char_iter.consume_while_case_holds(&|s| s == "~") {
         Some(s) => s,
@@ -385,13 +385,13 @@ pub(crate) fn lex_tilde<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
             if lead_tildes.len() != tail_tildes.len() {
                 return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
             }
-            return Ok(Token::Strikethrough(line));
+            return Ok(Token::Strikethrough(line.to_string()));
         }
         _ => return Err(ParseError{content: lead_tildes}),
     }
 }
 
-fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>>{
+fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>>{
     let mut summary_line = char_iter.consume_while_case_holds(&|c| c != "\n" && c != "\r").unwrap_or("");
     char_iter.next_if_eq("\r");
     if (!summary_line.starts_with("<summary>") || !summary_line.ends_with("</summary>")) && !summary_line.len() >= 20 {
@@ -412,10 +412,10 @@ fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseErr
         }
     }
     let inner_tokens = crate::lex(remaining_text.strip_suffix("</details>").unwrap_or(""));
-    Ok(Token::Detail(summary_line, inner_tokens))
+    Ok(Token::Detail(summary_line.to_string(), inner_tokens))
 }
 
-pub(crate) fn lex_pipes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+pub(crate) fn lex_pipes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let mut lines = Vec::new();
     while char_iter.next_if_eq(&"|") == Some("|") {
@@ -430,7 +430,7 @@ pub(crate) fn lex_pipes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, P
     }
     let headings: Vec<_> = lines.remove(0).split("|")
         .filter(|&x| x != "")
-        .map(|x| x.trim())
+        .map(|x| x.trim().to_string())
         .collect();
     let alignments: Vec<_> = lines.remove(0).split("|")
         .filter(|&x| x != "")

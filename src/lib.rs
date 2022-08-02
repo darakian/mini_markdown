@@ -197,12 +197,10 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
             },
             Token::Header(l, t, lbl) => {
-                let mut id;
-                match lbl {
-                    Some(_t) => id = lbl.unwrap().to_string(),
-                    None => id = t.to_string(),
+                let id = match lbl {
+                    Some(text) => text.to_ascii_lowercase(),
+                    None => t.to_ascii_lowercase(),
                 };
-                id.make_ascii_lowercase();
                 html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", 
                     level=l, 
                     text=sanitize_display_text(t), 
@@ -251,7 +249,7 @@ pub fn parse(tokens: &[Token]) -> String {
                 html.push_str(format!("<code>{}</code>", sanitize_display_text(t)).as_str())},
             Token::CodeBlock(t, lang) => {
                 html.push_str("<pre>");
-                match *lang {
+                match lang.as_str() {
                     "" => html.push_str(format!("<code>{}</code>", sanitize_display_text(t)).as_str()),
                     _ => html.push_str(format!(
                         "<div class=\"language-{} highlighter-rouge\"><div class=\"highlight\"><pre class=\"highlight\"><code>{}</code></div></div>",
