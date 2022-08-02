@@ -124,11 +124,9 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
                 .strip_suffix("</p>\n").unwrap_or("").trim().to_string();
             return Ok(Token::Header(hashes.len(), heading.trim().to_string(), Some(parsed_line)));
         }
-    println!(">? {:?}", line);
     let parsed_line = crate::render(line)
         .strip_prefix("<p>").unwrap_or("")
         .strip_suffix("</p>\n").unwrap_or("").trim().to_string();
-    println!(">? {:?}", parsed_line);     
     return Ok(Token::Header(hashes.len(), parsed_line, None));
 }
 
