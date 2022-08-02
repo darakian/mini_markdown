@@ -124,9 +124,11 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
                 .strip_suffix("</p>\n").unwrap_or("").trim().to_string();
             return Ok(Token::Header(hashes.len(), heading.trim().to_string(), Some(parsed_line)));
         }
+    println!(">? {:?}", line);
     let parsed_line = crate::render(line)
         .strip_prefix("<p>").unwrap_or("")
         .strip_suffix("</p>\n").unwrap_or("").trim().to_string();
+    println!(">? {:?}", parsed_line);     
     return Ok(Token::Header(hashes.len(), parsed_line, None));
 }
 
@@ -180,6 +182,7 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
 }
 
 pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+    let start_index = char_iter.get_index();
     let whitespace = char_iter.consume_while_case_holds(&|c| c == "\t" || c == " ");
     match whitespace {
         None => return Err(ParseError{content: ""}),
@@ -190,7 +193,6 @@ pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token,
         Some(_s) => {},
     }
     let whitespace = whitespace.unwrap_or("");
-    let start_index = char_iter.get_index();
     let line = char_iter.consume_until_tail_is("\n").unwrap_or("").to_string();
     if char_iter.peek() == Some("\t") || char_iter.peek() ==  Some(" ") {
         match lex_tabs_spaces(char_iter) {
@@ -200,7 +202,7 @@ pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token,
             Ok(_) => return Err(ParseError{content: ""}), 
         }
     }
-    return Ok(Token::CodeBlock(line, "".to_string()))
+    return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
 }
 
 pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
