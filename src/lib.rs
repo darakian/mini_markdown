@@ -103,7 +103,10 @@ pub fn lex(source: &str) -> Vec<Token>{
             // Parse "\" to escape a markdown control character
             "\\" => {
                 char_iter.next();
-                if char_iter.peek().is_some(){
+                if char_iter.peek() == Some(&"#"){
+                    let hashes = char_iter.consume_while_case_holds(&|c| c == "#").unwrap_or("");
+                    push_str(&mut tokens, hashes);
+                } else if char_iter.peek().is_some(){
                     push_str(&mut tokens, char_iter.next().unwrap());
                 }
             }
