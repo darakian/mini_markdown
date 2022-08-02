@@ -7,13 +7,13 @@ use mini_markdown::lexer::Token;
 fn test_simple_render() {
     let mut tests = Vec::new();
     tests.extend(vec![
-        ("# Heading level 1", "<h1 id=\"heading-level-1\">Heading level 1</h1>\n"),
-        ("## Heading level 2", "<h2 id=\"heading-level-2\">Heading level 2</h2>\n"),
-        ("### Heading level 3", "<h3 id=\"heading-level-3\">Heading level 3</h3>\n"),
-        ("#### Heading level 4", "<h4 id=\"heading-level-4\">Heading level 4</h4>\n"),
-        ("##### Heading level 5", "<h5 id=\"heading-level-5\">Heading level 5</h5>\n"),
-        ("###### Heading level 6", "<h6 id=\"heading-level-6\">Heading level 6</h6>\n"),
-        ("####### Invalid Heading level 7", "<h6 id=\"invalid-heading-level-7\">Invalid Heading level 7</h6>\n"),
+        ("# Heading level 1", "<h1>Heading level 1</h1>"),
+        ("## Heading level 2", "<h2>Heading level 2</h2>"),
+        ("### Heading level 3", "<h3>Heading level 3</h3>"),
+        ("#### Heading level 4", "<h4>Heading level 4</h4>"),
+        ("##### Heading level 5", "<h5>Heading level 5</h5>"),
+        ("###### Heading level 6", "<h6>Heading level 6</h6>"),
+        ("####### Invalid Heading level 7", "<h6>Invalid Heading level 7</h6>"),
         ("Some text _with italics_ in the same paragraph\n", "<p>Some text <em>with italics</em> in the same paragraph</p>\n"),
         ("Some text! With exclamations!", "<p>Some text! With exclamations!</p>\n"),
 
@@ -205,9 +205,9 @@ fn test_paragraphs(){
     let mut tests = Vec::new();
     tests.extend(vec![
         ("Paragraph 1.\n\n```\nBlock text should end a paragraph.\n```\n\nThis is paragraph two.\n\n## Heading\n\nParagraph the third.",
-        "<p>Paragraph 1.</p>\n<pre><code>Block text should end a paragraph.\n</code></pre>\n<p>This is paragraph two.</p>\n<h2 id=\"heading\">Heading</h2>\n\n<p>Paragraph the third.</p>\n"),
+        "<p>Paragraph 1.</p>\n<pre><code>Block text should end a paragraph.\n</code></pre>\n<p>This is paragraph two.</p>\n<h2>Heading</h2>\n<p>Paragraph the third.</p>\n"),
         ("# Post title\nSection text\n# Second section\nGood content",
-        "<h1 id=\"post-title\">Post title</h1>\n\n<p>Section text</p>\n<h1 id=\"second-section\">Second section</h1>\n\n<p>Good content</p>\n")
+        "<h1>Post title</h1>\n<p>Section text</p>\n<h1>Second section</h1>\n<p>Good content</p>\n")
     ]);
 
     for test in tests.iter(){

@@ -197,15 +197,17 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
             },
             Token::Header(l, t, lbl) => {
-                let id = match lbl {
-                    Some(text) => text.to_ascii_lowercase(),
-                    None => t.to_ascii_lowercase(),
+                match lbl {
+                    Some(lbl_text) => html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>", 
+                        level=l, 
+                        text=sanitize_display_text(t), 
+                        id=sanitize_display_text(&lbl_text.replace(" ", "-")))
+                        .as_str()),
+                    None => html.push_str(format!("<h{level}>{text}</h{level}>", 
+                        level=l, 
+                        text=sanitize_display_text(t))
+                        .as_str()),
                 };
-                html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", 
-                    level=l, 
-                    text=sanitize_display_text(t), 
-                    id=sanitize_display_text(&id.replace(" ", "-")))
-                .as_str())
             },
             Token::TaskListItem(c,t) => {
                 if in_task_list == false {
