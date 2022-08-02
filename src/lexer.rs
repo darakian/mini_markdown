@@ -6,7 +6,7 @@ pub enum Token {
     /// String: Body of unstructured text
     Plaintext(String),
     /// u8: Header level (1..=6). str: Header text. Option<str>: html label
-    Header(u8, String, Option<String>),
+    Header(usize, String, Option<String>),
     /// str: Text for list entry
     UnorderedListEntry(String),
     /// str: Text for list entry
@@ -109,6 +109,9 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
     if char_iter.next_if_eq(&" ").is_none(){
         return Err(ParseError{content: hashes});
     }
+    if hashes.len() > 6 {
+        return Err(ParseError{content: hashes});
+    }
     let level = std::cmp::min(6, hashes.len() as u8);
     let line = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
     if line.contains("{#") && 
@@ -117,9 +120,9 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
             let line = line.strip_prefix(&heading).unwrap()
                             .strip_prefix("{#").unwrap()
                             .strip_suffix("}").unwrap();
-            return Ok(Token::Header(level, heading.trim().to_string(), Some(line.to_string())));
+            return Ok(Token::Header(hashes.len(), heading.trim().to_string(), Some(line.to_string())));
         }
-    return Ok(Token::Header(level, line.to_string(), None));
+    return Ok(Token::Header(hashes.len(), line.to_string(), None));
 }
 
 pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
