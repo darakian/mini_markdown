@@ -106,10 +106,10 @@ pub(crate) fn push_str<'a>(t: &mut Vec<Token>, s: &'a str) {
 
 pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     let hashes = char_iter.consume_while_case_holds(&|c| c == "#").unwrap_or("");
-    if char_iter.next_if_eq(&" ").is_none(){
+    if hashes.len() > 6 {
         return Err(ParseError{content: hashes});
     }
-    if hashes.len() > 6 {
+    if char_iter.next_if_eq(&" ").is_none(){
         return Err(ParseError{content: hashes});
     }
     let level = std::cmp::min(6, hashes.len() as u8);
