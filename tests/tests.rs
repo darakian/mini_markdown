@@ -1,5 +1,5 @@
 mod commonmark {
-	// mod atx_headings;
+	mod atx_headings;
 	// mod autolinks;
 	// mod backslash_escapes;
 	// mod blank_lines;
