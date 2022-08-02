@@ -38,8 +38,8 @@ pub fn lex(source: &str) -> Vec<Token>{
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            " " => {
-                match lex_spaces(&mut char_iter) {
+            " " | "\t" => {
+                match lex_tabs_spaces(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
@@ -52,12 +52,6 @@ pub fn lex(source: &str) -> Vec<Token>{
             },
             "\n" => {
                 match lex_newlines(&mut char_iter) {
-                    Ok(t) => tokens.push(t),
-                    Err(e) => push_str(&mut tokens, e.content),
-                }
-            },
-            "\t" => {
-                match lex_tabs(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
