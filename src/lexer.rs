@@ -112,7 +112,6 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
     if char_iter.next_if_eq(&" ").is_none() && char_iter.next_if_eq(&"\t").is_none(){
         return Err(ParseError{content: hashes});
     }
-    let level = std::cmp::min(6, hashes.len() as u8);
     let line = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
     if line.contains("{#") && 
         line.contains('}') {
@@ -122,7 +121,10 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
                             .strip_suffix("}").unwrap();
             return Ok(Token::Header(hashes.len(), heading.trim().to_string(), Some(line.to_string())));
         }
-    return Ok(Token::Header(hashes.len(), line.to_string(), None));
+    let parsed_line = crate::render(line)
+        .strip_prefix("<p>").unwrap_or("")
+        .strip_suffix("</p>\n").unwrap_or("").to_string();
+    return Ok(Token::Header(hashes.len(), parsed_line, None));
 }
 
 pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {

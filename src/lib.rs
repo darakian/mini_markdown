@@ -203,12 +203,12 @@ pub fn parse(tokens: &[Token]) -> String {
                 match lbl {
                     Some(lbl_text) => html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>", 
                         level=l, 
-                        text=sanitize_display_text(t), 
+                        text=t, 
                         id=sanitize_display_text(&lbl_text.replace(" ", "-")))
                         .as_str()),
                     None => html.push_str(format!("<h{level}>{text}</h{level}>", 
                         level=l, 
-                        text=sanitize_display_text(t))
+                        text=t)
                         .as_str()),
                 };
             },
