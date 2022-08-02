@@ -198,6 +198,31 @@ pub(crate) fn lex_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Pars
     Err(ParseError{content: spaces})
 }
 
+
+pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
+    let whitespace = char_iter.consume_while_case_holds(&|c| c == "\t" || c == " ");
+    match whitespace {
+        None => return Err(ParseError{content: ""}),
+        Some(s) if (1..=3).contains(&s.len()) && !s.contains("\t")  => return Err(ParseError{content: s}),
+        Some(s) if s.len() >= 2 && 
+                !s.contains("\t") && 
+                char_iter.peek() == Some("\n")  => return Ok(Token::LineBreak),
+        Some(_s) => {},
+    }
+    let whitespace = whitespace.unwrap_or("");
+    let start_index = char_iter.get_index();
+    let line = char_iter.consume_until_tail_is("\n").unwrap_or("");
+    if char_iter.peek() == Some("\t") || char_iter.peek() ==  Some(" ") {
+        match lex_tabs_spaces(char_iter) {
+            Ok(Token::CodeBlock(_content, _lang)) => {
+                return Ok(Token::CodeBlock(char_iter.get_substring_from(start_index).unwrap_or(""),""))},
+            Err(e) => return Err(e),
+            Ok(_) => return Err(ParseError{content: ""}), 
+        }
+    }
+    return Ok(Token::CodeBlock(line, ""))
+}
+
 pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let leading_ticks = char_iter.consume_while_case_holds(&|c| c == "`").unwrap_or("");
