@@ -109,7 +109,7 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
     if hashes.len() > 6 {
         return Err(ParseError{content: hashes});
     }
-    if char_iter.next_if_eq(&" ").is_none(){
+    if char_iter.next_if_eq(&" ").is_none() && char_iter.next_if_eq(&"\t").is_none(){
         return Err(ParseError{content: hashes});
     }
     let level = std::cmp::min(6, hashes.len() as u8);
