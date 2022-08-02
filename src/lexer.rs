@@ -117,9 +117,12 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
         line.contains('}') {
             let (heading, _title) = line.split_once("{").unwrap_or(("",""));
             let line = line.strip_prefix(&heading).unwrap()
-                            .strip_prefix("{#").unwrap()
-                            .strip_suffix("}").unwrap();
-            return Ok(Token::Header(hashes.len(), heading.trim().to_string(), Some(line.to_string())));
+                .strip_prefix("{#").unwrap()
+                .strip_suffix("}").unwrap();
+            let parsed_line = crate::render(line)
+                .strip_prefix("<p>").unwrap_or("")
+                .strip_suffix("</p>\n").unwrap_or("").to_string();
+            return Ok(Token::Header(hashes.len(), heading.trim().to_string(), Some(parsed_line)));
         }
     let parsed_line = crate::render(line)
         .strip_prefix("<p>").unwrap_or("")
