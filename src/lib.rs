@@ -8,13 +8,20 @@ pub(crate) struct SanitizationError{
     pub(crate) content: String,
 }
 
+fn on_newline(tokens: &Vec<Token>) -> bool {
+    match tokens.last() {
+        Some(Token::Plaintext(t)) => t.ends_with("\n"),
+        _ => true,
+    }
+}
+
 /// Convert source markdown to an ordered vector of tokens
 pub fn lex(source: &str) -> Vec<Token>{
     let mut char_iter = MiniIter::new(source);
     let mut tokens = Vec::new();
     while char_iter.peek().is_some(){
         match char_iter.peek().unwrap(){
-            "#" => {
+            "#" if on_newline(&tokens) => {
                 match lex_heading(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
@@ -393,6 +400,10 @@ pub fn parse(tokens: &[Token]) -> String {
 /// Render HTML from a source markdown string
 /// Output is sanitized to prevent script injection
 pub fn render(source: &str) -> String {
+    parse(&lex(source))
+}
+
+pub fn render_ignore(source: &str, ignore: &[char]) -> String {
     parse(&lex(source))
 }
 
