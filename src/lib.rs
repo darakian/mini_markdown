@@ -8,13 +8,6 @@ pub(crate) struct SanitizationError{
     pub(crate) content: String,
 }
 
-fn on_newline(tokens: &Vec<Token>) -> bool {
-    match tokens.last() {
-        Some(Token::Plaintext(t)) => t.ends_with("\n"),
-        _ => true,
-    }
-}
-
 /// Convert source markdown to an ordered vector of tokens
 pub fn lex(source: &str) -> Vec<Token>{
     let mut char_iter = MiniIter::new(source);
