@@ -80,7 +80,7 @@ fn test_lex() {
         ("- [X] A checked box\n- [X] Also a checked box", vec![Token::TaskListItem(TaskBox::Checked, "A checked box".to_string()), Token::Newline, Token::TaskListItem(TaskBox::Checked, "Also a checked box".to_string())]),
     ]);
     for test in tests.iter(){
-        let tokens = lex(test.0);
+        let tokens = lex(test.0, &[]);
         assert_eq!(&tokens[..], &test.1[..]);
     }
 }
@@ -104,7 +104,7 @@ fn test_lex_plaintext() {
                 Token::Newline])
     ]);
     for test in tests.iter(){
-        let tokens = lex(test.0);
+        let tokens = lex(test.0, &[]);
         assert_eq!(&tokens[..], &test.1[..]);
     }
 }
@@ -120,7 +120,7 @@ fn test_blockquote_lex() {
     ]);
 
     for test in tests.iter(){
-        let tokens = lex(test.0);
+        let tokens = lex(test.0, &[]);
         assert_eq!(&tokens[..], &test.1[..]);
     }
 }
@@ -137,7 +137,7 @@ fn test_footnote_lex() {
     ]);
 
     for test in tests.iter(){
-        let tokens = lex(test.0);
+        let tokens = lex(test.0, &[]);
         assert_eq!(&tokens[..], &test.1[..]);
     }
 }
@@ -153,7 +153,7 @@ fn test_link_lex(){
     ]);
 
     for test in tests.iter(){
-        let tokens = lex(test.0);
+        let tokens = lex(test.0, &[]);
         assert_eq!(&tokens[..], &test.1[..]);
     }
 }

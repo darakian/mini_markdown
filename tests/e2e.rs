@@ -75,7 +75,7 @@ fn test_moderate_render(){
     for test in tests.iter(){
         let html = render(test.0);
         if html != test.1 {
-            println!("?? {:?}", lex(test.0));
+            println!("?? {:?}", lex(test.0, &[]));
         }
         assert_eq!(html, test.1);
     }
@@ -97,7 +97,7 @@ fn test_table_render() {
         let html = render(test.0);
         if html != test.1 {
             println!("Test failing\n{:?}\n{:?}", html, test.1);
-            println!("> {:?}", lex(test.0));
+            println!("> {:?}", lex(test.0, &[]));
             for (c1, c2) in test.1.chars().zip(html.chars()) {
                 if c1 != c2 {
                     println!("Difference in {:?} {:?}", c1, c2);
@@ -164,7 +164,7 @@ fn test_lists(){
     for test in tests.iter(){
         let html = render(test.0);
         if html != test.1 {
-            println!("> {:?}", lex(test.0));
+            println!("> {:?}", lex(test.0, &[]));
         }
         assert_eq!(html, test.1);
     }

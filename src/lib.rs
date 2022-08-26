@@ -9,12 +9,12 @@ pub(crate) struct SanitizationError{
 }
 
 /// Convert source markdown to an ordered vector of tokens
-pub fn lex(source: &str) -> Vec<Token>{
+pub fn lex(source: &str, ignore: &[char]) -> Vec<Token>{
     let mut char_iter = MiniIter::new(source);
     let mut tokens = Vec::new();
     while char_iter.peek().is_some(){
         match char_iter.peek().unwrap(){
-            "#" => {
+            "#" if !ignore.contains(&'#') => {
                 match lex_heading(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
@@ -393,11 +393,11 @@ pub fn parse(tokens: &[Token]) -> String {
 /// Render HTML from a source markdown string
 /// Output is sanitized to prevent script injection
 pub fn render(source: &str) -> String {
-    parse(&lex(source))
+    parse(&lex(source, &[]))
 }
 
-pub fn render_ignore(source: &str, ignore: &[char]) -> String {
-    parse(&lex(source))
+pub(crate) fn render_ignore(source: &str, ignore: &[char]) -> String {
+    parse(&lex(source, ignore))
 }
 
 /// Replace potentially unsafe characters with html entities

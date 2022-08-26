@@ -121,7 +121,7 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
                 .strip_prefix("{#").unwrap()
                 .strip_suffix("}").unwrap();
         }
-    let parsed_line = crate::render(line.trim_end_matches(&['#', ' ', '\t']))
+    let parsed_line = crate::render_ignore(line.trim_end_matches(&['#', ' ', '\t']), &['#'])
         .strip_prefix("<p>").unwrap_or("")
         .strip_suffix("</p>\n").unwrap_or("").trim().to_string();
     if heading != "" {
@@ -420,7 +420,7 @@ fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'
             closes = remaining_text.matches("</details>").count();
         }
     }
-    let inner_tokens = crate::lex(remaining_text.strip_suffix("</details>").unwrap_or(""));
+    let inner_tokens = crate::lex(remaining_text.strip_suffix("</details>").unwrap_or(""), &[]);
     Ok(Token::Detail(summary_line.to_string(), inner_tokens))
 }
 
@@ -461,7 +461,7 @@ pub(crate) fn lex_pipes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Parse
         .collect();
         let mut r = Vec::new();
         for e in elements.into_iter() {
-            let mut inner_tokens = crate::lex(&e);
+            let mut inner_tokens = crate::lex(&e, &[]);
             inner_tokens.retain(|token| token.is_usable_in_table());
             r.push(inner_tokens);
         }
