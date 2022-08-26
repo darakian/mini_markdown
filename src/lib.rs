@@ -21,7 +21,7 @@ pub fn lex(source: &str) -> Vec<Token>{
     let mut tokens = Vec::new();
     while char_iter.peek().is_some(){
         match char_iter.peek().unwrap(){
-            "#" if on_newline(&tokens) => {
+            "#" => {
                 match lex_heading(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
