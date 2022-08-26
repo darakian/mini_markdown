@@ -122,7 +122,7 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
                 .strip_suffix("}").unwrap();
         }
 
-    let parsed_line = crate::render(line.trim_end_matches('#'))
+    let parsed_line = crate::render(line.trim_end_matches('#').trim_end_matches(' '))
         .strip_prefix("<p>").unwrap_or("")
         .strip_suffix("</p>\n").unwrap_or("").trim().to_string();
     if heading != "" {
