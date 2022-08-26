@@ -109,7 +109,7 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
     if hashes.len() > 6 {
         return Err(ParseError{content: hashes});
     }
-    if char_iter.next_if_eq(&" ").is_none() && char_iter.next_if_eq(&"\t").is_none(){
+    if char_iter.next_if_eq(&" ").is_none() && char_iter.next_if_eq(&"\t").is_none() && char_iter.peek() != Some(&"\n"){
         return Err(ParseError{content: hashes});
     }
     let line = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");

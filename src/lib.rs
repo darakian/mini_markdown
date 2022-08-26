@@ -384,7 +384,7 @@ pub fn parse(tokens: &[Token]) -> String {
         html.push_str("\t</ol>\n");
         html.push_str("</div>\n");
     }
-    if html.chars().last().unwrap() != '\n' {
+    if html.chars().last().unwrap_or(' ') != '\n' {
         html.push('\n');
     }
     html
