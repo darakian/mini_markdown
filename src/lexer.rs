@@ -192,6 +192,10 @@ pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token,
     }
     let whitespace = whitespace.unwrap_or("");
     let line = char_iter.consume_until_tail_is("\n").unwrap_or("").to_string();
+    match whitespace {
+        "\t" | "    " => return Ok(Token::Code(line)),
+        _ => {},
+    }
     if char_iter.peek() == Some("\t") || char_iter.peek() ==  Some(" ") {
         match lex_tabs_spaces(char_iter) {
             Ok(Token::CodeBlock(_content, _lang)) => {

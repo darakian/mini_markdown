@@ -157,7 +157,7 @@ pub fn parse(tokens: &[Token]) -> String {
                 in_paragraph = false;
                 html.push_str("</p>")
             },
-            Token::Plaintext(_) | Token::Italic(_) | Token::Bold(_) | Token::BoldItalic(_) | Token::Strikethrough(_) | Token::Code(_) if !in_paragraph => {
+            Token::Plaintext(_) | Token::Italic(_) | Token::Bold(_) | Token::BoldItalic(_) | Token::Strikethrough(_) if !in_paragraph => {
                 for _i in 0..quote_level {
                         html.push_str("</blockquote>");
                         quote_level-=1;
@@ -245,7 +245,7 @@ pub fn parse(tokens: &[Token]) -> String {
             Token::HorizontalRule => {html.push_str("<hr />")},
             Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", sanitize_display_text(t)).as_str())},
             Token::Code(t) => {
-                html.push_str(format!("<code>{}</code>", sanitize_display_text(t)).as_str())},
+                html.push_str(format!("<pre><code>{}</code></pre>", sanitize_display_text(t)).as_str())},
             Token::CodeBlock(t, lang) => {
                 html.push_str("<pre>");
                 match lang.as_str() {
@@ -369,6 +369,7 @@ pub fn parse(tokens: &[Token]) -> String {
         }
     }
 
+
     // Add references
     if references.len() > 0{
         html.push_str("<div class=\"footnotes\" role=\"doc-endnotes\">\n");
@@ -382,6 +383,9 @@ pub fn parse(tokens: &[Token]) -> String {
         }
         html.push_str("\t</ol>\n");
         html.push_str("</div>\n");
+    }
+    if html.chars().last().unwrap() != '\n' {
+        html.push('\n');
     }
     html
 }
