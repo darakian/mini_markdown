@@ -1,7 +1,7 @@
 use crate::MiniIter;
 
 /// Tokens are the intermediate representation format in the markdown to html conversion
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Token {
     /// String: Body of unstructured text
     Plaintext(String),
@@ -50,7 +50,7 @@ pub enum Token {
 }
 
 /// Holds the possible states of a taskbox in a task list
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum TaskBox {
     Checked,
     Unchecked,
@@ -179,7 +179,7 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
     }
 }
 
-pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>, tokens: &Vec<Token>) -> Result<Token, ParseError<'a>> {
     let start_index = char_iter.get_index();
     let whitespace = char_iter.consume_while_case_holds(&|c| c == "\t" || c == " ");
     match whitespace {
@@ -191,13 +191,16 @@ pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token,
         Some(_s) => {},
     }
     let whitespace = whitespace.unwrap_or("");
-    let line = char_iter.consume_until_tail_is("\n").unwrap_or("").to_string();
+    let line = char_iter.consume_until_tail_is("\n").unwrap_or("");
+    println!("??> {:?}", tokens.last());
+    println!(">>? {:?}", line);
     match whitespace {
-        "\t" | "    " => return Ok(Token::Code(line)),
+        "    " if (matches!(tokens.last(), Some(Token::Plaintext(_))) && line.contains('#')) => return Err(ParseError{content: line}),
+        "\t" | "    " => return Ok(Token::Code(line.to_string())),
         _ => {},
     }
     if char_iter.peek() == Some("\t") || char_iter.peek() ==  Some(" ") {
-        match lex_tabs_spaces(char_iter) {
+        match lex_tabs_spaces(char_iter, tokens) {
             Ok(Token::CodeBlock(_content, _lang)) => {
                 return Ok(Token::CodeBlock(char_iter.get_substring_from(start_index).unwrap_or("").to_string(),"".to_string()))},
             Err(e) => return Err(e),
@@ -242,7 +245,7 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, P
 
 }
 
-pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>, tokens: &Vec<Token>) -> Result<Token, ParseError<'a>> {
     match char_iter.consume_while_case_holds(&|c| c == "\n") {
         Some(s) if s.len() >= 1 => return Ok(Token::Newline),
         Some(s) if s.len() < 1 => return Err(ParseError{content: s}),
