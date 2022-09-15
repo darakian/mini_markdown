@@ -197,12 +197,12 @@ pub fn parse(tokens: &[Token]) -> String {
             },
             Token::Header(l, t, lbl) => {
                 match lbl {
-                    Some(lbl_text) => html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>", 
+                    Some(lbl_text) => html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", 
                         level=l, 
                         text=t, 
                         id=sanitize_display_text(&lbl_text.replace(" ", "-")))
                         .as_str()),
-                    None => html.push_str(format!("<h{level}>{text}</h{level}>", 
+                    None => html.push_str(format!("<h{level}>{text}</h{level}>\n", 
                         level=l, 
                         text=t)
                         .as_str()),
