@@ -121,7 +121,7 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
                 .strip_prefix("{#").unwrap()
                 .strip_suffix("}").unwrap();
         }
-    let line_without_optional_trailing_hash_sequence = match line.rsplit_once(' ') {
+    let line_without_optional_trailing_hash_sequence = match line.trim_end().rsplit_once(' ') {
         Some((left, right)) => {
             match right.chars().all(|c| c == '#') {
                 true => left,
@@ -133,8 +133,6 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
     let parsed_line = crate::render_ignore(line_without_optional_trailing_hash_sequence.trim_end_matches(&[' ', '\t']), &['#'])
         .strip_prefix("<p>").unwrap_or("")
         .strip_suffix("</p>\n").unwrap_or("").trim().to_string();
-    println!("line: {:?}", line);
-    println!("parsed_line: {:?}", parsed_line);
     if heading != "" {
         return Ok(Token::Header(hashes.len(), heading.trim().to_string(), Some(parsed_line)));
     }
