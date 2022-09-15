@@ -190,9 +190,9 @@ pub fn parse(tokens: &[Token]) -> String {
                             count+=1;
                         } else {s.push_str(tok)}
                     }
-                    html.push_str(&s.trim_end());
+                    html.push_str(&s.trim_end_matches('\n'));
                 } else {
-                    html.push_str(sanitize_display_text(t.trim_start_matches('\n')).trim_end())
+                    html.push_str(sanitize_display_text(t.trim_start_matches('\n')).trim_end_matches('\n'))
                 }
             },
             Token::Header(l, t, lbl) => {
