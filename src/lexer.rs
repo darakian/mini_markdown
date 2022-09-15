@@ -121,9 +121,20 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
                 .strip_prefix("{#").unwrap()
                 .strip_suffix("}").unwrap();
         }
-    let parsed_line = crate::render_ignore(line.trim_end_matches(&['#', ' ', '\t']), &['#'])
+    let line_without_optional_trailing_hash_sequence = match line.rsplit_once(' ') {
+        Some((left, right)) => {
+            match right.chars().all(|c| c == '#') {
+                true => left,
+                false => line,
+            }
+        },
+        None => line,
+    };
+    let parsed_line = crate::render_ignore(line_without_optional_trailing_hash_sequence.trim_end_matches(&[' ', '\t']), &['#'])
         .strip_prefix("<p>").unwrap_or("")
         .strip_suffix("</p>\n").unwrap_or("").trim().to_string();
+    println!("line: {:?}", line);
+    println!("parsed_line: {:?}", parsed_line);
     if heading != "" {
         return Ok(Token::Header(hashes.len(), heading.trim().to_string(), Some(parsed_line)));
     }
@@ -192,9 +203,6 @@ pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>, tokens: &Vec<Tok
     }
     let whitespace = whitespace.unwrap_or("");
     let line = char_iter.consume_until_tail_is("\n").unwrap_or("");
-    println!("??> {:?}", tokens.last());
-    println!(">>? {:?}", line);
-    println!(">>? {:?}", whitespace);
     match whitespace {
         "    " if (matches!(tokens.last(), Some(Token::Plaintext(_))) && line.contains('#')) => return Err(ParseError{content: line}),
         "    " if (matches!(tokens.last(), Some(Token::Newline)) && line.contains('#')) => return Err(ParseError{content: line}),
