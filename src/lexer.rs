@@ -194,8 +194,10 @@ pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>, tokens: &Vec<Tok
     let line = char_iter.consume_until_tail_is("\n").unwrap_or("");
     println!("??> {:?}", tokens.last());
     println!(">>? {:?}", line);
+    println!(">>? {:?}", whitespace);
     match whitespace {
         "    " if (matches!(tokens.last(), Some(Token::Plaintext(_))) && line.contains('#')) => return Err(ParseError{content: line}),
+        "    " if (matches!(tokens.last(), Some(Token::Newline)) && line.contains('#')) => return Err(ParseError{content: line}),
         "\t" | "    " => return Ok(Token::Code(line.to_string())),
         _ => {},
     }
@@ -247,8 +249,8 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, P
 
 pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>, tokens: &Vec<Token>) -> Result<Token, ParseError<'a>> {
     match char_iter.consume_while_case_holds(&|c| c == "\n") {
-        Some(s) if s.len() >= 1 => return Ok(Token::Newline),
-        Some(s) if s.len() < 1 => return Err(ParseError{content: s}),
+        Some(s) if s.len() >= 2 => return Ok(Token::Newline),
+        Some(s) if s.len() < 2 => return Err(ParseError{content: s}),
         _ => return Err(ParseError{content: ""}),
     }
 }

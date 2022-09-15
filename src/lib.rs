@@ -114,6 +114,7 @@ pub fn lex(source: &str, ignore: &[char]) -> Vec<Token>{
 
 /// Parse tokens to produce safe html output
 pub fn parse(tokens: &[Token]) -> String {
+    println!("??? {:?}", tokens);
     let mut html = String::with_capacity(tokens.len()*100);
     let mut in_task_list = false;
     let mut in_ordered_list = false;
@@ -171,6 +172,7 @@ pub fn parse(tokens: &[Token]) -> String {
         // Add content
         match token {
             Token::Plaintext(t) => {
+                println!("?????? {:?}", t);
                 if t.trim().is_empty() {continue}
                 
                 // Handle references
@@ -188,9 +190,9 @@ pub fn parse(tokens: &[Token]) -> String {
                             count+=1;
                         } else {s.push_str(tok)}
                     }
-                    html.push_str(&s);
+                    html.push_str(&s.trim_end());
                 } else {
-                    html.push_str(sanitize_display_text(t.trim_start_matches('\n')).as_str())
+                    html.push_str(sanitize_display_text(t.trim_start_matches('\n')).trim_end())
                 }
             },
             Token::Header(l, t, lbl) => {
