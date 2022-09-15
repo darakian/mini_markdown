@@ -242,7 +242,7 @@ pub fn parse(tokens: &[Token]) -> String {
             Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", sanitize_display_text(t)).as_str())},
             Token::BoldItalic(t) => {html.push_str(format!("<strong><em>{}</em></strong>", sanitize_display_text(t)).as_str())},
             Token::LineBreak => {html.push_str("<br>")},
-            Token::HorizontalRule => {html.push_str("<hr />")},
+            Token::HorizontalRule => {html.push_str("<hr />\n")},
             Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", sanitize_display_text(t)).as_str())},
             Token::Code(t) => {
                 html.push_str(format!("<pre><code>{}</code></pre>", sanitize_display_text(t)).as_str())},
