@@ -155,7 +155,7 @@ pub fn parse(tokens: &[Token]) -> String {
             Token::BlockQuote(_, _) | Token::Newline if quote_level > 0 => {},
             Token::CodeBlock(_, _) | Token::Newline | Token::Header(_, _, _) if in_paragraph => {
                 in_paragraph = false;
-                html.push_str("</p>")
+                html.push_str("</p>\n")
             },
             Token::Plaintext(_) | Token::Italic(_) | Token::Bold(_) | Token::BoldItalic(_) | Token::Strikethrough(_) if !in_paragraph => {
                 for _i in 0..quote_level {
@@ -235,7 +235,12 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
                 html.push_str(format!("<li>{}</li>", sanitize_display_text(t)).as_str())
             },
-            Token::Newline => {html.push('\n')},
+            Token::Newline => {
+                match html.chars().last() {
+                    Some('\n') => {}
+                    _ => html.push('\n'),
+                }
+            },
             Token::Tab => {html.push('\t')},
             Token::DoubleTab => {html.push_str("\t\t")},
             Token::Italic(t) => {html.push_str(format!("<em>{}</em>", sanitize_display_text(t)).as_str())},
