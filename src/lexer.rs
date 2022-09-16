@@ -71,7 +71,7 @@ impl Token{
 }
 
 /// Holds the alignment states for the table token
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Alignment {
     Left,
     Right,
