@@ -9,12 +9,12 @@ pub(crate) struct SanitizationError{
 }
 
 /// Convert source markdown to an ordered vector of tokens
-pub fn lex(source: &str) -> Vec<Token>{
+pub fn lex(source: &str, ignore: &[char]) -> Vec<Token>{
     let mut char_iter = MiniIter::new(source);
     let mut tokens = Vec::new();
     while char_iter.peek().is_some(){
         match char_iter.peek().unwrap(){
-            "#" => {
+            "#" if !ignore.contains(&'#') => {
                 match lex_heading(&mut char_iter) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
@@ -38,8 +38,8 @@ pub fn lex(source: &str) -> Vec<Token>{
                     Err(e) => push_str(&mut tokens, e.content),
                 }
             },
-            " " => {
-                match lex_spaces(&mut char_iter) {
+            " " | "\t" => {
+                match lex_tabs_spaces(&mut char_iter, &tokens) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
@@ -51,13 +51,7 @@ pub fn lex(source: &str) -> Vec<Token>{
                 }
             },
             "\n" => {
-                match lex_newlines(&mut char_iter) {
-                    Ok(t) => tokens.push(t),
-                    Err(e) => push_str(&mut tokens, e.content),
-                }
-            },
-            "\t" => {
-                match lex_tabs(&mut char_iter) {
+                match lex_newlines(&mut char_iter, &tokens) {
                     Ok(t) => tokens.push(t),
                     Err(e) => push_str(&mut tokens, e.content),
                 }
@@ -103,7 +97,10 @@ pub fn lex(source: &str) -> Vec<Token>{
             // Parse "\" to escape a markdown control character
             "\\" => {
                 char_iter.next();
-                if char_iter.peek().is_some(){
+                if char_iter.peek() == Some(&"#"){
+                    let hashes = char_iter.consume_while_case_holds(&|c| c == "#").unwrap_or("");
+                    push_str(&mut tokens, hashes);
+                } else if char_iter.peek().is_some(){
                     push_str(&mut tokens, char_iter.next().unwrap());
                 }
             }
@@ -158,9 +155,9 @@ pub fn parse(tokens: &[Token]) -> String {
             Token::BlockQuote(_, _) | Token::Newline if quote_level > 0 => {},
             Token::CodeBlock(_, _) | Token::Newline | Token::Header(_, _, _) if in_paragraph => {
                 in_paragraph = false;
-                html.push_str("</p>")
+                html.push_str("</p>\n")
             },
-            Token::Plaintext(_) | Token::Italic(_) | Token::Bold(_) | Token::BoldItalic(_) | Token::Strikethrough(_) | Token::Code(_) if !in_paragraph => {
+            Token::Plaintext(_) | Token::Italic(_) | Token::Bold(_) | Token::BoldItalic(_) | Token::Strikethrough(_) if !in_paragraph => {
                 for _i in 0..quote_level {
                         html.push_str("</blockquote>");
                         quote_level-=1;
@@ -191,21 +188,23 @@ pub fn parse(tokens: &[Token]) -> String {
                             count+=1;
                         } else {s.push_str(tok)}
                     }
-                    html.push_str(&s);
+                    html.push_str(&s.trim_end_matches('\n'));
                 } else {
-                    html.push_str(sanitize_display_text(t.trim_start_matches('\n')).as_str())
+                    html.push_str(sanitize_display_text(t.trim_start_matches('\n')).trim_end_matches('\n'))
                 }
             },
             Token::Header(l, t, lbl) => {
-                let id = match lbl {
-                    Some(text) => text.to_ascii_lowercase(),
-                    None => t.to_ascii_lowercase(),
+                match lbl {
+                    Some(lbl_text) => html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", 
+                        level=l, 
+                        text=t, 
+                        id=sanitize_display_text(&lbl_text.replace(" ", "-")))
+                        .as_str()),
+                    None => html.push_str(format!("<h{level}>{text}</h{level}>\n", 
+                        level=l, 
+                        text=t)
+                        .as_str()),
                 };
-                html.push_str(format!("<h{level} id=\"{id}\">{text}</h{level}>\n", 
-                    level=l, 
-                    text=sanitize_display_text(t), 
-                    id=sanitize_display_text(&id.replace(" ", "-")))
-                .as_str())
             },
             Token::TaskListItem(c,t) => {
                 if in_task_list == false {
@@ -236,17 +235,22 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
                 html.push_str(format!("<li>{}</li>", sanitize_display_text(t)).as_str())
             },
-            Token::Newline => {html.push('\n')},
+            Token::Newline => {
+                match html.chars().last() {
+                    Some('\n') => {}
+                    _ => html.push('\n'),
+                }
+            },
             Token::Tab => {html.push('\t')},
             Token::DoubleTab => {html.push_str("\t\t")},
             Token::Italic(t) => {html.push_str(format!("<em>{}</em>", sanitize_display_text(t)).as_str())},
             Token::Bold(t) => {html.push_str(format!("<strong>{}</strong>", sanitize_display_text(t)).as_str())},
             Token::BoldItalic(t) => {html.push_str(format!("<strong><em>{}</em></strong>", sanitize_display_text(t)).as_str())},
             Token::LineBreak => {html.push_str("<br>")},
-            Token::HorizontalRule => {html.push_str("<hr />")},
+            Token::HorizontalRule => {html.push_str("<hr />\n")},
             Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", sanitize_display_text(t)).as_str())},
             Token::Code(t) => {
-                html.push_str(format!("<code>{}</code>", sanitize_display_text(t)).as_str())},
+                html.push_str(format!("<pre><code>{}</code></pre>", sanitize_display_text(t)).as_str())},
             Token::CodeBlock(t, lang) => {
                 html.push_str("<pre>");
                 match lang.as_str() {
@@ -370,6 +374,7 @@ pub fn parse(tokens: &[Token]) -> String {
         }
     }
 
+
     // Add references
     if references.len() > 0{
         html.push_str("<div class=\"footnotes\" role=\"doc-endnotes\">\n");
@@ -384,13 +389,20 @@ pub fn parse(tokens: &[Token]) -> String {
         html.push_str("\t</ol>\n");
         html.push_str("</div>\n");
     }
+    if html.chars().last().unwrap_or(' ') != '\n' {
+        html.push('\n');
+    }
     html
 }
 
 /// Render HTML from a source markdown string
 /// Output is sanitized to prevent script injection
 pub fn render(source: &str) -> String {
-    parse(&lex(source))
+    parse(&lex(source, &[]))
+}
+
+pub(crate) fn render_ignore(source: &str, ignore: &[char]) -> String {
+    parse(&lex(source, ignore))
 }
 
 /// Replace potentially unsafe characters with html entities

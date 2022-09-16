@@ -1,12 +1,12 @@
 use crate::MiniIter;
 
 /// Tokens are the intermediate representation format in the markdown to html conversion
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Token {
     /// String: Body of unstructured text
     Plaintext(String),
     /// u8: Header level (1..=6). str: Header text. Option<str>: html label
-    Header(u8, String, Option<String>),
+    Header(usize, String, Option<String>),
     /// str: Text for list entry
     UnorderedListEntry(String),
     /// str: Text for list entry
@@ -50,7 +50,7 @@ pub enum Token {
 }
 
 /// Holds the possible states of a taskbox in a task list
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum TaskBox {
     Checked,
     Unchecked,
@@ -71,7 +71,7 @@ impl Token{
 }
 
 /// Holds the alignment states for the table token
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Alignment {
     Left,
     Right,
@@ -106,20 +106,43 @@ pub(crate) fn push_str<'a>(t: &mut Vec<Token>, s: &'a str) {
 
 pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
     let hashes = char_iter.consume_while_case_holds(&|c| c == "#").unwrap_or("");
-    if char_iter.next_if_eq(&" ").is_none(){
+    if hashes.len() > 6 {
         return Err(ParseError{content: hashes});
     }
-    let level = std::cmp::min(6, hashes.len() as u8);
+    if char_iter.next_if_eq(&" ").is_none() && char_iter.next_if_eq(&"\t").is_none() && char_iter.peek() != Some(&"\n"){
+        return Err(ParseError{content: hashes});
+    }
     let line = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
+    let mut heading = "";
     if line.contains("{#") && 
         line.contains('}') {
             let (heading, _title) = line.split_once("{").unwrap_or(("",""));
             let line = line.strip_prefix(&heading).unwrap()
-                            .strip_prefix("{#").unwrap()
-                            .strip_suffix("}").unwrap();
-            return Ok(Token::Header(level, heading.trim().to_string(), Some(line.to_string())));
+                .strip_prefix("{#").unwrap()
+                .strip_suffix("}").unwrap();
         }
-    return Ok(Token::Header(level, line.to_string(), None));
+    let line_without_optional_trailing_hash_sequence = match line.trim_end().rsplit_once(' ') {
+        Some((left, right)) => {
+            match right.chars().all(|c| c == '#') {
+                true => left,
+                false => line,
+            }
+        },
+        None => line,
+    };
+    if line.chars().all(|c| c == '#') {
+        return Ok(Token::Header(hashes.len(), "".to_string(), None));
+    }
+    let parsed_line = crate::render_ignore(line_without_optional_trailing_hash_sequence.trim_end_matches(&[' ', '\t']), &['#'])
+        .strip_prefix("<p>").unwrap_or("")
+        .strip_suffix("</p>\n").unwrap_or("").trim().to_string();
+    println!("line: {:?}", line);
+    println!("parsed_line: {:?}", parsed_line);
+    println!("line_without_optional_trailing_hash_sequence: {:?}", line_without_optional_trailing_hash_sequence);
+    if heading != "" {
+        return Ok(Token::Header(hashes.len(), heading.trim().to_string(), Some(parsed_line)));
+    }
+    return Ok(Token::Header(hashes.len(), parsed_line, None));
 }
 
 pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
@@ -171,23 +194,34 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
     }
 }
 
-pub(crate) fn lex_spaces<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>>{
-    let spaces = char_iter.consume_while_case_holds(&|c| c == " ").unwrap_or("");
-    // Case 1: space in text => return char
-    if spaces.len() == 1 {
-        return Err(ParseError{content: spaces})
+pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>, tokens: &Vec<Token>) -> Result<Token, ParseError<'a>> {
+    let start_index = char_iter.get_index();
+    let whitespace = char_iter.consume_while_case_holds(&|c| c == "\t" || c == " ");
+    match whitespace {
+        None => return Err(ParseError{content: ""}),
+        Some(s) if (1..=3).contains(&s.len()) && !s.contains("\t")  => return Err(ParseError{content: s}),
+        Some(s) if s.len() >= 2 && 
+                !s.contains("\t") && 
+                char_iter.peek() == Some("\n")  => return Ok(Token::LineBreak),
+        Some(_s) => {},
     }
-    // Case 2: two or more spaces followed by \n => line break
-    if char_iter.next_if_eq("\n").is_some() {
-        return Ok(Token::LineBreak);
+    let whitespace = whitespace.unwrap_or("");
+    let line = char_iter.consume_until_tail_is("\n").unwrap_or("");
+    match whitespace {
+        "    " if (matches!(tokens.last(), Some(Token::Plaintext(_))) && line.contains('#')) => return Err(ParseError{content: line}),
+        "    " if (matches!(tokens.last(), Some(Token::Newline)) && line.contains('#')) => return Err(ParseError{content: line}),
+        "\t" | "    " => return Ok(Token::Code(line.to_string())),
+        _ => {},
     }
-    // Case 3: Tokenize for parser
-    match spaces.len(){
-        4 => return Ok(Token::Tab),
-        8 => return Ok(Token::DoubleTab),
-        _ => {}
+    if char_iter.peek() == Some("\t") || char_iter.peek() ==  Some(" ") {
+        match lex_tabs_spaces(char_iter, tokens) {
+            Ok(Token::CodeBlock(_content, _lang)) => {
+                return Ok(Token::CodeBlock(char_iter.get_substring_from(start_index).unwrap_or("").to_string(),"".to_string()))},
+            Err(e) => return Err(e),
+            Ok(_) => return Err(ParseError{content: ""}), 
+        }
     }
-    Err(ParseError{content: spaces})
+    return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
 }
 
 pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
@@ -225,18 +259,10 @@ pub(crate) fn lex_backticks<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, P
 
 }
 
-pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>, tokens: &Vec<Token>) -> Result<Token, ParseError<'a>> {
     match char_iter.consume_while_case_holds(&|c| c == "\n") {
-        Some(s) if s.len() >= 1 => return Ok(Token::Newline),
-        Some(s) if s.len() < 1 => return Err(ParseError{content: s}),
-        _ => return Err(ParseError{content: ""}),
-    }
-}
-
-pub(crate) fn lex_tabs<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
-    match char_iter.consume_while_case_holds(&|c| c == "\t") {
-        Some(s) if s.len() > 1 => return Ok(Token::DoubleTab),
-        Some(s) if s.len() == 1 => return Ok(Token::Tab),
+        Some(s) if s.len() >= 2 => return Ok(Token::Newline),
+        Some(s) if s.len() < 2 => return Err(ParseError{content: s}),
         _ => return Err(ParseError{content: ""}),
     }
 }
@@ -411,7 +437,7 @@ fn parse_details<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'
             closes = remaining_text.matches("</details>").count();
         }
     }
-    let inner_tokens = crate::lex(remaining_text.strip_suffix("</details>").unwrap_or(""));
+    let inner_tokens = crate::lex(remaining_text.strip_suffix("</details>").unwrap_or(""), &[]);
     Ok(Token::Detail(summary_line.to_string(), inner_tokens))
 }
 
@@ -452,7 +478,7 @@ pub(crate) fn lex_pipes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Parse
         .collect();
         let mut r = Vec::new();
         for e in elements.into_iter() {
-            let mut inner_tokens = crate::lex(&e);
+            let mut inner_tokens = crate::lex(&e, &[]);
             inner_tokens.retain(|token| token.is_usable_in_table());
             r.push(inner_tokens);
         }
