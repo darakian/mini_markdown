@@ -157,7 +157,7 @@ pub fn parse(tokens: &[Token]) -> String {
                 in_paragraph = false;
                 html.push_str("</p>\n")
             },
-            Token::Plaintext(_) | Token::Italic(_) | Token::Bold(_) | Token::BoldItalic(_) | Token::Strikethrough(_) if !in_paragraph => {
+            Token::Plaintext(_) | Token::Italic(_) | Token::Bold(_) | Token::BoldItalic(_) | Token::Strikethrough(_) | Token::Link(_, _, _) if !in_paragraph => {
                 for _i in 0..quote_level {
                         html.push_str("</blockquote>");
                         quote_level-=1;
@@ -309,10 +309,10 @@ pub fn parse(tokens: &[Token]) -> String {
                     _ => "",
                 };
                 match (t, ht){
-                    (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\" referrerpolicy=\"no-referrer\">{text}</a>", link=l, text=sanitize_display_text(t), hover=ht).as_str()),
-                    (Some(t), None) => html.push_str(format!("<a href=\"{link}\" referrerpolicy=\"no-referrer\">{text}</a>", link=l, text=sanitize_display_text(t)).as_str()),
-                    (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\" referrerpolicy=\"no-referrer\">{link}</a>", link=l, hover=sanitize_display_text(ht)).as_str()),
-                    (None, None) => html.push_str(format!("<a href=\"{link}\" referrerpolicy=\"no-referrer\">{link}</a>", link=l).as_str()),
+                    (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}</a>", link=l, text=sanitize_display_text(t), hover=ht).as_str()),
+                    (Some(t), None) => html.push_str(format!("<a href=\"{link}\">{text}</a>", link=l, text=sanitize_display_text(t)).as_str()),
+                    (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\">{link}</a>", link=l, hover=sanitize_display_text(ht)).as_str()),
+                    (None, None) => html.push_str(format!("<a href=\"{link}\">{link}</a>", link=l).as_str()),
                 }
             },
             Token::Detail(summary, inner_tokens) => {
