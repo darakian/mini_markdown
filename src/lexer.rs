@@ -348,8 +348,9 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Parse
 }
 
 pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
+    let start_index = char_iter.get_index();
     if char_iter.next_if_eq("<") !=  Some("<") {return Err(ParseError{content: ""})}
-    
+
     let s = char_iter.consume_while_case_holds(&|c| c != ">").unwrap_or("");
     match (s, char_iter.next_if_eq(">")) {
         ("details", Some(">")) => {
@@ -360,6 +361,7 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token,
             return parse_details(char_iter)
         },
         (_, Some(">")) => {
+            if s.contains(char::is_whitespace) {return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})}
             return Ok(Token::Link(sanitize_display_text(s), None, None))
         },
         (_, _) => return Err(ParseError{content: s}),
