@@ -1,4 +1,5 @@
 use crate::MiniIter;
+use crate::sanitize_display_text;
 
 /// Tokens are the intermediate representation format in the markdown to html conversion
 #[derive(Debug, PartialEq, Eq)]
@@ -358,7 +359,7 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token,
                     }
                     return parse_details(char_iter)
                 },
-                (_, Some(">")) => return Ok(Token::Link(s.to_string(), None, None)),
+                (_, Some(">")) => return Ok(Token::Link(sanitize_display_text(s), None, None)),
                 (_, _) => return Err(ParseError{content: s}),
             }
         }
