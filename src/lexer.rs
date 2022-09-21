@@ -348,22 +348,21 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Parse
 }
 
 pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, ParseError<'a>> {
-    match char_iter.next_if_eq("<") {
-        Some("<") => {
-            let s = char_iter.consume_while_case_holds(&|c| c != ">").unwrap_or("");
-            match (s, char_iter.next_if_eq(">")) {
-                ("details", Some(">")) => {
-                    char_iter.next_if_eq(&"\r");
-                    if !char_iter.next_if_eq(&"\n").is_some(){
-                        return Err(ParseError{content: s});
-                    }
-                    return parse_details(char_iter)
-                },
-                (_, Some(">")) => return Ok(Token::Link(sanitize_display_text(s), None, None)),
-                (_, _) => return Err(ParseError{content: s}),
+    if char_iter.next_if_eq("<") !=  Some("<") {return Err(ParseError{content: ""})}
+    
+    let s = char_iter.consume_while_case_holds(&|c| c != ">").unwrap_or("");
+    match (s, char_iter.next_if_eq(">")) {
+        ("details", Some(">")) => {
+            char_iter.next_if_eq(&"\r");
+            if !char_iter.next_if_eq(&"\n").is_some(){
+                return Err(ParseError{content: s});
             }
-        }
-        _ => return Err(ParseError{content: ""})
+            return parse_details(char_iter)
+        },
+        (_, Some(">")) => {
+            return Ok(Token::Link(sanitize_display_text(s), None, None))
+        },
+        (_, _) => return Err(ParseError{content: s}),
     }
 }
 
