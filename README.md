@@ -7,7 +7,7 @@ All output is sanitized and any script injection vector is considered a bug.
 ## Status
 Markdown support is now feature complete with testing ongoing.   
 Please report bugs as issues should you find any.  
-All output is considered unstable for the time being.
+All output and interfaces are considered unstable for the time being.
 
 
 ## Usage
