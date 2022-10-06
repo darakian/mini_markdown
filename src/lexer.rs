@@ -360,9 +360,12 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token,
             }
             return parse_details(char_iter)
         },
-        (_, Some(">")) => {
+        (_, Some(">")) if s.len() >= 1 => {
             if s.contains(char::is_whitespace) {return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})}
             return Ok(Token::Link(sanitize_display_text(s), None, None))
+        },
+        (_, Some(">")) if s.len() == 0 => {
+            return Err(ParseError{content: "<>"})
         },
         (_, _) => return Err(ParseError{content: s}),
     }
