@@ -8,6 +8,18 @@ pub(crate) struct SanitizationError{
     pub(crate) content: String,
 }
 
+#[derive(Debug)]
+pub(crate) enum URLType{
+    Web,
+    Email,
+}
+
+#[derive(Debug)]
+pub(crate) struct ValidURL<'a>{
+    kind: URLType,
+    content: &'a str,
+}
+
 /// Convert source markdown to an ordered vector of tokens
 pub fn lex(source: &str, ignore: &[char]) -> Vec<Token>{
     let mut char_iter = MiniIter::new(source);
@@ -291,8 +303,8 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
             },
             Token::Image(l, t) => {
-                let l = match validate_url(l){
-                    Ok(vl) => vl,
+                let l = match validate_link(l){
+                    Ok(vl) => vl.content,
                     _ => "",
                 };
                 match (l, t) {
@@ -304,8 +316,8 @@ pub fn parse(tokens: &[Token]) -> String {
                 
             },
             Token::Link(l, t, ht) => {
-                let l = match validate_url(l){
-                    Ok(vl) => vl,
+                let l = match validate_link(l){
+                    Ok(vl) => vl.content,
                     _ => "",
                 };
                 match (t, ht){
@@ -424,8 +436,8 @@ pub(crate) fn sanitize_display_text(source: &str) -> String {
 }
 
 /// Basic url schema validation
-pub(crate) fn validate_url(source: &str) -> Result<&str, SanitizationError> {
-    if source.contains("\"") || !source.is_ascii() || source.contains(char::is_whitespace) { // https://www.rfc-editor.org/rfc/rfc3986#section-2
+pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError> {
+    if !source.is_ascii() || source.contains(char::is_whitespace) { // https://www.rfc-editor.org/rfc/rfc3986#section-2
         return Err(SanitizationError{content: "Unsupported characters".to_string()})
     }
     let (schema, path) = source.split_at(source.find(':').unwrap_or(0));
@@ -435,5 +447,5 @@ pub(crate) fn validate_url(source: &str) -> Result<&str, SanitizationError> {
     if schema.to_lowercase() == "data" && !path.starts_with(":image/"){
         return Err(SanitizationError{content: "Unsupported Data URL".to_string()})
     }
-    Ok(source)
+    Ok(ValidURL{kind: URLType::Web, content: source})
 }
