@@ -3,6 +3,13 @@ pub mod iter;
 use crate::lexer::*;
 use crate::iter::MiniIter;
 
+static COMMONMARK_SCHEME_ASCII: [char; 65] = [ //https://spec.commonmark.org/0.30/#scheme
+    'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+    'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+    '1','2','3','4','5','6','7','8','9','0',
+    '+','.','-'];
+
+
 #[derive(Debug)]
 pub(crate) struct SanitizationError{
     pub(crate) content: String,
@@ -437,6 +444,11 @@ pub(crate) fn sanitize_display_text(source: &str) -> String {
 
 /// Basic url schema validation
 pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError> {
+    //Schema defined here https://spec.commonmark.org/0.30/#scheme
+    // Must start with an ascii letter. May contain any combination of ASCII letters, digits, or the symbols plus (”+”), period (”.”), or hyphen (”-”)
+    //Ends with a :
+
+
     if !source.is_ascii() || source.contains(char::is_whitespace) { // https://www.rfc-editor.org/rfc/rfc3986#section-2
         return Err(SanitizationError{content: "Unsupported characters".to_string()})
     }
