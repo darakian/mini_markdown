@@ -16,15 +16,9 @@ pub(crate) struct SanitizationError{
 }
 
 #[derive(Debug)]
-pub(crate) enum URLType{
-    Web,
-    Email,
-}
-
-#[derive(Debug)]
 pub(crate) struct ValidURL<'a>{
-    kind: URLType,
     content: &'a str,
+    scheme: Option<&'a str>,
 }
 
 /// Convert source markdown to an ordered vector of tokens
@@ -465,27 +459,47 @@ pub(crate) fn percent_encode(source: &str) -> String {
         .replace(' ',"%20")
 }
 
-/// Basic url schema validation
 pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError> {
+    //Scheme defined here https://spec.commonmark.org/0.30/#scheme
+    // char set in COMMONMARK_SCHEME_ASCII. 2 to 32 chars followed by `:`
+    let source_scheme = {
+        let parts: Vec<_> = source.split(":").collect();
+        if source.contains(':') 
+            && source.matches(':').count() == 2 
+            && parts.len() == 2
+            && parts[0].chars().all(|c| COMMONMARK_SCHEME_ASCII.contains(&c))
+            && parts[0].len() >= 2
+            && parts[0].len() <= 32 {
+            Some(parts[0])           
+            } else {None}
+    };
+
     //Check for mail links
     //if `@` in string and optionally starts with case insensitive `mailto:` scheme
-    if source.contains('@') {
-
+    if source.contains('@') && source_scheme.unwrap_or("").to_lowercase() == "mailto" {
+        let parts: Vec<_> = source.split("@").collect();
+        if parts.len() != 2 {return Err(SanitizationError{content: "Multipe @s in url".to_string()})}
+        return Ok(ValidURL{scheme: Some(&parts[0][..=6]), content: &parts[1]})
+    } else if source.contains('@') {
+        let parts: Vec<_> = source.split("@").collect();
+        if parts.len() != 2 {return Err(SanitizationError{content: "Multipe @s in url".to_string()})}
+        return Ok(ValidURL{scheme: Some("mailto:"), content: &parts[1]})
     }
-
-    //Schema defined here https://spec.commonmark.org/0.30/#scheme
-    // char set in COMMONMARK_SCHEME_ASCII. 2 to 32 chars followed by `:`
 
 
     if !source.is_ascii() || source.contains(char::is_whitespace) { // https://www.rfc-editor.org/rfc/rfc3986#section-2
         return Err(SanitizationError{content: "Unsupported characters".to_string()})
     }
-    let (schema, path) = source.split_at(source.find(':').unwrap_or(0));
-    if schema.to_lowercase() == "javascript" || !schema.is_ascii() {
-        return Err(SanitizationError{content: "Unsupported Schema".to_string()})
+    let (scheme, path) = source.split_at(source.find(':').unwrap_or(0));
+    if scheme.to_lowercase() == "javascript" || !scheme.is_ascii() {
+        return Err(SanitizationError{content: "Unsupported Scheme".to_string()})
     }
-    if schema.to_lowercase() == "data" && !path.starts_with(":image/"){
+    if scheme.to_lowercase() == "data" && !path.starts_with(":image/"){
         return Err(SanitizationError{content: "Unsupported Data URL".to_string()})
     }
-    Ok(ValidURL{kind: URLType::Web, content: source})
+    match source_scheme {
+        Some(_) => Ok(ValidURL{content: source.split(":").last().expect("source failed to split a second time in `fn validate_link`"), scheme: source_scheme}),
+        None => Ok(ValidURL{content: source, scheme: source_scheme}),
+    }
+    
 }
