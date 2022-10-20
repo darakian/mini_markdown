@@ -442,11 +442,39 @@ pub(crate) fn sanitize_display_text(source: &str) -> String {
         .replace('(', "&#40;")
 }
 
+pub(crate) fn percent_encode(source: &str) -> String {
+    source.replace('%', "%25")
+        .replace(':', "%3A")
+        .replace('/',"%2F")
+        .replace('?',"%3F")
+        .replace('#',"%23")
+        .replace('[',"%5B")
+        .replace(']',"%5D")
+        .replace('@',"%40")
+        .replace('!',"%21")
+        .replace('$',"%24")
+        .replace('&',"%26")
+        .replace("'","%27")
+        .replace('(',"%28")
+        .replace(')',"%29")
+        .replace('*',"%2A")
+        .replace('+',"%2B")
+        .replace(',',"%2C")
+        .replace(';',"%3B")
+        .replace('=',"%3D")
+        .replace(' ',"%20")
+}
+
 /// Basic url schema validation
 pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError> {
+    //Check for mail links
+    //if `@` in string and optionally starts with case insensitive `mailto:` scheme
+    if source.contains('@') {
+
+    }
+
     //Schema defined here https://spec.commonmark.org/0.30/#scheme
-    // Must start with an ascii letter. May contain any combination of ASCII letters, digits, or the symbols plus (”+”), period (”.”), or hyphen (”-”)
-    //Ends with a :
+    // char set in COMMONMARK_SCHEME_ASCII. 2 to 32 chars followed by `:`
 
 
     if !source.is_ascii() || source.contains(char::is_whitespace) { // https://www.rfc-editor.org/rfc/rfc3986#section-2
