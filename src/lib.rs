@@ -26,7 +26,7 @@ pub(crate) struct ValidURL<'a>{
 impl fmt::Display for ValidURL<'_>{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result{
         match &self.scheme {
-            None => {return write!(f, "{}", self.content)},
+            None => {return write!(f, "http:{}", self.content)},
             Some(s) => {return write!(f, "{}:{}", s, self.content)},
         }
     }
@@ -35,7 +35,9 @@ impl fmt::Display for ValidURL<'_>{
 #[derive(Debug)]
 pub(crate) enum Scheme<'a>{
     Http(&'a str),
-    Email(&'a str) //ex. foo@bar.com => "foo", "bar.com"
+    Email(&'a str),
+    Irc(&'a str),
+    Other(&'a str),
 }
 
 impl fmt::Display for Scheme<'_> {
@@ -43,6 +45,8 @@ impl fmt::Display for Scheme<'_> {
         match self {
             Scheme::Http(s) => {return write!(f, "{}", s)},
             Scheme::Email(s) => {return write!(f, "{}", s)},
+            Scheme::Irc(s) => {return write!(f, "{}", s)},
+            Scheme::Other(s) => {return write!(f, "{}", s)},
         }
     }
 }
@@ -490,22 +494,26 @@ pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError>
     // char set in COMMONMARK_SCHEME_ASCII. 2 to 32 chars followed by `:`
     let source_scheme = {
         let parts: Vec<_> = source.split(":").collect();
-        if source.matches(':').count() == 1 
-            && parts.len() == 2
+        if source.contains(':')
             && parts[0].chars().all(|c| COMMONMARK_SCHEME_ASCII.contains(&c))
             && parts[0].len() >= 2
             && parts[0].len() <= 32 {
-            Some(parts[0])           
+                match parts[0] {
+                    "http" => Some(Scheme::Http(parts[0])),
+                    "mailto" => Some(Scheme::Email(parts[0])),
+                    "irc" => Some(Scheme::Irc(parts[0])),
+                    _ => Some(Scheme::Other(parts[0]))
+                }
             } else {None}
     };
-    println!("source_scheme: {:?}", source_scheme);
+
     //Check for mail links
     if source.contains('@') && source.matches('@').count() == 1 {
         if source_scheme.is_some() {
-            return Ok(ValidURL{scheme: Some(Scheme::Email(source_scheme.unwrap_or("MAILTO"))), content: &source.split(":").last().unwrap()})
+            return Ok(ValidURL{scheme: Some(source_scheme.unwrap_or(Scheme::Email("MAILTO"))), content: &source.split(":").last().unwrap()})
             
         }
-        return Ok(ValidURL{scheme: Some(Scheme::Email(source_scheme.unwrap_or("MAILTO"))), content: &source})
+        return Ok(ValidURL{scheme: Some(source_scheme.unwrap_or(Scheme::Email("MAILTO"))), content: &source})
     }
 
 
@@ -520,8 +528,11 @@ pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError>
         return Err(SanitizationError{content: "Unsupported Data URL".to_string()})
     }
     match source_scheme {
-        Some(_) => Ok(ValidURL{content: source.split(":").last().expect("source failed to split a second time in `fn validate_link`"), scheme: None}),
-        None => Ok(ValidURL{content: source, scheme: Some(Scheme::Http(""))}),
+        Some(Scheme::Http(s)) => {Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Http(s))})},
+        Some(Scheme::Email(s)) => {Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Email(s))})},
+        Some(Scheme::Irc(s)) => {Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Irc(s))})},
+        Some(Scheme::Other(s)) => Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Other(s))}),
+        None => Ok(ValidURL{content: source, scheme: Some(Scheme::Http("http"))}),
     }
     
 }
