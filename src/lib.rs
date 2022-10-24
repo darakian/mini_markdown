@@ -24,9 +24,11 @@ pub(crate) struct ValidURL<'a>{
 
 impl <'a> ValidURL<'a>{
         fn fmt_unsafe(&self) -> String{
+            let amp_replace_content = self.content.replace('&', "&amp;");
         match &self.scheme {
-            None => {return format!("http:{}", self.content.replace('&', "&amp;"))},
-            Some(s) => {return format!("{}:{}", s, self.content.replace('&', "&amp;"))},
+            None => {return format!("http:{}", amp_replace_content)},
+            Some(Scheme::Email(_s)) => {return format!("{}", amp_replace_content)},
+            Some(s) => {return format!("{}:{}", s, amp_replace_content)},
         }
     }
 }
