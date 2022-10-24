@@ -486,6 +486,20 @@ pub(crate) fn percent_encode(source: &str) -> String {
 }
 
 pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError> {
+    if !source.is_ascii() || source.contains(char::is_whitespace) { // https://www.rfc-editor.org/rfc/rfc3986#section-2
+        return Err(SanitizationError{content: source})
+    }
+    let (scheme, path) = source.split_at(source.find(':').unwrap_or(0));
+    if scheme.to_lowercase() == "javascript" || !scheme.is_ascii() {
+        return Err(SanitizationError{content: source})
+    }
+    if scheme.to_lowercase() == "data" && !path.starts_with(":image/"){
+        return Err(SanitizationError{content: source})
+    }
+    if scheme.len() < 2 || scheme.len() > 32 {
+        return Err(SanitizationError{content: source})
+    }
+
     //Scheme defined here https://spec.commonmark.org/0.30/#scheme
     // char set in COMMONMARK_SCHEME_ASCII. 2 to 32 chars followed by `:`
     let source_scheme = {
@@ -503,6 +517,10 @@ pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError>
             } else {None}
     };
 
+    println!("s: {:?}", source_scheme);
+    println!("source: {:?}", source);
+
+
     //Check for mail links
     if source.contains('@') && source.matches('@').count() == 1 && !source.contains('\\') {
         if source_scheme.is_some() {
@@ -514,16 +532,6 @@ pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError>
         return Err(SanitizationError{content: source})
     }
 
-    if !source.is_ascii() || source.contains(char::is_whitespace) { // https://www.rfc-editor.org/rfc/rfc3986#section-2
-        return Err(SanitizationError{content: source})
-    }
-    let (scheme, path) = source.split_at(source.find(':').unwrap_or(0));
-    if scheme.to_lowercase() == "javascript" || !scheme.is_ascii() {
-        return Err(SanitizationError{content: source})
-    }
-    if scheme.to_lowercase() == "data" && !path.starts_with(":image/"){
-        return Err(SanitizationError{content: source})
-    }
     match source_scheme {
         Some(Scheme::Http(s)) => {Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Http(s))})},
         Some(Scheme::Email(s)) => {Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Email(s))})},
