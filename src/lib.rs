@@ -496,11 +496,11 @@ pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError>
     if scheme.to_lowercase() == "data" && !path.starts_with(":image/"){
         return Err(SanitizationError{content: source})
     }
-    if scheme.len() < 2 || scheme.len() > 32 {
+    if scheme.len() != 0 && ( scheme.len() < 2 || scheme.len() > 32 ) {
         return Err(SanitizationError{content: source})
     }
 
-    //Scheme defined here https://spec.commonmark.org/0.30/#scheme
+    // Scheme defined here https://spec.commonmark.org/0.30/#scheme
     // char set in COMMONMARK_SCHEME_ASCII. 2 to 32 chars followed by `:`
     let source_scheme = {
         let parts: Vec<_> = source.split(":").collect();
