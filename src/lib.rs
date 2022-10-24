@@ -354,7 +354,6 @@ pub fn parse(tokens: &[Token]) -> String {
                 
             },
             Token::Link(l, t, ht) => {
-                println!(">>> {:?}", l);
                 match (t, ht){
                     (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}</a>", link=l, text=sanitize_display_text(t), hover=ht).as_str()),
                     (Some(t), None) => html.push_str(format!("<a href=\"{link}\">{text}</a>", link=l, text=sanitize_display_text(t)).as_str()),
@@ -517,10 +516,6 @@ pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError>
             } else {None}
     };
 
-    println!("s: {:?}", source_scheme);
-    println!("source: {:?}", source);
-
-
     //Check for mail links
     if source.contains('@') && source.matches('@').count() == 1 && !source.contains('\\') {
         if source_scheme.is_some() {
@@ -537,7 +532,7 @@ pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError>
         Some(Scheme::Email(s)) => {Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Email(s))})},
         Some(Scheme::Irc(s)) => {Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Irc(s))})},
         Some(Scheme::Other(s)) => Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Other(s))}),
-        None => Ok(ValidURL{content: source, scheme: Some(Scheme::Http("http"))}),
+        None => Ok(ValidURL{content: source, scheme: None}),
     }
     
 }
