@@ -1,5 +1,6 @@
 use crate::MiniIter;
 use crate::sanitize_display_text;
+use crate::validate_link;
 
 /// Tokens are the intermediate representation format in the markdown to html conversion
 #[derive(Debug, PartialEq, Eq)]
@@ -137,9 +138,6 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Par
     let parsed_line = crate::render_ignore(line_without_optional_trailing_hash_sequence.trim_end_matches(&[' ', '\t']), &['#'])
         .strip_prefix("<p>").unwrap_or("")
         .strip_suffix("</p>\n").unwrap_or("").trim().to_string();
-    println!("line: {:?}", line);
-    println!("parsed_line: {:?}", parsed_line);
-    println!("line_without_optional_trailing_hash_sequence: {:?}", line_without_optional_trailing_hash_sequence);
     if heading != "" {
         return Ok(Token::Header(hashes.len(), heading.trim().to_string(), Some(parsed_line)));
     }

@@ -1,5 +1,6 @@
 pub mod lexer;
 pub mod iter;
+use std::fmt;
 use crate::lexer::*;
 use crate::iter::MiniIter;
 
@@ -18,7 +19,32 @@ pub(crate) struct SanitizationError{
 #[derive(Debug)]
 pub(crate) struct ValidURL<'a>{
     content: &'a str,
-    scheme: Option<&'a str>,
+    scheme: Option<Scheme<'a>>,
+}
+
+
+impl fmt::Display for ValidURL<'_>{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result{
+        match &self.scheme {
+            None => {return write!(f, "{}", self.content)},
+            Some(s) => {return write!(f, "{}:{}", s, self.content)},
+        }
+    }
+}
+
+#[derive(Debug)]
+pub(crate) enum Scheme<'a>{
+    Http(&'a str),
+    Email(&'a str) //ex. foo@bar.com => "foo", "bar.com"
+}
+
+impl fmt::Display for Scheme<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Scheme::Http(s) => {return write!(f, "{}", s)},
+            Scheme::Email(s) => {return write!(f, "{}", s)},
+        }
+    }
 }
 
 /// Convert source markdown to an ordered vector of tokens
@@ -318,8 +344,8 @@ pub fn parse(tokens: &[Token]) -> String {
             },
             Token::Link(l, t, ht) => {
                 let l = match validate_link(l){
-                    Ok(vl) => vl.content,
-                    _ => "",
+                    Ok(vl) => vl,
+                    _ => ValidURL{content: "", scheme: None},
                 };
                 match (t, ht){
                     (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}</a>", link=l, text=sanitize_display_text(t), hover=ht).as_str()),
@@ -464,8 +490,7 @@ pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError>
     // char set in COMMONMARK_SCHEME_ASCII. 2 to 32 chars followed by `:`
     let source_scheme = {
         let parts: Vec<_> = source.split(":").collect();
-        if source.contains(':') 
-            && source.matches(':').count() == 2 
+        if source.matches(':').count() == 1 
             && parts.len() == 2
             && parts[0].chars().all(|c| COMMONMARK_SCHEME_ASCII.contains(&c))
             && parts[0].len() >= 2
@@ -473,17 +498,14 @@ pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError>
             Some(parts[0])           
             } else {None}
     };
-
+    println!("source_scheme: {:?}", source_scheme);
     //Check for mail links
-    //if `@` in string and optionally starts with case insensitive `mailto:` scheme
-    if source.contains('@') && source_scheme.unwrap_or("").to_lowercase() == "mailto" {
-        let parts: Vec<_> = source.split("@").collect();
-        if parts.len() != 2 {return Err(SanitizationError{content: "Multipe @s in url".to_string()})}
-        return Ok(ValidURL{scheme: Some(&parts[0][..=6]), content: &parts[1]})
-    } else if source.contains('@') {
-        let parts: Vec<_> = source.split("@").collect();
-        if parts.len() != 2 {return Err(SanitizationError{content: "Multipe @s in url".to_string()})}
-        return Ok(ValidURL{scheme: Some("mailto:"), content: &parts[1]})
+    if source.contains('@') && source.matches('@').count() == 1 {
+        if source_scheme.is_some() {
+            return Ok(ValidURL{scheme: Some(Scheme::Email(source_scheme.unwrap_or("MAILTO"))), content: &source.split(":").last().unwrap()})
+            
+        }
+        return Ok(ValidURL{scheme: Some(Scheme::Email(source_scheme.unwrap_or("MAILTO"))), content: &source})
     }
 
 
@@ -498,8 +520,8 @@ pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError>
         return Err(SanitizationError{content: "Unsupported Data URL".to_string()})
     }
     match source_scheme {
-        Some(_) => Ok(ValidURL{content: source.split(":").last().expect("source failed to split a second time in `fn validate_link`"), scheme: source_scheme}),
-        None => Ok(ValidURL{content: source, scheme: source_scheme}),
+        Some(_) => Ok(ValidURL{content: source.split(":").last().expect("source failed to split a second time in `fn validate_link`"), scheme: None}),
+        None => Ok(ValidURL{content: source, scheme: Some(Scheme::Http(""))}),
     }
     
 }
