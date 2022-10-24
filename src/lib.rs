@@ -133,11 +133,7 @@ pub fn lex<'a>(source: &'a str, ignore: &[char]) -> Vec<Token<'a>>{
             "<" => {
                 match lex_side_carrot(&mut char_iter) {
                     Ok(t) => tokens.push(t),
-                    Err(e) => {
-                        push_str(&mut tokens, "<");
-                        push_str(&mut tokens, e.content);
-                        push_str(&mut tokens, ">");
-                    },
+                    Err(e) => push_str(&mut tokens, e.content),
                 }
             },
             "|" => {
@@ -468,7 +464,7 @@ pub(crate) fn sanitize_display_text(source: &str) -> String {
         .replace('{', "&lbrace;")
         .replace('}', "&rbrace;")
         .replace('|', "&mid;")
-        .replace('\\', "&backslash;")
+        .replace('\\', "")
         .replace('~', "&tilde;")
         .replace(')', "&#41;")
         .replace('(', "&#40;")

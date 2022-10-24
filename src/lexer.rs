@@ -369,7 +369,7 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
             if s.contains(char::is_whitespace) {return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})}
             match validate_link(s) {
                 Ok(vl) => {return Ok(Token::Link(vl, None, None))}
-                Err(se) => {return Err(ParseError{content: &se.content})}
+                Err(se) => {return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})}
             }
             
         },
