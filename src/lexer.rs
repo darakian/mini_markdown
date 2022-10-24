@@ -368,7 +368,7 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<
         (_, Some(">")) if s.len() >= 1 => {
             if s.contains(char::is_whitespace) {return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})}
             match validate_link(s) {
-                Ok(vl) if vl.scheme.is_some() => {return Ok(Token::Link(vl, None, None))}
+                Ok(vl) if vl.scheme.is_some() => {return Ok(Token::Link(vl, None, None))} // Auto links require a scheme
                 _ => {return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})}
             }
             
