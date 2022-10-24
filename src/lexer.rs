@@ -1,5 +1,4 @@
 use crate::MiniIter;
-use crate::sanitize_display_text;
 use crate::validate_link;
 
 /// Tokens are the intermediate representation format in the markdown to html conversion
@@ -360,7 +359,7 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token,
         },
         (_, Some(">")) if s.len() >= 1 => {
             if s.contains(char::is_whitespace) {return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})}
-            return Ok(Token::Link(sanitize_display_text(s), None, None))
+            return Ok(Token::Link(s.to_string(), None, None))
         },
         (_, Some(">")) if s.len() == 0 => {
             return Err(ParseError{content: "<>"})

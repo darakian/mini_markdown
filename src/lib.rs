@@ -22,12 +22,21 @@ pub(crate) struct ValidURL<'a>{
     scheme: Option<Scheme<'a>>,
 }
 
+impl <'a> ValidURL<'a>{
+        fn fmt_unsafe(&self) -> String{
+        match &self.scheme {
+            None => {return format!("http:{}", self.content.replace('&', "&amp;"))},
+            Some(s) => {return format!("{}:{}", s, self.content.replace('&', "&amp;"))},
+        }
+    }
+}
+
 
 impl fmt::Display for ValidURL<'_>{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result{
         match &self.scheme {
-            None => {return write!(f, "http:{}", self.content)},
-            Some(s) => {return write!(f, "{}:{}", s, self.content)},
+            None => {return write!(f, "http:{}", percent_encode(self.content).replace('&', "&amp;"))},
+            Some(s) => {return write!(f, "{}:{}", s, percent_encode(self.content).replace('&', "&amp;"))},
         }
     }
 }
@@ -351,11 +360,12 @@ pub fn parse(tokens: &[Token]) -> String {
                     Ok(vl) => vl,
                     _ => ValidURL{content: "", scheme: None},
                 };
+                println!(">>> {:?}", l);
                 match (t, ht){
                     (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}</a>", link=l, text=sanitize_display_text(t), hover=ht).as_str()),
                     (Some(t), None) => html.push_str(format!("<a href=\"{link}\">{text}</a>", link=l, text=sanitize_display_text(t)).as_str()),
                     (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\">{link}</a>", link=l, hover=sanitize_display_text(ht)).as_str()),
-                    (None, None) => html.push_str(format!("<a href=\"{link}\">{link}</a>", link=l).as_str()),
+                    (None, None) => html.push_str(format!("<a href=\"{link}\">{display}</a>", link=l, display=l.fmt_unsafe()).as_str()),
                 }
             },
             Token::Detail(summary, inner_tokens) => {
@@ -468,25 +478,17 @@ pub(crate) fn sanitize_display_text(source: &str) -> String {
 
 pub(crate) fn percent_encode(source: &str) -> String {
     source.replace('%', "%25")
-        .replace(':', "%3A")
-        .replace('/',"%2F")
-        .replace('?',"%3F")
         .replace('#',"%23")
         .replace('[',"%5B")
         .replace(']',"%5D")
-        .replace('@',"%40")
         .replace('!',"%21")
         .replace('$',"%24")
-        .replace('&',"%26")
         .replace("'","%27")
         .replace('(',"%28")
         .replace(')',"%29")
         .replace('*',"%2A")
-        .replace('+',"%2B")
-        .replace(',',"%2C")
-        .replace(';',"%3B")
-        .replace('=',"%3D")
         .replace(' ',"%20")
+        .replace('\\', "%5C")
 }
 
 pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError> {
@@ -510,10 +512,10 @@ pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError>
     //Check for mail links
     if source.contains('@') && source.matches('@').count() == 1 {
         if source_scheme.is_some() {
-            return Ok(ValidURL{scheme: Some(source_scheme.unwrap_or(Scheme::Email("MAILTO"))), content: &source.split(":").last().unwrap()})
+            return Ok(ValidURL{scheme: Some(source_scheme.unwrap_or(Scheme::Email("mailto"))), content: &source.split(":").last().unwrap()})
             
         }
-        return Ok(ValidURL{scheme: Some(source_scheme.unwrap_or(Scheme::Email("MAILTO"))), content: &source})
+        return Ok(ValidURL{scheme: Some(source_scheme.unwrap_or(Scheme::Email("mailto"))), content: &source})
     }
 
 
