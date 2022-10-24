@@ -16,7 +16,7 @@ pub(crate) struct SanitizationError{
     pub(crate) content: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) struct ValidURL<'a>{
     content: &'a str,
     scheme: Option<Scheme<'a>>,
@@ -43,7 +43,7 @@ impl fmt::Display for ValidURL<'_>{
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Scheme<'a>{
     Http(&'a str),
     Email(&'a str),
@@ -345,10 +345,6 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
             },
             Token::Image(l, t) => {
-                let l = match validate_link(l){
-                    Ok(vl) => vl.content,
-                    _ => "",
-                };
                 match (l, t) {
                     (l, None) if l.trim() == "" => {html.push_str("<p><img src=\"data:,\"></p>")}
                     (l, Some(t)) if l.trim() == "" => {html.push_str(format!("<p><img src=\"data:,\" alt=\"{text}\"></p>", text=sanitize_display_text(t)).as_str())}
@@ -358,10 +354,6 @@ pub fn parse(tokens: &[Token]) -> String {
                 
             },
             Token::Link(l, t, ht) => {
-                let l = match validate_link(l){
-                    Ok(vl) => vl,
-                    _ => ValidURL{content: "", scheme: None},
-                };
                 println!(">>> {:?}", l);
                 match (t, ht){
                     (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}</a>", link=l, text=sanitize_display_text(t), hover=ht).as_str()),
@@ -512,14 +504,15 @@ pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError>
     };
 
     //Check for mail links
-    if source.contains('@') && source.matches('@').count() == 1 {
+    if source.contains('@') && source.matches('@').count() == 1 && !source.contains('\\') {
         if source_scheme.is_some() {
-            return Ok(ValidURL{scheme: Some(source_scheme.unwrap_or(Scheme::Email("mailto"))), content: &source.split(":").last().unwrap()})
-            
+            return Ok(ValidURL{scheme: Some(source_scheme.unwrap_or(Scheme::Email("mailto"))), content: &source.split(":").last().unwrap()})   
         }
         return Ok(ValidURL{scheme: Some(source_scheme.unwrap_or(Scheme::Email("mailto"))), content: &source})
     }
-
+    if source.contains('@') && source.matches('@').count() == 1 && source.contains('\\') {
+        return Err(SanitizationError{content: source.to_string()})
+    }
 
     if !source.is_ascii() || source.contains(char::is_whitespace) { // https://www.rfc-editor.org/rfc/rfc3986#section-2
         return Err(SanitizationError{content: "Unsupported characters".to_string()})

@@ -1,9 +1,10 @@
 use crate::MiniIter;
+use crate::ValidURL;
 use crate::validate_link;
 
 /// Tokens are the intermediate representation format in the markdown to html conversion
 #[derive(Debug, PartialEq, Eq)]
-pub enum Token {
+pub enum Token<'a>{
     /// String: Body of unstructured text
     Plaintext(String),
     /// u8: Header level (1..=6). str: Header text. Option<str>: html label
@@ -39,7 +40,7 @@ pub enum Token {
     /// str: Link. Option<str>: Title for link.
     Image(String, Option<String>),
     /// str: Link. First Option<str>: Title for link. Second Option<str>: Hover text
-    Link(String, Option<String>, Option<String>),
+    Link(ValidURL<'a>, Option<String>, Option<String>),
     /// str: Summary. Vec<Token>: Tokens to be rendered in the collapsable section
     Detail(String, Vec<Token>),
     /// Tuple of Vec<(Alignment, str)>: Which defines the table header and Vec<Vec<(Alignment, Vec<Token>)>> which defines the rows
@@ -284,7 +285,7 @@ pub(crate) fn lex_images<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Pars
     let link_result = lex_links(char_iter);
     match link_result {
         Err(_e) => return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")}),
-        Ok(Token::Link(link, title, _)) => return Ok(Token::Image(link, title)),
+        Ok(Token::Link(link, title, _)) => return Ok(Token::Image(link.content.to_string(), title)),
         _ => return Err(ParseError{content: "Non link token returned from lex_links"})
     }
 }
@@ -334,12 +335,19 @@ pub(crate) fn lex_links<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token, Parse
         return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})
     }
     if char_iter.next_if_eq(")") == Some(&")") {
-        return Ok(Token::Link(link.to_string(), Some(title.to_string()), None));
+        match validate_link(link) {
+            Ok(vl) => return Ok(Token::Link(vl, Some(title.to_string()), None)),
+            Err(se) => return Err(ParseError{content: &se.content}),
+        }
+        
     }
     if char_iter.peek() == Some(&" ") {
         let hover = char_iter.consume_while_case_holds(&|c| c != ")").unwrap_or("");
         char_iter.skip_while(|c| c != &"\n").next();
-        return Ok(Token::Link(link.to_string(), Some(title.to_string()), Some(hover.to_string())));
+        match validate_link(link) {
+           Ok(vl) => return Ok(Token::Link(vl, Some(title.to_string()), Some(hover.to_string()))),
+           Err(se) => return Err(ParseError{content: &se.content}),
+        }
     }
     Err(ParseError{content: ""})
 }
@@ -359,7 +367,11 @@ pub(crate) fn lex_side_carrot<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token,
         },
         (_, Some(">")) if s.len() >= 1 => {
             if s.contains(char::is_whitespace) {return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})}
-            return Ok(Token::Link(s.to_string(), None, None))
+            match validate_link(s) {
+                Ok(vl) => {return Ok(Token::Link(vl, None, None))}
+                Err(se) => {return Err(ParseError{content: &se.content})}
+            }
+            
         },
         (_, Some(">")) if s.len() == 0 => {
             return Err(ParseError{content: "<>"})
