@@ -12,12 +12,12 @@ static COMMONMARK_SCHEME_ASCII: [char; 65] = [ //https://spec.commonmark.org/0.3
 
 
 #[derive(Debug)]
-pub(crate) struct SanitizationError{
-    pub(crate) content: String,
+pub(crate) struct SanitizationError<'a>{
+    pub(crate) content: &'a str,
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct ValidURL<'a>{
+pub struct ValidURL<'a>{
     content: &'a str,
     scheme: Option<Scheme<'a>>,
 }
@@ -63,7 +63,7 @@ impl fmt::Display for Scheme<'_> {
 }
 
 /// Convert source markdown to an ordered vector of tokens
-pub fn lex(source: &str, ignore: &[char]) -> Vec<Token>{
+pub fn lex<'a>(source: &'a str, ignore: &[char]) -> Vec<Token<'a>>{
     let mut char_iter = MiniIter::new(source);
     let mut tokens = Vec::new();
     while char_iter.peek().is_some(){
@@ -511,18 +511,18 @@ pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError>
         return Ok(ValidURL{scheme: Some(source_scheme.unwrap_or(Scheme::Email("mailto"))), content: &source})
     }
     if source.contains('@') && source.matches('@').count() == 1 && source.contains('\\') {
-        return Err(SanitizationError{content: source.to_string()})
+        return Err(SanitizationError{content: source})
     }
 
     if !source.is_ascii() || source.contains(char::is_whitespace) { // https://www.rfc-editor.org/rfc/rfc3986#section-2
-        return Err(SanitizationError{content: "Unsupported characters".to_string()})
+        return Err(SanitizationError{content: source})
     }
     let (scheme, path) = source.split_at(source.find(':').unwrap_or(0));
     if scheme.to_lowercase() == "javascript" || !scheme.is_ascii() {
-        return Err(SanitizationError{content: "Unsupported Scheme".to_string()})
+        return Err(SanitizationError{content: source})
     }
     if scheme.to_lowercase() == "data" && !path.starts_with(":image/"){
-        return Err(SanitizationError{content: "Unsupported Data URL".to_string()})
+        return Err(SanitizationError{content: source})
     }
     match source_scheme {
         Some(Scheme::Http(s)) => {Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Http(s))})},
