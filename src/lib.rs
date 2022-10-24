@@ -1,15 +1,69 @@
 pub mod lexer;
 pub mod iter;
+use std::fmt;
 use crate::lexer::*;
 use crate::iter::MiniIter;
 
+static COMMONMARK_SCHEME_ASCII: [char; 65] = [ //https://spec.commonmark.org/0.30/#scheme
+    'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+    'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+    '1','2','3','4','5','6','7','8','9','0',
+    '+','.','-'];
+
+
 #[derive(Debug)]
-pub(crate) struct SanitizationError{
-    pub(crate) content: String,
+pub(crate) struct SanitizationError<'a>{
+    pub(crate) content: &'a str,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct ValidURL<'a>{
+    content: &'a str,
+    scheme: Option<Scheme<'a>>,
+}
+
+impl <'a> ValidURL<'a>{
+        fn fmt_unsafe(&self) -> String{
+            let amp_replace_content = self.content.replace('&', "&amp;");
+        match &self.scheme {
+            None => {return format!("http:{}", amp_replace_content)},
+            Some(Scheme::Email(_s)) => {return format!("{}", amp_replace_content)},
+            Some(s) => {return format!("{}:{}", s, amp_replace_content)},
+        }
+    }
+}
+
+
+impl fmt::Display for ValidURL<'_>{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result{
+        match &self.scheme {
+            None => {return write!(f, "http:{}", percent_encode(self.content).replace('&', "&amp;"))},
+            Some(s) => {return write!(f, "{}:{}", s, percent_encode(self.content).replace('&', "&amp;"))},
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) enum Scheme<'a>{
+    Http(&'a str),
+    Email(&'a str),
+    Irc(&'a str),
+    Other(&'a str),
+}
+
+impl fmt::Display for Scheme<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Scheme::Http(s) => {return write!(f, "{}", s)},
+            Scheme::Email(s) => {return write!(f, "{}", s)},
+            Scheme::Irc(s) => {return write!(f, "{}", s)},
+            Scheme::Other(s) => {return write!(f, "{}", s)},
+        }
+    }
 }
 
 /// Convert source markdown to an ordered vector of tokens
-pub fn lex(source: &str, ignore: &[char]) -> Vec<Token>{
+pub fn lex<'a>(source: &'a str, ignore: &[char]) -> Vec<Token<'a>>{
     let mut char_iter = MiniIter::new(source);
     let mut tokens = Vec::new();
     while char_iter.peek().is_some(){
@@ -157,7 +211,7 @@ pub fn parse(tokens: &[Token]) -> String {
                 in_paragraph = false;
                 html.push_str("</p>\n")
             },
-            Token::Plaintext(_) | Token::Italic(_) | Token::Bold(_) | Token::BoldItalic(_) | Token::Strikethrough(_) if !in_paragraph => {
+            Token::Plaintext(_) | Token::Italic(_) | Token::Bold(_) | Token::BoldItalic(_) | Token::Strikethrough(_) | Token::Link(_, _, _) if !in_paragraph => {
                 for _i in 0..quote_level {
                         html.push_str("</blockquote>");
                         quote_level-=1;
@@ -291,10 +345,6 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
             },
             Token::Image(l, t) => {
-                let l = match validate_url(l){
-                    Ok(vl) => vl,
-                    _ => "",
-                };
                 match (l, t) {
                     (l, None) if l.trim() == "" => {html.push_str("<p><img src=\"data:,\"></p>")}
                     (l, Some(t)) if l.trim() == "" => {html.push_str(format!("<p><img src=\"data:,\" alt=\"{text}\"></p>", text=sanitize_display_text(t)).as_str())}
@@ -304,15 +354,11 @@ pub fn parse(tokens: &[Token]) -> String {
                 
             },
             Token::Link(l, t, ht) => {
-                let l = match validate_url(l){
-                    Ok(vl) => vl,
-                    _ => "",
-                };
                 match (t, ht){
-                    (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\" referrerpolicy=\"no-referrer\">{text}</a>", link=l, text=sanitize_display_text(t), hover=ht).as_str()),
-                    (Some(t), None) => html.push_str(format!("<a href=\"{link}\" referrerpolicy=\"no-referrer\">{text}</a>", link=l, text=sanitize_display_text(t)).as_str()),
-                    (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\" referrerpolicy=\"no-referrer\">{link}</a>", link=l, hover=sanitize_display_text(ht)).as_str()),
-                    (None, None) => html.push_str(format!("<a href=\"{link}\" referrerpolicy=\"no-referrer\">{link}</a>", link=l).as_str()),
+                    (Some(t), Some(ht)) => html.push_str(format!("<a href=>\"{link}\" title=\"{hover}\">{text}</a>", link=l, text=sanitize_display_text(t), hover=ht).as_str()),
+                    (Some(t), None) => html.push_str(format!("<a href=\"{link}\">{text}</a>", link=l, text=sanitize_display_text(t)).as_str()),
+                    (None, Some(ht)) => html.push_str(format!("<a href=\"{link}\" title=\"{hover}\">{link}</a>", link=l, hover=sanitize_display_text(ht)).as_str()),
+                    (None, None) => html.push_str(format!("<a href=\"{link}\">{display}</a>", link=l, display=l.fmt_unsafe()).as_str()),
                 }
             },
             Token::Detail(summary, inner_tokens) => {
@@ -417,23 +463,76 @@ pub(crate) fn sanitize_display_text(source: &str) -> String {
         .replace('{', "&lbrace;")
         .replace('}', "&rbrace;")
         .replace('|', "&mid;")
-        .replace('\\', "&backslash;")
+        .replace('\\', "")
         .replace('~', "&tilde;")
         .replace(')', "&#41;")
         .replace('(', "&#40;")
 }
 
-/// Basic url schema validation
-pub(crate) fn validate_url(source: &str) -> Result<&str, SanitizationError> {
-    if source.contains("\"") || !source.is_ascii() || source.contains(char::is_whitespace) { // https://www.rfc-editor.org/rfc/rfc3986#section-2
-        return Err(SanitizationError{content: "Unsupported characters".to_string()})
+pub(crate) fn percent_encode(source: &str) -> String {
+    source.replace('%', "%25")
+        .replace('#',"%23")
+        .replace('[',"%5B")
+        .replace(']',"%5D")
+        .replace('!',"%21")
+        .replace('$',"%24")
+        .replace("'","%27")
+        .replace('(',"%28")
+        .replace(')',"%29")
+        .replace('*',"%2A")
+        .replace(' ',"%20")
+        .replace('\\', "%5C")
+}
+
+pub(crate) fn validate_link(source: &str) -> Result<ValidURL, SanitizationError> {
+    if !source.is_ascii() || source.contains(char::is_whitespace) { // https://www.rfc-editor.org/rfc/rfc3986#section-2
+        return Err(SanitizationError{content: source})
     }
-    let (schema, path) = source.split_at(source.find(':').unwrap_or(0));
-    if schema.to_lowercase() == "javascript" || !schema.is_ascii() {
-        return Err(SanitizationError{content: "Unsupported Schema".to_string()})
+    let (scheme, path) = source.split_at(source.find(':').unwrap_or(0));
+    if scheme.to_lowercase() == "javascript" || !scheme.is_ascii() {
+        return Err(SanitizationError{content: source})
     }
-    if schema.to_lowercase() == "data" && !path.starts_with(":image/"){
-        return Err(SanitizationError{content: "Unsupported Data URL".to_string()})
+    if scheme.to_lowercase() == "data" && !path.starts_with(":image/"){
+        return Err(SanitizationError{content: source})
     }
-    Ok(source)
+    if scheme.len() != 0 && ( scheme.len() < 2 || scheme.len() > 32 ) {
+        return Err(SanitizationError{content: source})
+    }
+
+    // Scheme defined here https://spec.commonmark.org/0.30/#scheme
+    // char set in COMMONMARK_SCHEME_ASCII. 2 to 32 chars followed by `:`
+    let source_scheme = {
+        let parts: Vec<_> = source.split(":").collect();
+        if source.contains(':')
+            && parts[0].chars().all(|c| COMMONMARK_SCHEME_ASCII.contains(&c))
+            && parts[0].len() >= 2
+            && parts[0].len() <= 32 {
+                match parts[0] {
+                    "http" => Some(Scheme::Http(parts[0])),
+                    "mailto" => Some(Scheme::Email(parts[0])),
+                    "irc" => Some(Scheme::Irc(parts[0])),
+                    _ => Some(Scheme::Other(parts[0]))
+                }
+            } else {None}
+    };
+
+    //Check for mail links
+    if source.contains('@') && source.matches('@').count() == 1 && !source.contains('\\') {
+        if source_scheme.is_some() {
+            return Ok(ValidURL{scheme: Some(source_scheme.unwrap_or(Scheme::Email("mailto"))), content: &source.split(":").last().unwrap()})   
+        }
+        return Ok(ValidURL{scheme: Some(source_scheme.unwrap_or(Scheme::Email("mailto"))), content: &source})
+    }
+    if source.contains('@') && source.matches('@').count() == 1 && source.contains('\\') {
+        return Err(SanitizationError{content: source})
+    }
+
+    match source_scheme {
+        Some(Scheme::Http(s)) => {Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Http(s))})},
+        Some(Scheme::Email(s)) => {Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Email(s))})},
+        Some(Scheme::Irc(s)) => {Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Irc(s))})},
+        Some(Scheme::Other(s)) => Ok(ValidURL{content: source.strip_prefix(s).unwrap_or("").strip_prefix(":").unwrap_or(""), scheme: Some(Scheme::Other(s))}),
+        None => Ok(ValidURL{content: source, scheme: None}),
+    }
+    
 }
