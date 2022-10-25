@@ -225,8 +225,22 @@ pub fn parse(tokens: &[Token]) -> String {
         // Add content
         match token {
             Token::Plaintext(t) => {
+                let mut t: String = t.to_string();
                 if t.trim().is_empty() {continue}
                 
+                // Trim trailing whitespace after a \n
+                match t.rfind('\n') {
+                    None => {},
+                    Some(n_index) => {
+                        let (before, after) = t.split_at(n_index);
+                        if after.chars().all(|c| c.is_whitespace()) {
+                            println!("{:?},{:?}", before, after);
+                            println!("{:?}", t.trim_end_matches(after));
+                            t = t.trim_end_matches(after).to_string();
+                        } 
+                    }
+                }
+
                 // Handle references
                 if t.contains("[^") && t.contains("]") {
                     let plaintext_tokens = t.split("[^");
@@ -242,9 +256,9 @@ pub fn parse(tokens: &[Token]) -> String {
                             count+=1;
                         } else {s.push_str(tok)}
                     }
-                    html.push_str(&s.trim_end());
+                    html.push_str(&s);
                 } else {
-                    html.push_str(sanitize_display_text(t.trim_start_matches('\n')).trim_end())
+                    html.push_str(&sanitize_display_text(t.trim_start_matches('\n')))
                 }
             },
             Token::Header(l, t, lbl) => {
