@@ -234,8 +234,6 @@ pub fn parse(tokens: &[Token]) -> String {
                     Some(n_index) => {
                         let (before, after) = t.split_at(n_index);
                         if after.chars().all(|c| c.is_whitespace()) {
-                            println!("{:?},{:?}", before, after);
-                            println!("{:?}", t.trim_end_matches(after));
                             t = t.trim_end_matches(after).to_string();
                         } 
                     }
