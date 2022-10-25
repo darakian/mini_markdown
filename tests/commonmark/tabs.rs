@@ -6,7 +6,6 @@ use mini_markdown::lex;
 fn commonmark_test_1_tabs() {
     let test_html = render("\tfoo\tbaz\t\tbim\n");
     let reference_html = "<pre><code>foo\tbaz\t\tbim\n</code></pre>\n";
-    println!("{:?}", lex("\tfoo\tbaz\t\tbim\n"));
     assert_eq!(test_html, reference_html);
 }
 
