@@ -175,6 +175,8 @@ pub fn parse(tokens: &[Token]) -> String {
     let mut in_paragraph = false;
     let mut quote_level = 0;
     let mut references = Vec::new();
+    println!("START: {:?}", html);
+
     for token in tokens.iter(){
         // Handle multi-liners
         match token {
@@ -221,7 +223,7 @@ pub fn parse(tokens: &[Token]) -> String {
             },
             _ => {}
         }
-
+        println!(">? {:?}", html);
         // Add content
         match token {
             Token::Plaintext(t) => {
@@ -289,12 +291,7 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
                 html.push_str(format!("<li>{}</li>", sanitize_display_text(t)).as_str())
             },
-            Token::Newline => {
-                match html.chars().last() {
-                    Some('\n') => {}
-                    _ => html.push('\n'),
-                }
-            },
+            Token::Newline => {},
             Token::Tab => {html.push('\t')},
             Token::DoubleTab => {html.push_str("\t\t")},
             Token::Italic(t) => {html.push_str(format!("<em>{}</em>", sanitize_display_text(t)).as_str())},
