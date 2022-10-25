@@ -2,7 +2,7 @@ mod commonmark {
 	mod atx_headings;
 	mod autolinks;
 	// mod backslash_escapes;
-	// mod blank_lines;
+	mod blank_lines;
 	// mod block_quotes;
 	// mod code_spans;
 	// mod emphasis_and_strong_emphasis;
