@@ -177,10 +177,13 @@ pub fn parse(tokens: &[Token]) -> String {
     let mut in_code = false;
     let mut quote_level = 0;
     let mut references = Vec::new();
+    let mut token_iter = tokens.iter().peekable();
 
-    for slice in tokens.windows(2){
+    while token_iter.peek().is_some(){
+        let token = token_iter.next().unwrap();
+
         // Handle multi-liners
-        match &slice[0] {
+        match token {
             Token::Plaintext(t) if t.trim().is_empty() => {}, //Ignore empty plaintext tokens 
             Token::Tab | Token::DoubleTab => {},
             Token::OrderedListEntry(_) | Token::UnorderedListEntry(_) | Token::Newline if in_ordered_list | in_unordered_list => {},
@@ -209,11 +212,11 @@ pub fn parse(tokens: &[Token]) -> String {
                     html.push_str("<p>") 
                 }
             },
-            Token::Code(_) if in_code => {
-                if matches!(&slice[1], Token::Code(_)) {
-
-                }
+            Token::Code(_) if !in_code => {
+                html.push_str("<pre><code>");
+                in_code = true;
             },
+            
             Token::BlockQuote(_, _) | Token::Newline if quote_level > 0 => {},
             Token::CodeBlock(_, _) | Token::Newline | Token::Header(_, _, _) if in_paragraph => {
                 in_paragraph = false;
@@ -230,7 +233,7 @@ pub fn parse(tokens: &[Token]) -> String {
             _ => {}
         }
         // Add content
-        match &slice[0] {
+        match token {
             Token::Plaintext(t) => {
                 let mut t: String = t.to_string();
                 if t.trim().is_empty() {continue}
@@ -318,7 +321,7 @@ pub fn parse(tokens: &[Token]) -> String {
             Token::HorizontalRule => {html.push_str("<hr />\n")},
             Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", sanitize_display_text(t)).as_str())},
             Token::Code(t) => {
-                html.push_str(format!("<pre><code>{}</code></pre>", sanitize_display_text(t)).as_str())},
+                html.push_str(format!("{}", sanitize_display_text(t)).as_str())},
             Token::CodeBlock(t, lang) => {
                 html.push_str("<pre>");
                 match lang.as_str() {
@@ -433,7 +436,10 @@ pub fn parse(tokens: &[Token]) -> String {
             html.push_str("</blockquote>\n");
         }
     }
-
+    if in_code && !matches!(token_iter.peek(), Some(Token::Code(_))) {
+        html.push_str("</code></pre>");
+        in_code = false;
+    }
 
     // Add references
     if references.len() > 0{
