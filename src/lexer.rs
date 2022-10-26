@@ -209,6 +209,7 @@ pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>, tokens: &Vec<Tok
     match whitespace {
         "    " if (matches!(tokens.last(), Some(Token::Plaintext(_))) && line.contains('#')) => return Err(ParseError{content: line}),
         "    " if (matches!(tokens.last(), Some(Token::Newline)) && line.contains('#')) => return Err(ParseError{content: line}),
+        "\t" if  matches!(tokens.last(), Some(Token::Code(_))) => return Err(ParseError{content: line}),
         "\t" | "    " | "  \t" => return Ok(Token::Code(line.to_string())),
         _ => {},
     }

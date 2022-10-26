@@ -163,6 +163,7 @@ pub fn lex<'a>(source: &'a str, ignore: &[char]) -> Vec<Token<'a>>{
             },
         }
     }
+    println!("tokens: {:?}", tokens);
     tokens
 }
 
@@ -173,12 +174,13 @@ pub fn parse(tokens: &[Token]) -> String {
     let mut in_ordered_list = false;
     let mut in_unordered_list = false;
     let mut in_paragraph = false;
+    let mut in_code = false;
     let mut quote_level = 0;
     let mut references = Vec::new();
 
-    for token in tokens.iter(){
+    for slice in tokens.windows(2){
         // Handle multi-liners
-        match token {
+        match &slice[0] {
             Token::Plaintext(t) if t.trim().is_empty() => {}, //Ignore empty plaintext tokens 
             Token::Tab | Token::DoubleTab => {},
             Token::OrderedListEntry(_) | Token::UnorderedListEntry(_) | Token::Newline if in_ordered_list | in_unordered_list => {},
@@ -207,6 +209,11 @@ pub fn parse(tokens: &[Token]) -> String {
                     html.push_str("<p>") 
                 }
             },
+            Token::Code(_) if in_code => {
+                if matches!(&slice[1], Token::Code(_)) {
+
+                }
+            },
             Token::BlockQuote(_, _) | Token::Newline if quote_level > 0 => {},
             Token::CodeBlock(_, _) | Token::Newline | Token::Header(_, _, _) if in_paragraph => {
                 in_paragraph = false;
@@ -223,7 +230,7 @@ pub fn parse(tokens: &[Token]) -> String {
             _ => {}
         }
         // Add content
-        match token {
+        match &slice[0] {
             Token::Plaintext(t) => {
                 let mut t: String = t.to_string();
                 if t.trim().is_empty() {continue}
