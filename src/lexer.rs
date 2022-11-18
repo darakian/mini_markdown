@@ -398,9 +398,11 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'
         char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
     }
     let line = char_iter.get_substring_from(line_index).unwrap_or("");
+    println!(">> {:?}", line);
+    println!(">> {:?}", crate::render(line));
     if line.starts_with(" [ ] "){return Ok(Token::TaskListItem(TaskBox::Unchecked, line[5..].to_string()))}
     else if line.starts_with(" [x] ") || line.starts_with(" [X] "){return Ok(Token::TaskListItem(TaskBox::Checked, line[5..].to_string()))}
-    else if line.starts_with(" "){return Ok(Token::UnorderedListEntry(line[1..].to_string()))}
+    else if line.starts_with(" "){return Ok(Token::UnorderedListEntry(crate::render(line)))}
     else {return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})}
 }
 
