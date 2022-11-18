@@ -84,4 +84,8 @@ impl <'a> MiniIter<'a> {
     pub fn get_substring_from(&self, start: usize) -> Option<&'a str> {
         self.the_str.get(start..self.index)
     }
+
+    pub fn get_substring_ahead(&self, end: usize) -> Option<&'a str> {
+        self.the_str.get(self.index..(self.index+end))
+    }
 }

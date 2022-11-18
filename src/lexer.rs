@@ -390,7 +390,14 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'
         1 => {},
         _ => {return Err(ParseError{content: "string length error"})},
     }
-    let line = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
+    let line_index = char_iter.get_index();
+    char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
+    while char_iter.get_substring_ahead(3) == Some("\n\n\t") {
+        char_iter.next();
+        char_iter.next();
+        char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
+    }
+    let line = char_iter.get_substring_from(line_index).unwrap_or("");
     if line.starts_with(" [ ] "){return Ok(Token::TaskListItem(TaskBox::Unchecked, line[5..].to_string()))}
     else if line.starts_with(" [x] ") || line.starts_with(" [X] "){return Ok(Token::TaskListItem(TaskBox::Checked, line[5..].to_string()))}
     else if line.starts_with(" "){return Ok(Token::UnorderedListEntry(line[1..].to_string()))}
