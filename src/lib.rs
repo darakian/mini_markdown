@@ -163,7 +163,6 @@ pub fn lex<'a>(source: &'a str, ignore: &[char]) -> Vec<Token<'a>>{
             },
         }
     }
-    println!("tokens: {:?}", tokens);
     tokens
 }
 
@@ -304,7 +303,8 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
                 let mut line = String::new();
                 for elem in t.iter(){
-                    line.push_str(&render(&sanitize_display_text(elem.trim_start())));
+                    println!("??{:?}", &render(&sanitize_display_text(&elem.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
+                    line.push_str(&render(&sanitize_display_text(&elem.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
                 }
                 html.push_str(format!("<li>\n{}</li>\n", line).as_str())
             },
@@ -441,6 +441,10 @@ pub fn parse(tokens: &[Token]) -> String {
         }
     }
     if in_code && !matches!(token_iter.peek(), Some(Token::Code(_))) {
+        match html.chars().last().unwrap() {
+            '\n' => {},
+            _ => {html.push('\n')},
+        }
         html.push_str("</code></pre>");
         in_code = false;
     }
