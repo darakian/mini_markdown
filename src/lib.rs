@@ -339,6 +339,8 @@ pub fn parse(tokens: &[Token]) -> String {
                 html.push_str("</pre>");
             },
             Token::BlockQuote(l, t) => {
+                println!("l: {:?}", l);
+                println!("t: {:?}", &render(&sanitize_display_text(&t.trim_start_matches(" "))).replace("\t", "  "));
                 if in_paragraph {
                     html.push_str("</p>");
                     in_paragraph = false;
@@ -356,13 +358,15 @@ pub fn parse(tokens: &[Token]) -> String {
                         let diff = l - quote_level;
                         quote_level = *l;
                         for _i in 0..diff {
-                            html.push_str("<blockquote>");
+                            html.push_str("<blockquote>\n");
                         }
                     },
                     _ => {},
                 }
                 if !t.is_empty(){
-                    html.push_str(format!("{}", sanitize_display_text(t)).as_str());
+                    html.push_str(
+                        &render(&sanitize_display_text(&t.trim_start_matches(" "))).replace("\t", "  ")
+                        );
                 }
             },
             Token::Image(l, t) => {

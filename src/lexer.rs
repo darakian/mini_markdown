@@ -270,8 +270,8 @@ pub(crate) fn lex_newlines<'a>(char_iter: &mut MiniIter<'a>, tokens: &Vec<Token>
 
 pub(crate) fn lex_blockquotes<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let right_arrows = char_iter.consume_while_case_holds(&|c| c == ">").unwrap_or("");
-    match char_iter.next_if_eq(" ") {
-        Some(" ") => {},
+    match char_iter.peek() {
+        Some(" ") | Some("\t") => {},
         _ => {return Err(ParseError{content: right_arrows})}
     }
     let s = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
