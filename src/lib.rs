@@ -303,7 +303,6 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
                 let mut line = String::new();
                 for elem in t.iter(){
-                    println!("??{:?}", &render(&sanitize_display_text(&elem.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
                     line.push_str(&render(&sanitize_display_text(&elem.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
                 }
                 html.push_str(format!("<li>\n{}</li>\n", line).as_str())
@@ -339,8 +338,6 @@ pub fn parse(tokens: &[Token]) -> String {
                 html.push_str("</pre>");
             },
             Token::BlockQuote(l, t) => {
-                println!("l: {:?}", l);
-                println!("t: {:?}", &render(&sanitize_display_text(&t.trim_start_matches(" "))).replace("\t", "  "));
                 if in_paragraph {
                     html.push_str("</p>");
                     in_paragraph = false;
