@@ -400,11 +400,13 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'
         char_iter.next();
         lines.push(char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or(""));
     }
+    println!(">> {:?}", lines);
     let line = char_iter.get_substring_from(line_index).unwrap_or("");
+    println!("line: {:?}", line);
     if line.starts_with(" [ ] "){return Ok(Token::TaskListItem(TaskBox::Unchecked, line[5..].to_string()))}
     else if line.starts_with(" [x] ") || line.starts_with(" [X] "){return Ok(Token::TaskListItem(TaskBox::Checked, line[5..].to_string()))}
     else if line.starts_with(" "){return Ok(Token::UnorderedListEntry(lines))}
-    else {return Err(ParseError{content: char_iter.get_substring_from(start_index).unwrap_or("")})}
+    else {return Ok(Token::UnorderedListEntry(lines))}
 }
 
 pub(crate) fn lex_numbers<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {

@@ -303,7 +303,12 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
                 let mut line = String::new();
                 for elem in t.iter(){
-                    line.push_str(&render(&sanitize_display_text(&elem.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
+                    if elem.starts_with("\t\t") {
+                        line.push_str(&render(&sanitize_display_text(&elem[1..].trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
+
+                    } else {
+                        line.push_str(&render(&sanitize_display_text(&elem.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
+                    }
                 }
                 html.push_str(format!("<li>\n{}</li>\n", line).as_str())
             },
