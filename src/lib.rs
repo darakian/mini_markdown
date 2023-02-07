@@ -302,7 +302,11 @@ pub fn parse(tokens: &[Token]) -> String {
                     in_unordered_list = true;
                     html.push_str("<ul>\n")
                 }
-                html.push_str(format!("<li>\n{}</li>\n", sanitize_display_text(t)).as_str())
+                let mut line = String::new();
+                for elem in t.iter(){
+                    line.push_str(&render(&sanitize_display_text(elem.trim_start())));
+                }
+                html.push_str(format!("<li>\n{}</li>\n", line).as_str())
             },
             Token::OrderedListEntry(t) => {
                 if in_ordered_list == false {
