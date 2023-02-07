@@ -209,7 +209,7 @@ pub(crate) fn lex_tabs_spaces<'a>(char_iter: &mut MiniIter<'a>, tokens: &Vec<Tok
     match whitespace {
         "    " if (matches!(tokens.last(), Some(Token::Plaintext(_))) && line.contains('#')) => return Err(ParseError{content: line}),
         "    " if (matches!(tokens.last(), Some(Token::Newline)) && line.contains('#')) => return Err(ParseError{content: line}),
-        "\t" if  matches!(tokens.last(), Some(Token::Code(_))) => return Err(ParseError{content: line}),
+        "\t" if  matches!(tokens.last(), Some(Token::Code(_))) => return Ok(Token::Code(line.to_string())),
         "\t" | "    " | "  \t" => return Ok(Token::Code(line.to_string())),
         "\t\t" => return Ok(Token::Code("\t".to_owned()+&line.to_string())),
         _ => {},
@@ -400,9 +400,7 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'
         char_iter.next();
         lines.push(char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or(""));
     }
-    println!(">> {:?}", lines);
     let line = char_iter.get_substring_from(line_index).unwrap_or("");
-    println!("line: {:?}", line);
     if line.starts_with(" [ ] "){return Ok(Token::TaskListItem(TaskBox::Unchecked, line[5..].to_string()))}
     else if line.starts_with(" [x] ") || line.starts_with(" [X] "){return Ok(Token::TaskListItem(TaskBox::Checked, line[5..].to_string()))}
     else if line.starts_with(" "){return Ok(Token::UnorderedListEntry(lines))}

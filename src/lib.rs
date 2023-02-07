@@ -163,6 +163,7 @@ pub fn lex<'a>(source: &'a str, ignore: &[char]) -> Vec<Token<'a>>{
             },
         }
     }
+    println!("tokens: {:?}", tokens);
     tokens
 }
 
