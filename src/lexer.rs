@@ -146,7 +146,7 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>,
 
 pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
     let start_index = char_iter.get_index();
-    let asterunds = char_iter.consume_while_case_holds(&|c| c == "*" || c == "_").unwrap_or("");
+    let asterunds = char_iter.consume_while_case_holds(&|c| c == "*" || c == "_" || c == "\t").unwrap_or("");
     if asterunds.len() == 1 && char_iter.next_if_eq(&" ").is_some(){
         let s = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
         char_iter.next();
@@ -184,7 +184,7 @@ pub(crate) fn lex_asterisk_underscore<'a>(char_iter: &mut MiniIter<'a>) -> Resul
             }
         },
         _ => {
-            if asterunds.chars().all(|x| x == '*') || asterunds.chars().all(|x| x == '_'){
+            if asterunds.replace("\t", "").chars().all(|x| x == '*') || asterunds.chars().all(|x| x == '_'){
                 return Ok(Token::HorizontalRule)
             } else {
                 return Err(ParseError{content: asterunds})
