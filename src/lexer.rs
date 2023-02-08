@@ -403,8 +403,9 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'
     let line = char_iter.get_substring_from(line_index).unwrap_or("");
     if line.starts_with(" [ ] "){return Ok(Token::TaskListItem(TaskBox::Unchecked, line[5..].to_string()))}
     else if line.starts_with(" [x] ") || line.starts_with(" [X] "){return Ok(Token::TaskListItem(TaskBox::Checked, line[5..].to_string()))}
-    else if line.starts_with(" "){return Ok(Token::UnorderedListEntry(lines))}
-    else {return Ok(Token::UnorderedListEntry(lines))}
+    else { // List entries may contain other lists 
+        return Ok(Token::UnorderedListEntry(lines))
+    }
 }
 
 pub(crate) fn lex_numbers<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>, ParseError<'a>> {
