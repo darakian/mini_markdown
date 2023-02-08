@@ -93,7 +93,7 @@ impl <'a> MiniIter<'a> {
         self.the_str[self.index..].find(pattern)
     }
 
-    pub fn get_line_ahead(&self) -> Option<&'a str> {
+    pub fn peek_line_ahead(&self) -> Option<&'a str> {
         match self.find_next("\n") {
             Some(newline_index) => return self.the_str.get(self.index..=(self.index+newline_index)),
             None => return None,
