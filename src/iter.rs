@@ -88,4 +88,15 @@ impl <'a> MiniIter<'a> {
     pub fn get_substring_ahead(&self, end: usize) -> Option<&'a str> {
         self.the_str.get(self.index..(self.index+end))
     }
+
+    pub fn find_next(&self, pattern: &str) -> Option<usize>{
+        self.the_str[self.index..].find(pattern)
+    }
+
+    pub fn get_line_ahead(&self) -> Option<&'a str> {
+        match self.find_next("\n") {
+            Some(newline_index) => return self.the_str.get(self.index..=(self.index+newline_index)),
+            None => return None,
+        }
+    }
 }
