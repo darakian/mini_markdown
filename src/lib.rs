@@ -310,7 +310,7 @@ pub fn parse(tokens: &[Token]) -> String {
                         Token::Plaintext(text) if text.starts_with("\t\t") => {
                             html.push_str(&render(&sanitize_display_text(&text[1..].trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));  
                         },
-                        Token::Plaintext(text) if text.starts_with("\t\t") => {
+                        Token::Plaintext(text) => {
                             html.push_str(&render(&sanitize_display_text(&text.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
                         },
                         _ => {},
