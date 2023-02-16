@@ -393,7 +393,6 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'
     }
     let line_index = char_iter.get_index();
     let mut list_element_tokens = vec![Token::Plaintext(char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("").to_string())];
-    //let mut lines = vec![char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("")];
     while char_iter.get_substring_ahead(3) == Some("\n\n\t") {
         char_iter.next();
         char_iter.next();

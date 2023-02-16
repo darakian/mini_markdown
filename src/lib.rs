@@ -297,21 +297,26 @@ pub fn parse(tokens: &[Token]) -> String {
                     }
                 }
             },
-            Token::UnorderedListEntry(t) => {
+            Token::UnorderedListEntry(toks) => {
                 if in_unordered_list == false {
                     in_unordered_list = true;
                     html.push_str("<ul>\n")
                 }
-                let mut line = String::new();
-                for elem in t.iter(){
-                    if elem.starts_with("\t\t") {
-                        line.push_str(&render(&sanitize_display_text(&elem[1..].trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
+                println!(">>? {:?}", toks);
 
-                    } else {
-                        line.push_str(&render(&sanitize_display_text(&elem.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
+                html.push_str(format!("<li>\n").as_str());
+                for token in toks.iter() {
+                    match token {
+                        Token::Plaintext(text) if text.starts_with("\t\t") => {
+                            html.push_str(&render(&sanitize_display_text(&text[1..].trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));  
+                        },
+                        Token::Plaintext(text) if text.starts_with("\t\t") => {
+                            html.push_str(&render(&sanitize_display_text(&text.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
+                        },
+                        _ => {},
                     }
                 }
-                html.push_str(format!("<li>\n{}</li>\n", line).as_str())
+                html.push_str(format!("</li>\n").as_str());
             },
             Token::OrderedListEntry(t) => {
                 if in_ordered_list == false {
