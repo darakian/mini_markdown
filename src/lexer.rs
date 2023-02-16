@@ -406,8 +406,14 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'
     else if line.starts_with(" [x] ") || line.starts_with(" [X] "){return Ok(Token::TaskListItem(TaskBox::Checked, line[5..].to_string()))}
     else { // List entries may contain other lists
         match char_iter.peek_line_ahead() {
-            Some(s) if s.starts_with("  ") => {println!("??? {:?}", crate::lex(s, &[]))},
-            Some(s) if s.starts_with("\t") => {println!("?-? {:?}", crate::lex(&s[1..], &[]))},
+            Some(s) if s.starts_with("  ") => {
+                let line = char_iter.consume_line_ahead().unwrap_or("");
+                list_element_tokens.append(&mut crate::lex(line, &[]))
+            },
+            Some(s) if s.starts_with("\t") => {
+                let line = char_iter.consume_line_ahead().unwrap_or("");
+                list_element_tokens.append(&mut crate::lex(&line[1..], &[]))
+            },
             _ => {},
         }
         return Ok(Token::UnorderedListEntry(list_element_tokens))

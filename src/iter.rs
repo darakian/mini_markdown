@@ -99,4 +99,15 @@ impl <'a> MiniIter<'a> {
             None => return None,
         }
     }
+
+    pub fn consume_line_ahead(&mut self) -> Option<&'a str> {
+        match self.find_next("\n") {
+            Some(newline_index) => {
+                let ret = self.the_str.get(self.index..=(self.index+newline_index));
+                self.index = self.index+newline_index;
+                return ret
+            },
+            None => return None,
+        }
+    }
 }
