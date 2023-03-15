@@ -51,6 +51,13 @@ pub enum Token<'a>{
     Footnote(String, String),
 }
 
+impl <'a> fmt::Display for Token<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+
 /// Holds the possible states of a taskbox in a task list
 #[derive(Debug, PartialEq, Eq)]
 pub enum TaskBox {

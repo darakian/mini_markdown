@@ -163,7 +163,7 @@ pub fn lex<'a>(source: &'a str, ignore: &[char]) -> Vec<Token<'a>>{
             },
         }
     }
-    println!("Tokens: {:?}", tokens);
+    //println!("Tokens: {:?}", tokens);
     tokens
 }
 
@@ -313,6 +313,20 @@ pub fn parse(tokens: &[Token]) -> String {
                         Token::Plaintext(text) => {
                             html.push_str(&render(&sanitize_display_text(&text.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
                         },
+                        Token::UnorderedListEntry(t) => {
+                            html.push_str("<ul>\n");
+                            match t.len() {
+                                1 if matches!(t[0], Token::Plaintext(_)) => {
+                                    html.push_str(&render(&sanitize_display_text(&t[0].to_string().trim_start_matches(" "))));
+                                }
+                                _ => {
+                                    let text = parse(t);
+                                    html.push_str(&render(&sanitize_display_text(&text.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
+                                }
+                            }
+                            html.push_str("</ul>\n");
+
+                        }
                         _ => {},
                     }
                 }
