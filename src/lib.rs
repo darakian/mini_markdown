@@ -317,6 +317,7 @@ pub fn parse(tokens: &[Token]) -> String {
                             html.push_str("<ul>\n");
                             match t.len() {
                                 1 if matches!(t[0], Token::Plaintext(_)) => {
+                                    println!("??? {:?}", t[0].to_string());
                                     html.push_str(&render(&sanitize_display_text(&t[0].to_string().trim_start_matches(" "))));
                                 }
                                 _ => {

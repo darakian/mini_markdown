@@ -53,7 +53,10 @@ pub enum Token<'a>{
 
 impl <'a> fmt::Display for Token<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
+        match self {
+            Token::Plaintext(t) => {write!(f, "{:?}", t)},
+            _ => {write!(f, "{:?}", self)}
+        }
     }
 }
 
