@@ -304,14 +304,14 @@ pub fn parse(tokens: &[Token]) -> String {
                 }
                 println!(">>? {:?}", toks);
 
-                html.push_str(format!("<li>\n").as_str());
+                html.push_str(format!("<li>").as_str());
                 for token in toks.iter() {
                     match token {
                         Token::Plaintext(text) if text.starts_with("\t\t") => {
                             html.push_str(&render(&sanitize_display_text(&text[1..].trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));  
                         },
                         Token::Plaintext(text) => {
-                            html.push_str(&sanitize_display_text(&text.trim_start_matches(" ")).replace("<pre><code>", "<pre><code>  "));
+                            html.push_str(&render(&sanitize_display_text(&text.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
                         },
                         Token::UnorderedListEntry(t) => {
                             html.push_str("<ul>\n");
