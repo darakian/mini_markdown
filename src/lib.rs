@@ -305,6 +305,7 @@ pub fn parse(tokens: &[Token]) -> String {
                 println!(">>? {:?}", toks);
 
                 html.push_str(format!("<li>").as_str());
+                if toks.into_iter().all(|t| matches!(t, Token::Plaintext(_))) {html.push_str(format!("\n").as_str());}
                 for token in toks.iter() {
                     match token {
                         Token::Plaintext(text) if text.starts_with("\t\t") => {
