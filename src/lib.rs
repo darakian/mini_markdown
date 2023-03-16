@@ -309,18 +309,12 @@ pub fn parse(tokens: &[Token]) -> String {
                 for token in toks.iter() {
                     match token {
                         Token::Plaintext(text) if text.starts_with("\t\t") => {
-                            html.push_str(&render(&sanitize_display_text(&text[1..].trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));  
+                            html.push_str(&render(&text[1..].trim_start_matches(" ")).replace("<pre><code>", "<pre><code>  "));  
                         },
                         Token::Plaintext(text) => {
-                            html.push_str(&render(&sanitize_display_text(&text.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
+                            let text = &render(&text.trim_start_matches(" ")).replace("<pre><code>", "<pre><code>  ");
+                            html.push_str(text);
                         },
-                        Token::UnorderedListEntry(t) => {
-                            html.push_str("<ul>\n");
-                            let text = parse(t);
-                            html.push_str(&render(&sanitize_display_text(&text.trim_start_matches(" "))).replace("<pre><code>", "<pre><code>  "));
-                            html.push_str("</ul>\n");
-
-                        }
                         _ => {},
                     }
                 }
