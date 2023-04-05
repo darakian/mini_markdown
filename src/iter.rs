@@ -8,7 +8,7 @@ impl <'a> Iterator for MiniIter<'a> {
     type Item = &'a str;
 
     fn next(&mut self) -> Option<Self::Item> {
-        for i in 1..=3 {
+        for i in 1..=4 {
             if self.the_str.is_char_boundary(self.index+i) {
                 let ret = self.the_str.get(self.index..self.index+i);
                 self.index += i;
@@ -32,7 +32,7 @@ impl <'a> MiniIter<'a> {
     }
 
     pub fn peek(&self) -> Option<&'a str> {
-        for i in 1..=3 {
+        for i in 1..=4 {
             if self.the_str.is_char_boundary(self.index+i) {
                 return self.the_str.get(self.index..self.index+i)
             }

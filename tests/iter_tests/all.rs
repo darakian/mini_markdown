@@ -28,7 +28,7 @@ fn consume_until_end_consumes_full_string() {
 
 #[test]
 fn next_advances_utf_correctly() {
-    let text_iter = "اa木b겅c€d";
+    let text_iter = "اa木b겅c€d𐍈e";
     let mut some_text_iter = MiniIter::new(&text_iter);
     assert_eq!(Some("ا"), some_text_iter.next());
     assert_eq!(Some("a"), some_text_iter.peek());
@@ -40,9 +40,10 @@ fn next_advances_utf_correctly() {
     assert_eq!(Some("겅"), some_text_iter.next());
     assert_eq!(Some("c"), some_text_iter.next());
     assert_eq!(Some("€"), some_text_iter.next());
+    assert_eq!(Some("d"), some_text_iter.peek());
     assert_eq!(Some("d"), some_text_iter.next());
-
-
+    assert_eq!(Some("𐍈"), some_text_iter.next());
+    assert_eq!(Some("e"), some_text_iter.next());
 }
 
 #[test]
