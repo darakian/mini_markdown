@@ -104,7 +104,7 @@ impl <'a> MiniIter<'a> {
         match self.find_next("\n") {
             Some(newline_index) => {
                 let ret = self.the_str.get(self.index..=(self.index+newline_index));
-                self.index = self.index+newline_index;
+                self.index = self.index+newline_index+1;
                 return ret
             },
             None => return None,
