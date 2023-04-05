@@ -1,6 +1,4 @@
 use mini_markdown::render;
-use mini_markdown::lex;
-
 
 #[test]
 fn commonmark_test_1_tabs() {

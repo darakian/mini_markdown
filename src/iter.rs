@@ -107,7 +107,7 @@ impl <'a> MiniIter<'a> {
                 self.update_index_to(self.index+newline_index+1);
                 return ret
             },
-            None if self.peek().is_some() => return {
+            None if self.peek().is_some() => {
                 let ret = self.the_str.get(self.index..=(self.the_str.len()-1));
                 self.update_index_to(self.the_str.len());
                 return ret
