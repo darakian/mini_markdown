@@ -1,8 +1,6 @@
 //
 pub struct MiniIter <'a> {
     the_str: &'a str,
-    char_index_iter: Box<dyn Iterator<Item = (usize, char)> + 'a>,
-    peek_storage: Option<&'a str>,
     index: usize,
 }
 
@@ -10,21 +8,13 @@ impl <'a> Iterator for MiniIter<'a> {
     type Item = &'a str;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.peek_storage {
-            Some(s) => {
-                self.peek_storage = None;
-                self.index += s.len();
-                Some(s)
+        match self.the_str.get(self.index..self.index+1){
+            Some(next) => {
+                self.index += next.len();
+                Some(next)
             },
-            None => {
-                match self.char_index_iter.next(){
-                    Some(t) => {
-                        self.index = t.0;
-                        self.the_str.get(t.0..=(t.0+t.1.len_utf8()-1))},
-                    None => None,
-                }                
-            },
-        }
+            None => None,
+        } 
     }
 }
 
@@ -32,17 +22,16 @@ impl <'a> MiniIter<'a> {
     pub fn new(source: &'a str) -> MiniIter<'a>{
         MiniIter {
             the_str: source, 
-            char_index_iter: Box::new(source.char_indices()), 
-            peek_storage: None,
             index: 0
         }
     }
 
+    fn update_index_to(&mut self, i: usize) {
+        self.index = i;
+    }
+
     pub fn peek(&mut self) -> Option<&'a str> {
-        if self.peek_storage.is_none() {
-            self.peek_storage = self.next();
-        }
-        self.peek_storage
+        self.the_str.get(self.index..self.index+1)
     }
 
     pub fn next_if_eq(&mut self, expected: &'a str) -> Option<&'a str> {
@@ -77,6 +66,10 @@ impl <'a> MiniIter<'a> {
         self.the_str.get(start_index..self.index)
     }
 
+    pub fn peek_until_end(&self) -> Option<&'a str> {
+        self.the_str.get(self.index..=(self.the_str.len()-1))
+    }
+
     pub fn get_index(&self) -> usize{
         self.index
     }
@@ -96,7 +89,7 @@ impl <'a> MiniIter<'a> {
     pub fn peek_line_ahead(&self) -> Option<&'a str> {
         match self.find_next("\n") {
             Some(newline_index) => return self.the_str.get(self.index..=(self.index+newline_index)),
-            None => return None,
+            None => return self.the_str.get(self.index..=(self.the_str.len()-1)),
         }
     }
 
@@ -104,10 +97,15 @@ impl <'a> MiniIter<'a> {
         match self.find_next("\n") {
             Some(newline_index) => {
                 let ret = self.the_str.get(self.index..=(self.index+newline_index));
-                self.index = self.index+newline_index+1;
+                self.update_index_to(self.index+newline_index+1);
                 return ret
             },
-            None => return None,
+            None if self.peek().is_some() => return {
+                let ret = self.the_str.get(self.index..=(self.the_str.len()-1));
+                self.update_index_to(self.the_str.len());
+                return ret
+            },
+            _ => None,
         }
     }
 }
