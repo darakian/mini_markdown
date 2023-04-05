@@ -8,13 +8,14 @@ impl <'a> Iterator for MiniIter<'a> {
     type Item = &'a str;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.the_str.get(self.index..self.index+1){
-            Some(next) => {
-                self.index += next.len();
-                Some(next)
-            },
-            None => None,
-        } 
+        for i in 1..=3 {
+            if self.the_str.is_char_boundary(self.index+i) {
+                let ret = self.the_str.get(self.index..self.index+i);
+                self.index += i;
+                return ret
+            }
+        }
+        None
     }
 }
 
@@ -30,8 +31,13 @@ impl <'a> MiniIter<'a> {
         self.index = i;
     }
 
-    pub fn peek(&mut self) -> Option<&'a str> {
-        self.the_str.get(self.index..self.index+1)
+    pub fn peek(&self) -> Option<&'a str> {
+        for i in 1..=3 {
+            if self.the_str.is_char_boundary(self.index+i) {
+                return self.the_str.get(self.index..self.index+i)
+            }
+        }
+        None
     }
 
     pub fn next_if_eq(&mut self, expected: &'a str) -> Option<&'a str> {

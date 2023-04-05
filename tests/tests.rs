@@ -26,3 +26,7 @@ mod commonmark {
 	// mod textual_content;
 	// mod thematic_breaks;
 }
+
+mod iter_tests {
+        mod all;
+}
