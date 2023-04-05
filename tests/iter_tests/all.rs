@@ -2,8 +2,8 @@ use mini_markdown::iter::MiniIter;
 
 #[test]
 fn peek_does_not_advance(){
-    let some_text_iter = "this is some plaintext";
-    let mut some_text_iter = MiniIter::new(&some_text_iter);
+    let some_text = "this is some plaintext";
+    let mut some_text_iter = MiniIter::new(&some_text);
     assert_eq!(Some("t"), some_text_iter.peek());
     assert_eq!(Some("t"), some_text_iter.peek());
     assert_eq!(Some("t"), some_text_iter.next());   
@@ -11,8 +11,8 @@ fn peek_does_not_advance(){
 
 #[test]
 fn peek_does_not_advance_utf(){
-    let some_text_iter = "الْأَ";
-    let mut some_text_iter = MiniIter::new(&some_text_iter);
+    let some_text = "الْأَ";
+    let mut some_text_iter = MiniIter::new(&some_text);
     assert_eq!(Some("ا"), some_text_iter.peek());
     assert_eq!(Some("ا"), some_text_iter.peek());
     assert_eq!(Some("ا"), some_text_iter.next());   
@@ -20,16 +20,16 @@ fn peek_does_not_advance_utf(){
 
 #[test]
 fn consume_until_end_consumes_full_string() {
-    let text_iter = "this is some plaintext";
-    let mut some_text_iter = MiniIter::new(&text_iter);
+    let some_text = "this is some plaintext";
+    let mut some_text_iter = MiniIter::new(&some_text);
     assert_eq!(Some("this is some plaintext"), some_text_iter.consume_until_end());
     assert_eq!(None, some_text_iter.next());
 }
 
 #[test]
 fn next_advances_utf_correctly() {
-    let text_iter = "اa木b겅c€d𐍈e";
-    let mut some_text_iter = MiniIter::new(&text_iter);
+    let some_text = "اa木b겅c€d𐍈e";
+    let mut some_text_iter = MiniIter::new(&some_text);
     assert_eq!(Some("ا"), some_text_iter.next());
     assert_eq!(Some("a"), some_text_iter.peek());
     assert_eq!(Some("a"), some_text_iter.next());
@@ -61,8 +61,8 @@ fn test_slashes() {
 
 #[test]
 fn general_iter_test(){
-    let text_iter = "this is some plaintext";
-    let mut some_text_iter = MiniIter::new(&text_iter);
+    let some_text = "this is some plaintext";
+    let mut some_text_iter = MiniIter::new(&some_text);
     assert_eq!(Some("t"), some_text_iter.peek());
     assert_eq!(Some("t"), some_text_iter.peek());
     assert_eq!(Some("t"), some_text_iter.next());
@@ -80,8 +80,8 @@ fn general_iter_test(){
 
 #[test]
 fn consume_peek_line_test(){
-    let text_iter = "this is some plaintext in a line\nAnd a new line with more content";
-    let mut some_text_iter = MiniIter::new(&text_iter);
+    let some_text = "this is some plaintext in a line\nAnd a new line with more content";
+    let mut some_text_iter = MiniIter::new(&some_text);
     assert_eq!(Some("this is some plaintext in a line\n"), some_text_iter.peek_line_ahead());
     assert_eq!(Some("this is some plaintext in a line\n"), some_text_iter.consume_line_ahead());
     assert_ne!(Some("this is some plaintext in a line\n"), some_text_iter.peek_line_ahead());
@@ -90,6 +90,19 @@ fn consume_peek_line_test(){
     assert_eq!(None, some_text_iter.peek_line_ahead());
 }
 
+#[test]
+fn test_degenerate_newlines() {
+    let some_text = "\n\n\n\n\nfoo\n";
+    let mut some_text_iter = MiniIter::new(&some_text);
+    assert_eq!(Some("\n"), some_text_iter.peek_line_ahead());
+    assert_eq!(Some("\n"), some_text_iter.consume_line_ahead());
+    assert_eq!(Some("\n"), some_text_iter.consume_line_ahead());
+    assert_eq!(Some("\n"), some_text_iter.consume_line_ahead());
+    assert_eq!(Some("\n"), some_text_iter.consume_line_ahead());
+    assert_eq!(Some("\n"), some_text_iter.consume_line_ahead());
+    assert_eq!(Some("foo\n"), some_text_iter.consume_line_ahead());
+    assert_eq!(None, some_text_iter.consume_line_ahead());
+}
 
 
 
