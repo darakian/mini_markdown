@@ -89,8 +89,7 @@ fn consume_peek_line_test(){
     println!(">> {:?}", some_text_iter.peek_until_end());
     assert_eq!(Some("And a new line with more content"), some_text_iter.consume_line_ahead());
     println!(">> {:?}", some_text_iter.peek_until_end());
-
-    assert_eq!(Some("this is some plaintext in a line\n"), some_text_iter.peek_line_ahead());
+    assert_eq!(None, some_text_iter.peek_line_ahead());
 }
 
 
