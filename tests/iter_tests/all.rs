@@ -50,7 +50,6 @@ fn next_advances_utf_correctly() {
 fn test_slashes() {
     let slashes = "¯\\\\\\\\\\¯";
     let mut slash_iter = MiniIter::new(&slashes);
-    println!(">> {:?}", slash_iter.peek_until_end());
     assert_eq!(Some("¯"), slash_iter.peek());
     assert_eq!(Some("¯"), slash_iter.next());
     assert_eq!(Some("\\"), slash_iter.peek());
@@ -87,9 +86,7 @@ fn consume_peek_line_test(){
     assert_eq!(Some("this is some plaintext in a line\n"), some_text_iter.consume_line_ahead());
     assert_ne!(Some("this is some plaintext in a line\n"), some_text_iter.peek_line_ahead());
     assert_eq!(Some("And a new line with more content"), some_text_iter.peek_line_ahead());
-    println!(">> {:?}", some_text_iter.peek_until_end());
     assert_eq!(Some("And a new line with more content"), some_text_iter.consume_line_ahead());
-    println!(">> {:?}", some_text_iter.peek_until_end());
     assert_eq!(None, some_text_iter.peek_line_ahead());
 }
 
