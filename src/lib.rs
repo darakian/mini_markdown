@@ -163,6 +163,7 @@ pub fn lex<'a>(source: &'a str, ignore: &[char]) -> Vec<Token<'a>>{
             },
         }
     }
+    //println!("Tokens: {:?}", tokens);
     tokens
 }
 
@@ -173,10 +174,14 @@ pub fn parse(tokens: &[Token]) -> String {
     let mut in_ordered_list = false;
     let mut in_unordered_list = false;
     let mut in_paragraph = false;
+    let mut in_code = false;
     let mut quote_level = 0;
     let mut references = Vec::new();
+    let mut token_iter = tokens.iter().peekable();
 
-    for token in tokens.iter(){
+    while token_iter.peek().is_some(){
+        let token = token_iter.next().unwrap();
+
         // Handle multi-liners
         match token {
             Token::Plaintext(t) if t.trim().is_empty() => {}, //Ignore empty plaintext tokens 
@@ -207,6 +212,11 @@ pub fn parse(tokens: &[Token]) -> String {
                     html.push_str("<p>") 
                 }
             },
+            Token::Code(_) if !in_code => {
+                html.push_str("<pre><code>");
+                in_code = true;
+            },
+            
             Token::BlockQuote(_, _) | Token::Newline if quote_level > 0 => {},
             Token::CodeBlock(_, _) | Token::Newline | Token::Header(_, _, _) if in_paragraph => {
                 in_paragraph = false;
@@ -287,19 +297,35 @@ pub fn parse(tokens: &[Token]) -> String {
                     }
                 }
             },
-            Token::UnorderedListEntry(t) => {
+            Token::UnorderedListEntry(toks) => {
                 if in_unordered_list == false {
                     in_unordered_list = true;
-                    html.push_str("<ul>")
+                    html.push_str("<ul>\n")
                 }
-                html.push_str(format!("<li>{}</li>", sanitize_display_text(t)).as_str())
+                println!(">>? {:?}", toks);
+
+                html.push_str(format!("<li>").as_str());
+                if toks.into_iter().all(|t| matches!(t, Token::Plaintext(_))) {html.push_str(format!("\n").as_str());}
+                for token in toks.iter() {
+                    match token {
+                        Token::Plaintext(text) if text.starts_with("\t\t") => {
+                            html.push_str(&render(&text[1..].trim_start_matches(" ")).replace("<pre><code>", "<pre><code>  "));  
+                        },
+                        Token::Plaintext(text) => {
+                            let text = &render(&text.trim_start_matches(" ")).replace("<pre><code>", "<pre><code>  ");
+                            html.push_str(text);
+                        },
+                        _ => {},
+                    }
+                }
+                html.push_str(format!("</li>\n").as_str());
             },
             Token::OrderedListEntry(t) => {
                 if in_ordered_list == false {
                     in_ordered_list = true;
-                    html.push_str(format!("<ol>").as_str())
+                    html.push_str(format!("<ol>\n").as_str())
                 }
-                html.push_str(format!("<li>{}</li>", sanitize_display_text(t)).as_str())
+                html.push_str(format!("<li>\n{}</li>\n", sanitize_display_text(t)).as_str())
             },
             Token::Newline => {},
             Token::Tab => {html.push('\t')},
@@ -311,7 +337,7 @@ pub fn parse(tokens: &[Token]) -> String {
             Token::HorizontalRule => {html.push_str("<hr />\n")},
             Token::Strikethrough(t) => {html.push_str(format!("<strike>{}</strike>", sanitize_display_text(t)).as_str())},
             Token::Code(t) => {
-                html.push_str(format!("<pre><code>{}</code></pre>", sanitize_display_text(t)).as_str())},
+                html.push_str(format!("{}", sanitize_display_text(t)).as_str())},
             Token::CodeBlock(t, lang) => {
                 html.push_str("<pre>");
                 match lang.as_str() {
@@ -342,13 +368,15 @@ pub fn parse(tokens: &[Token]) -> String {
                         let diff = l - quote_level;
                         quote_level = *l;
                         for _i in 0..diff {
-                            html.push_str("<blockquote>");
+                            html.push_str("<blockquote>\n");
                         }
                     },
                     _ => {},
                 }
                 if !t.is_empty(){
-                    html.push_str(format!("{}", sanitize_display_text(t)).as_str());
+                    html.push_str(
+                        &render(&sanitize_display_text(&t.trim_start_matches(" "))).replace("\t", "  ")
+                        );
                 }
             },
             Token::Image(l, t) => {
@@ -426,7 +454,14 @@ pub fn parse(tokens: &[Token]) -> String {
             html.push_str("</blockquote>\n");
         }
     }
-
+    if in_code && !matches!(token_iter.peek(), Some(Token::Code(_))) {
+        match html.chars().last().unwrap() {
+            '\n' => {},
+            _ => {html.push('\n')},
+        }
+        html.push_str("</code></pre>");
+        in_code = false;
+    }
 
     // Add references
     if references.len() > 0{

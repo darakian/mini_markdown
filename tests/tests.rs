@@ -22,7 +22,7 @@ mod commonmark {
 	// mod raw_html;
 	// mod setext_headings;
 	// mod soft_line_breaks;
-	// mod tabs;
+	mod tabs;
 	// mod textual_content;
 	// mod thematic_breaks;
 }
