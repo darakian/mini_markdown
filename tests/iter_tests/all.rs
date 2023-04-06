@@ -104,7 +104,14 @@ fn test_degenerate_newlines() {
     assert_eq!(None, some_text_iter.consume_line_ahead());
 }
 
-
+#[test]
+fn test_mixed_chars() {
+    let some_text = "  - foo\n\n\tbar\n";
+    let mut some_text_iter = MiniIter::new(&some_text);
+    assert_eq!(Some("  - foo\n"), some_text_iter.consume_line_ahead());
+    assert_eq!(Some("\n"), some_text_iter.consume_line_ahead());
+    assert_eq!(Some("\tbar\n"), some_text_iter.consume_line_ahead());
+}
 
 
 
