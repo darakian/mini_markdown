@@ -163,7 +163,6 @@ pub fn lex<'a>(source: &'a str, ignore: &[char]) -> Vec<Token<'a>>{
             },
         }
     }
-    //println!("Tokens: {:?}", tokens);
     tokens
 }
 
@@ -302,7 +301,6 @@ pub fn parse(tokens: &[Token]) -> String {
                     in_unordered_list = true;
                     html.push_str("<ul>\n")
                 }
-                println!(">>? {:?}", toks);
 
                 html.push_str(format!("<li>").as_str());
                 if toks.into_iter().all(|t| matches!(t, Token::Plaintext(_))) {html.push_str(format!("\n").as_str());}

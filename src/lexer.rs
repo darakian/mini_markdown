@@ -407,7 +407,6 @@ pub(crate) fn lex_plus_minus<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'
         char_iter.next();
         char_iter.next();
         char_iter.next();
-        char_iter.next();
         list_element_tokens.push(Token::Plaintext(char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("").to_string()));
     }
     let line = char_iter.get_substring_from(line_index).unwrap_or("");
