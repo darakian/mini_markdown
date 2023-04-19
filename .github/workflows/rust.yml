@@ -19,4 +19,4 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
     - name: Lint for print outs
-      run: cargo clippy -- -D clippy::print_literal
+      run: !$(grep -r "println!" src/)
