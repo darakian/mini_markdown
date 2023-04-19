@@ -19,6 +19,14 @@ fn peek_does_not_advance_utf(){
 }
 
 #[test]
+fn modern_standard_arabic_test(){
+    let some_text = "الْﺦﷺأَ"; // لْ is a weird character. 2 bytes are valid for the base and two more add the little circle on top.
+    let mut some_text_iter = MiniIter::new(&some_text);
+    assert_eq!(Some("الْﺦﷺأَ"), some_text_iter.consume_line_ahead());
+    assert_eq!(None, some_text_iter.next());
+}
+
+#[test]
 fn consume_until_end_consumes_full_string() {
     let some_text = "this is some plaintext";
     let mut some_text_iter = MiniIter::new(&some_text);
