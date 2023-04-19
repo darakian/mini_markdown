@@ -10,7 +10,13 @@ impl <'a> Iterator for MiniIter<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         for i in 1..=4 {
             if self.the_str.is_char_boundary(self.index+i) {
+                println!("0 >> {:?}", self.the_str.get(self.index..self.index+0));
+                println!("1 >> {:?}", self.the_str.get(self.index..self.index+1));
+                println!("2 >> {:?}", self.the_str.get(self.index..self.index+2));
+                println!("3 >> {:?}", self.the_str.get(self.index..self.index+3));
+                println!("4 >> {:?}", self.the_str.get(self.index..self.index+4));
                 let ret = self.the_str.get(self.index..self.index+i);
+                println!("ret: {:?}, i: {:?}", ret, i);
                 self.index += i;
                 return ret
             }
