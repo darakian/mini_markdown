@@ -19,4 +19,4 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
     - name: Check for print outs
-      run: if [ grep -r "println!" src/ ]; then exit 1
+      run: printouts=$(grep -r 'println!' src/); test -z "$printouts"
