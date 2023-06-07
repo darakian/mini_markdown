@@ -241,7 +241,7 @@ pub fn parse(tokens: &[Token]) -> String {
                 match t.rfind('\n') {
                     None => {},
                     Some(n_index) => {
-                        let (before, after) = t.split_at(n_index);
+                        let (_before, after) = t.split_at(n_index);
                         if after.chars().all(|c| c.is_whitespace()) {
                             t = t.trim_end_matches(after).to_string();
                         } 
@@ -458,7 +458,6 @@ pub fn parse(tokens: &[Token]) -> String {
             _ => {html.push('\n')},
         }
         html.push_str("</code></pre>");
-        in_code = false;
     }
 
     // Add references
