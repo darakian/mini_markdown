@@ -124,12 +124,11 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>,
     if char_iter.next_if_eq(&" ").is_none() && char_iter.next_if_eq(&"\t").is_none() && char_iter.peek() != Some(&"\n"){
         return Err(ParseError{content: hashes});
     }
-    let line = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
-    let mut heading = "";
+    let mut line = char_iter.consume_while_case_holds(&|c| c != "\n").unwrap_or("");
     if line.contains("{#") && 
         line.contains('}') {
             let (heading, _title) = line.split_once("{").unwrap_or(("",""));
-            let line = line.strip_prefix(&heading).unwrap()
+            line = line.strip_prefix(&heading).unwrap()
                 .strip_prefix("{#").unwrap()
                 .strip_suffix("}").unwrap();
         }
@@ -148,9 +147,6 @@ pub(crate) fn lex_heading<'a>(char_iter: &mut MiniIter<'a>) -> Result<Token<'a>,
     let parsed_line = crate::render_ignore(line_without_optional_trailing_hash_sequence.trim_end_matches(&[' ', '\t']), &['#'])
         .strip_prefix("<p>").unwrap_or("")
         .strip_suffix("</p>\n").unwrap_or("").trim().to_string();
-    if heading != "" {
-        return Ok(Token::Header(hashes.len(), heading.trim().to_string(), Some(parsed_line)));
-    }
     return Ok(Token::Header(hashes.len(), parsed_line, None));
 }
 
