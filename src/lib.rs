@@ -1,5 +1,7 @@
 pub mod lexer;
 pub mod iter;
+pub mod line_lexer;
+pub mod blocks;
 use std::fmt;
 use crate::lexer::*;
 use crate::iter::MiniIter;

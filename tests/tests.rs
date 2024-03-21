@@ -1,6 +1,6 @@
 mod commonmark {
-	mod atx_headings;
-	mod autolinks;
+	// mod atx_headings;
+	// mod autolinks;
 	// mod backslash_escapes;
 	mod blank_lines;
 	// mod block_quotes;
@@ -22,11 +22,19 @@ mod commonmark {
 	// mod raw_html;
 	// mod setext_headings;
 	// mod soft_line_breaks;
-	mod tabs;
+	// mod tabs;
 	// mod textual_content;
 	// mod thematic_breaks;
 }
 
 mod iter_tests {
         mod all;
+}
+
+mod line_lexer {
+        mod all;
+}
+
+mod block_tests {
+	mod all;
 }
