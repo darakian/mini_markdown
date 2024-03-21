@@ -50,7 +50,10 @@ pub enum ContainerBlock{
 impl CommonmarkBlock for ContainerBlock {
     fn render (&self) -> String {
         match self {
-            ContainerBlock::BlockQuote(blocks) => {"TODO".to_string()},
+            ContainerBlock::BlockQuote(blocks) => {
+                let inner_text = blocks.iter().map(|x| x.render()).collect::<Vec<_>>().join("");
+                format!("<blockquote>\n{inner_text}\n</blockquote>")
+            },
             ContainerBlock::BulletListMarker(blocks) => {"TODO".to_string()},
             ContainerBlock::OrderedListMarker(list_num, blocks) => {"TODO".to_string()},
  
