@@ -51,7 +51,7 @@ impl CommonmarkBlock for ContainerBlock {
     fn render (&self) -> String {
         match self {
             ContainerBlock::BlockQuote(blocks) => {
-                let inner_text = blocks.iter().map(|x| x.render()).collect::<Vec<_>>().join("");
+                let inner_text = blocks.iter().map(|x| x.render()).collect::<Vec<_>>().join("\n");
                 format!("<blockquote>\n{inner_text}\n</blockquote>")
             },
             ContainerBlock::BulletListMarker(blocks) => {"TODO".to_string()},
